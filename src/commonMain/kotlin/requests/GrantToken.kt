@@ -1,21 +1,32 @@
 package com.github.devngho.kisopenapi.requests
 
 import com.github.devngho.kisopenapi.KisOpenApi
+import com.github.devngho.kisopenapi.requests.util.RequestError
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import kotlinx.serialization.Serializable
 
-class GrantToken(override val client: KisOpenApi): DataRequest<EmptyData, GrantToken.GrantTokenResponse> {
-    data class GrantTokenResponse(val access_token: String, val expires_in: Int): Response
-    data class GrantTokenData(val grant_type: String, val appKey: String, val appSecret: String): Data
+class GrantToken(override val client: KisOpenApi): NoDataRequest<GrantToken.GrantTokenResponse> {
+    @Serializable
+    data class GrantTokenResponse(val access_token: String, val expires_in: Int): Response {
+        override val error_description: String? = null
+        override val error_code: String? = null
+    }
 
-    override suspend fun call(data: EmptyData): GrantTokenResponse {
+    @Serializable
+    data class GrantTokenJson(val grant_type: String, val appkey: String, val appsecret: String)
+
+    override suspend fun call(): GrantTokenResponse {
         return client.httpClient.post(
             if (client.isDemo) "https://openapi.koreainvestment.com:9443/oauth2/tokenP"
             else               "https://openapivts.koreainvestment.com:29443/oauth2/tokenP"
         ) {
             contentType(ContentType.Application.Json)
-            setBody(GrantTokenData("client_credentials", client.appKey, client.appSecret))
-        }.body()
+            setBody(GrantTokenJson("client_credentials", client.appKey, client.appSecret))
+        }.body<GrantTokenResponse>().run {
+            if (this.error_code != null) throw RequestError(this.error_description)
+            this
+        }
     }
 }

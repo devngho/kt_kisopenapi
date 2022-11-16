@@ -1,11 +1,27 @@
-import org.jetbrains.kotlin.util.capitalizeDecapitalize.toLowerCaseAsciiOnly
+import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 
 plugins {
     kotlin("multiplatform") version "1.7.20"
+    kotlin("plugin.serialization") version "1.7.20"
+    `maven-publish`
 }
 
 group = "com.github.devngho"
 version = "1.0-SNAPSHOT"
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/devngho/kt_kisopenapi") // Github Package
+            credentials {
+                //Fetch these details from the properties file or from Environment variables
+                username = System.getenv("GPR_USER")
+                password = System.getenv("GPR_API_KEY")
+            }
+        }
+    }
+}
 
 repositories {
     mavenCentral()
@@ -19,13 +35,6 @@ kotlin {
         withJava()
         testRuns["test"].executionTask.configure {
             useTestNG()
-        }
-    }
-    js(BOTH) {
-        browser {
-            commonWebpackConfig {
-                cssSupport.enabled = true
-            }
         }
     }
     val hostOs = System.getProperty("os.name")
@@ -49,37 +58,51 @@ kotlin {
         val ktorVersion = "2.1.3"
         val coroutineVersion = "1.6.4"
 
+        fun KotlinDependencyHandler.standard() {
+            implementation("io.ktor:ktor-client-core:$ktorVersion")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
+            implementation("com.ionspin.kotlin:bignum:0.3.7")
+            implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:0.3.2")
+        }
+
         val commonMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-core:$ktorVersion")
                 implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
+                standard()
             }
         }
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
+                standard()
             }
         }
         val jvmMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
+                implementation("io.ktor:ktor-client-cio:$ktorVersion")
+                standard()
             }
         }
-        val jvmTest by getting
-        val jsMain by getting {
+        val jvmTest by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-js:$coroutineVersion")
+                implementation("io.ktor:ktor-client-cio:$ktorVersion")
+                standard()
             }
         }
-        val jsTest by getting
         val nativeMain by getting {
             dependencies {
+                implementation("io.ktor:ktor-client-curl:$ktorVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-$platform:$coroutineVersion")
+                standard()
             }
         }
-        val nativeTest by getting
+        val nativeTest by getting {
+            dependencies {
+                implementation("io.ktor:ktor-client-curl:$ktorVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-$platform:$coroutineVersion")
+                standard()
+            }
+        }
     }
 }

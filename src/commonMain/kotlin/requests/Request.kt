@@ -2,9 +2,12 @@ package com.github.devngho.kisopenapi.requests
 
 import com.github.devngho.kisopenapi.KisOpenApi
 
-sealed interface Data
-object EmptyData : Data
-sealed interface Response
+interface Data
+@Suppress("propertyName")
+interface Response {
+    val error_description: String?
+    val error_code: String?
+}
 
 sealed interface Request<T: Response> {
     val client: KisOpenApi
