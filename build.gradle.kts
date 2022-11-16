@@ -92,7 +92,6 @@ kotlin {
         }
         val nativeMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-cio:$ktorVersion")
                 implementation("io.ktor:ktor-client-curl:$ktorVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-$platform:$coroutineVersion")
                 standard()
@@ -100,7 +99,6 @@ kotlin {
         }
         val nativeTest by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-cio:$ktorVersion")
                 implementation("io.ktor:ktor-client-curl:$ktorVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-$platform:$coroutineVersion")
                 standard()
