@@ -20,7 +20,7 @@ class RevokeToken(override val client: KisOpenApi):
 
     data class RevokeTokenData(val token: String): Data
 
-    override suspend fun call(data: Data): RevokeTokenResponse {
+    override suspend fun call(data: RevokeTokenData): RevokeTokenResponse {
         return client.httpClient.post(
             if (client.isDemo) "https://openapi.koreainvestment.com:9443/oauth2/revokeP"
             else               "https://openapivts.koreainvestment.com:29443/oauth2/revokeP"

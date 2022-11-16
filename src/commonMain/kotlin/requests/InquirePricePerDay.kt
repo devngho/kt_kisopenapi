@@ -53,7 +53,10 @@ class InquirePricePerDay(override val client: KisOpenApi):
         @SerialName("hts_frgn_ehrt") @Contextual override val htsForeignerExhaustionRate: BigDecimal?,
         @SerialName("frgn_ntby_qty") @Contextual override val foreignerNetBuyCount: BigInteger?,
         @SerialName("prdy_vrss_vol_rate") @Contextual override val rateTradeVolumeFromYesterday: BigDecimal?
-    ): StockPriceHighMax
+    ): StockPriceHighMax {
+        override val error_description: String? = null
+        override val error_code: String? = null
+    }
 
     data class InquirePricePerDayData(val stockCode: String, val period: PeriodDivisionCode = PeriodDivisionCode.Days30, val useOriginalPrice: Boolean = false, override val tradeContinuous: String? = ""): Data, TradeContinuousData
 

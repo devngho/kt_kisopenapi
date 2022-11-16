@@ -43,7 +43,10 @@ class InquireConfirm(override val client: KisOpenApi):
         @SerialName("cntg_vol") @Contextual val confirmVolume: BigInteger,
         @SerialName("tday_rltv") @Contextual val todayConfirmPowerVolume: BigDecimal,
         @SerialName("prdy_ctrt") @Contextual override val rateFromYesterday: BigDecimal,
-    ): StockPriceBase
+    ): StockPriceBase {
+        override val error_description: String? = null
+        override val error_code: String? = null
+    }
 
     data class InquireConfirmData(val stockCode: String, override val tradeContinuous: String? = ""): Data, TradeContinuousData
 
