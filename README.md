@@ -1,6 +1,12 @@
-# kotlin-kisopenapi
+# kt-kisopenapi
 https://apiportal.koreainvestment.com/about
+
 한국투자증권의 REST & WebSocket 방식 새 API 서비스를 쉽게 사용할 수 있는 Kotlin 라이브러리.
+
+> ❗비공식 API입니다.
+## 사용하기
+Github packages를 사용하세요.
+
 ## 구현 진행
 ### API
 다이렉트로 API 접속(비권장)
