@@ -1,10 +1,10 @@
-package com.github.devngho.kisopenapi.requests
+package io.github.devngho.kisopenapi.requests
 
-import com.github.devngho.kisopenapi.KisOpenApi
-import com.github.devngho.kisopenapi.requests.response.StockPriceFull
-import com.github.devngho.kisopenapi.requests.response.TradeContinuousData
-import com.github.devngho.kisopenapi.requests.response.TradeContinuousResponse
-import com.github.devngho.kisopenapi.requests.util.*
+import io.github.devngho.kisopenapi.KisOpenApi
+import io.github.devngho.kisopenapi.requests.response.StockPriceFull
+import io.github.devngho.kisopenapi.requests.response.TradeContinuousData
+import io.github.devngho.kisopenapi.requests.response.TradeContinuousResponse
+import io.github.devngho.kisopenapi.requests.util.*
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.ktor.client.call.*

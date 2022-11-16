@@ -6,25 +6,29 @@ plugins {
     `maven-publish`
 }
 
-group = "com.github.devngho"
-version = "1.0-SNAPSHOT"
-
-publishing {
-    repositories {
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/devngho/kt_kisopenapi") // Github Package
-            credentials {
-                //Fetch these details from the properties file or from Environment variables
-                username = System.getenv("GPR_USER")
-                password = System.getenv("GPR_API_KEY")
-            }
-        }
-    }
-}
+group = "io.github.devngho"
+version = "0.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
+}
+
+publishing {
+    repositories {
+
+        if (version.toString().endsWith("SNAPSHOT")) {
+            maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") {
+                name = "sonatypeSnapshotRepository"
+                credentials(PasswordCredentials::class)
+            }
+        } else {
+            maven("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                name = "sonatypeReleaseRepository"
+                credentials(PasswordCredentials::class)
+            }
+        }
+
+    }
 }
 
 kotlin {

@@ -1,7 +1,7 @@
-package com.github.devngho.kisopenapi.requests
+package io.github.devngho.kisopenapi.requests
 
-import com.github.devngho.kisopenapi.KisOpenApi
-import com.github.devngho.kisopenapi.requests.util.RequestError
+import io.github.devngho.kisopenapi.KisOpenApi
+import io.github.devngho.kisopenapi.requests.util.RequestError
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*

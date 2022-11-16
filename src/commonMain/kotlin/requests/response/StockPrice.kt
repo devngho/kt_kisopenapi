@@ -1,6 +1,6 @@
-package com.github.devngho.kisopenapi.requests.response
+package io.github.devngho.kisopenapi.requests.response
 
-import com.github.devngho.kisopenapi.requests.Response
+import io.github.devngho.kisopenapi.requests.Response
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName

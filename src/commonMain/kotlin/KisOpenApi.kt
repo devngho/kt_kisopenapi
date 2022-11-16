@@ -1,7 +1,7 @@
-package com.github.devngho.kisopenapi
+package io.github.devngho.kisopenapi
 
-import com.github.devngho.kisopenapi.requests.GrantToken
-import com.github.devngho.kisopenapi.requests.util.createHttpClient
+import io.github.devngho.kisopenapi.requests.GrantToken
+import io.github.devngho.kisopenapi.requests.util.createHttpClient
 
 class KisOpenApi internal constructor(val appKey: String, val appSecret: String, val isDemo: Boolean) {
     lateinit var oauthToken: String

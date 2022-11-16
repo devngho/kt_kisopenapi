@@ -1,12 +1,12 @@
-package com.github.devngho.kisopenapi.layer
+package io.github.devngho.kisopenapi.layer
 
-import com.github.devngho.kisopenapi.KisOpenApi
-import com.github.devngho.kisopenapi.requests.InquirePrice
-import com.github.devngho.kisopenapi.requests.Response
-import com.github.devngho.kisopenapi.requests.response.StockPrice
-import com.github.devngho.kisopenapi.requests.response.StockPriceBase
-import com.github.devngho.kisopenapi.requests.response.StockPriceFull
-import com.github.devngho.kisopenapi.requests.response.StockPriceHighMax
+import io.github.devngho.kisopenapi.KisOpenApi
+import io.github.devngho.kisopenapi.requests.InquirePrice
+import io.github.devngho.kisopenapi.requests.Response
+import io.github.devngho.kisopenapi.requests.response.StockPrice
+import io.github.devngho.kisopenapi.requests.response.StockPriceBase
+import io.github.devngho.kisopenapi.requests.response.StockPriceFull
+import io.github.devngho.kisopenapi.requests.response.StockPriceHighMax
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import kotlin.reflect.KClass

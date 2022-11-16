@@ -1,4 +1,4 @@
-package com.github.devngho.kisopenapi.requests.util
+package io.github.devngho.kisopenapi.requests.util
 
 import com.ionspin.kotlin.bignum.serialization.kotlinx.humanReadableSerializerModule
 import io.ktor.client.*

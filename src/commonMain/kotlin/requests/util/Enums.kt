@@ -1,4 +1,4 @@
-package com.github.devngho.kisopenapi.requests.util
+package io.github.devngho.kisopenapi.requests.util
 
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.ExperimentalSerializationApi

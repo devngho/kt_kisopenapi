@@ -1,9 +1,9 @@
-package com.github.devngho.kisopenapi.requests.response
+package io.github.devngho.kisopenapi.requests.response
 
-import com.github.devngho.kisopenapi.requests.Response
-import com.github.devngho.kisopenapi.requests.util.MarketWarnCode
-import com.github.devngho.kisopenapi.requests.util.StockState
-import com.github.devngho.kisopenapi.requests.util.YNSerializer
+import io.github.devngho.kisopenapi.requests.Response
+import io.github.devngho.kisopenapi.requests.util.MarketWarnCode
+import io.github.devngho.kisopenapi.requests.util.StockState
+import io.github.devngho.kisopenapi.requests.util.YNSerializer
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import kotlinx.serialization.Contextual

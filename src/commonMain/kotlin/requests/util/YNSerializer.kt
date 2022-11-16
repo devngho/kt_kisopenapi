@@ -1,4 +1,4 @@
-package com.github.devngho.kisopenapi.requests.util
+package io.github.devngho.kisopenapi.requests.util
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind

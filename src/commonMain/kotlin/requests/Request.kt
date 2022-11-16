@@ -1,6 +1,6 @@
-package com.github.devngho.kisopenapi.requests
+package io.github.devngho.kisopenapi.requests
 
-import com.github.devngho.kisopenapi.KisOpenApi
+import io.github.devngho.kisopenapi.KisOpenApi
 
 interface Data
 @Suppress("propertyName")
