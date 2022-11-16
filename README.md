@@ -7,6 +7,9 @@ https://apiportal.koreainvestment.com/about
 ## 사용하기
 Github packages를 사용하세요.
 
+## 개발 도와주기
+### 개발자이신가요?
+Pull requests를 사용하거나 Issues를 만들어주세요!
 ## 구현 진행
 ### API
 다이렉트로 API 접속(비권장)
