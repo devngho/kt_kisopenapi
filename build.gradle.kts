@@ -3,35 +3,81 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 plugins {
     kotlin("multiplatform") version "1.7.20"
     kotlin("plugin.serialization") version "1.7.20"
+    id("org.jetbrains.dokka") version "1.7.20"
     `maven-publish`
+    signing
 }
 
 group = "io.github.devngho"
-version = "0.1-SNAPSHOT"
+version = "0.1"
 
 repositories {
     mavenCentral()
 }
 
-publishing {
-    repositories {
+val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class)
 
-        if (version.toString().endsWith("SNAPSHOT")) {
-            maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") {
-                name = "sonatypeSnapshotRepository"
-                credentials(PasswordCredentials::class)
-            }
-        } else {
-            maven("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                name = "sonatypeReleaseRepository"
-                credentials(PasswordCredentials::class)
-            }
-        }
-
-    }
+val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
+    dependsOn(dokkaHtml)
+    archiveClassifier.set("javadoc")
+    from(dokkaHtml.outputDirectory)
 }
 
 kotlin {
+    publishing {
+        signing {
+            sign(publishing.publications)
+        }
+
+        repositories {
+            if (version.toString().endsWith("SNAPSHOT")) {
+                maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") {
+                    name = "sonatypeSnapshotRepository"
+                    credentials(PasswordCredentials::class)
+                }
+            } else {
+                maven("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                    name = "sonatypeReleaseRepository"
+                    credentials(PasswordCredentials::class)
+                }
+            }
+        }
+
+        publications.withType(MavenPublication::class) {
+            groupId = project.group as String?
+            artifactId = "kt_kisopenapi"
+            version = project.version as String?
+
+            artifact(tasks["javadocJar"])
+
+            pom {
+                name.set(artifactId)
+                description.set("A Kotlin library for korea stock trading.")
+                url.set("https://github.com/devngho/kt_kisopenapi")
+
+
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("https://github.com/devngho/kt_kisopenapi/blob/master/LICENSE")
+                    }
+                }
+                developers {
+                    developer {
+                        id.set("devngho")
+                        name.set("devngho")
+                        email.set("yjh135908@gmail.com")
+                    }
+                }
+                scm {
+                    connection.set("https://github.com/devngho/kt_kisopenapi.git")
+                    developerConnection.set("https://github.com/devngho/kt_kisopenapi.git")
+                    url.set("https://github.com/devngho/kt_kisopenapi")
+                }
+            }
+        }
+    }
+
     jvm {
         compilations.all {
             kotlinOptions.jvmTarget = "1.8"
