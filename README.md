@@ -1,11 +1,13 @@
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.devngho/kt_kisopenapi/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.devngho/kt_kisopenapi)
 # kt-kisopenapi
+
 https://apiportal.koreainvestment.com/about
 
 한국투자증권의 REST & WebSocket 방식 새 API 서비스를 쉽게 사용할 수 있는 Kotlin 라이브러리.
 
 > ❗비공식 API입니다.
 ## 사용하기
-Github packages를 사용하세요.
+Maven central에 배포되어 있습니다.
 
 ## 개발 도와주기
 Pull requests를 사용하거나 Issues를 만들어주세요!
