@@ -1,8 +1,11 @@
 package io.github.devngho.kisopenapi.requests
 
 import io.github.devngho.kisopenapi.KisOpenApi
+import io.github.devngho.kisopenapi.requests.response.CorporationRequest
 
-interface Data
+interface Data {
+    val corp: CorporationRequest?
+}
 @Suppress("propertyName")
 interface Response {
     val error_description: String?

@@ -1,6 +1,7 @@
 package io.github.devngho.kisopenapi.requests
 
 import io.github.devngho.kisopenapi.KisOpenApi
+import io.github.devngho.kisopenapi.requests.response.CorporationRequest
 import io.github.devngho.kisopenapi.requests.util.RequestError
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -18,7 +19,7 @@ class RevokeToken(override val client: KisOpenApi):
     @Serializable
     data class RevokeTokenJson(val token: String, val appkey: String, val appsecret: String)
 
-    data class RevokeTokenData(val token: String): Data
+    data class RevokeTokenData(val token: String, override val corp: CorporationRequest? = null): Data
 
     override suspend fun call(data: RevokeTokenData): RevokeTokenResponse {
         return client.httpClient.post(

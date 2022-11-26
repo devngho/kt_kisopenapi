@@ -11,7 +11,7 @@ import kotlinx.serialization.json.Json
 fun createHttpClient() = HttpClient {
     install(ContentNegotiation) {
         json(Json {
-            explicitNulls = true
+            explicitNulls = false
             serializersModule = humanReadableSerializerModule
             ignoreUnknownKeys = true
         })

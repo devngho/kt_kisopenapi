@@ -1,12 +1,10 @@
 package io.github.devngho.kisopenapi.requests
 
 import io.github.devngho.kisopenapi.KisOpenApi
-import io.github.devngho.kisopenapi.requests.response.StockPriceBase
-import io.github.devngho.kisopenapi.requests.response.TradeContinuousData
-import io.github.devngho.kisopenapi.requests.response.TradeContinuousResponse
 import io.github.devngho.kisopenapi.requests.util.*
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
+import io.github.devngho.kisopenapi.requests.response.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -22,14 +20,14 @@ class InquireConfirm(override val client: KisOpenApi):
 
     @Serializable
     data class InquireConfirmResponse(
-        @SerialName("tr_id") var tradeId: String?,
+        @SerialName("tr_id") override var tradeId: String?,
         @SerialName("tr_cont") override var tradeContinuous: String?,
-        @SerialName("gt_uid") var globalTradeID: String?,
-        @SerialName("msg_cd") val code: String?,
-        @SerialName("msg1") val msg: String?,
+        @SerialName("gt_uid") override var globalTradeID: String?,
+        @SerialName("msg_cd") override val code: String?,
+        @SerialName("msg1") override val msg: String?,
 
         var output: List<InquireConfirmResponseOutput>?, override var next: (suspend () -> Response)?
-    ): Response, TradeContinuousResponse {
+    ): Response, TradeContinuousResponse, Msg {
         override val error_description: String? = null
         override val error_code: String? = null
     }
@@ -43,18 +41,18 @@ class InquireConfirm(override val client: KisOpenApi):
         @SerialName("cntg_vol") @Contextual val confirmVolume: BigInteger,
         @SerialName("tday_rltv") @Contextual val todayConfirmPowerVolume: BigDecimal,
         @SerialName("prdy_ctrt") @Contextual override val rateFromYesterday: BigDecimal,
-    ): StockPriceBase {
-        override val error_description: String? = null
-        override val error_code: String? = null
-    }
+    ): StockPriceBase, StockPriceChange
 
-    data class InquireConfirmData(val stockCode: String, override val tradeContinuous: String? = ""): Data, TradeContinuousData
+    data class InquireConfirmData(val stockCode: String,/** 기본적으로 KisOpenApi의 corp 값을 불러옵니다. */override var corp: CorporationRequest? = null, override val tradeContinuous: String? = ""): Data, TradeContinuousData
 
     override suspend fun call(data: InquireConfirmData): InquireConfirmResponse {
+        if (data.corp == null) data.corp = client.corp
+
         val res = client.httpClient.get(url) {
             auth(client)
             tradeId("FHKST01010300")
             stock(data.stockCode)
+            data.corp?.let { corporation(it) }
         }
         return res.body<InquireConfirmResponse>().apply {
             if (this.error_code != null) throw RequestError(this.error_description)

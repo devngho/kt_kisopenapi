@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "io.github.devngho"
-version = "0.1.2"
+version = "0.1.21"
 
 repositories {
     mavenCentral()
@@ -122,12 +122,6 @@ kotlin {
                 standard()
             }
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test"))
-                standard()
-            }
-        }
         val jvmMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-cio:$ktorVersion")
@@ -136,18 +130,12 @@ kotlin {
         }
         val jvmTest by getting {
             dependencies {
+                implementation(kotlin("test"))
                 implementation("io.ktor:ktor-client-cio:$ktorVersion")
                 standard()
             }
         }
         val nativeMain by getting {
-            dependencies {
-                implementation("io.ktor:ktor-client-curl:$ktorVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-$platform:$coroutineVersion")
-                standard()
-            }
-        }
-        val nativeTest by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-curl:$ktorVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-$platform:$coroutineVersion")

@@ -1,12 +1,10 @@
 package io.github.devngho.kisopenapi.requests
 
 import io.github.devngho.kisopenapi.KisOpenApi
-import io.github.devngho.kisopenapi.requests.response.StockPriceFull
-import io.github.devngho.kisopenapi.requests.response.TradeContinuousData
-import io.github.devngho.kisopenapi.requests.response.TradeContinuousResponse
 import io.github.devngho.kisopenapi.requests.util.*
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
+import io.github.devngho.kisopenapi.requests.response.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -22,15 +20,15 @@ class InquirePrice(override val client: KisOpenApi):
 
     @Serializable
     data class InquirePriceResponse(
-        @SerialName("tr_id") var tradeId: String?,
+        @SerialName("tr_id") override var tradeId: String?,
         @SerialName("tr_cont") var tradeCount: String?,
-        @SerialName("gt_uid") var globalTradeID: String?,
-        @SerialName("msg_cd") val code: String?,
-        @SerialName("msg1") val msg: String?,
+        @SerialName("gt_uid") override var globalTradeID: String?,
+        @SerialName("msg_cd") override val code: String?,
+        @SerialName("msg1") override val msg: String?,
 
         var output: InquirePriceResponseOutput?, override var next: (suspend () -> Response)?,
         override val tradeContinuous: String?
-    ): Response, TradeContinuousResponse {
+    ): Response, TradeContinuousResponse, Msg {
         override val error_description: String? = null
         override val error_code: String? = null
     }
@@ -110,18 +108,21 @@ class InquirePrice(override val client: KisOpenApi):
         @SerialName("short_over_yn") @Serializable(with = YNSerializer::class) override val shortOver: Boolean,
         @SerialName("stck_sdpr") @Contextual override val criteriaPrice: BigInteger?,
         @SerialName("acml_tr_pbmn") @Contextual override val accumulateTradePrice: BigInteger?
-    ): StockPriceFull {
+    ): StockPriceFull, StockTradeFull {
         override val error_description: String? = null
         override val error_code: String? = null
     }
 
-    data class InquirePriceData(val stockCode: String, override val tradeContinuous: String? = ""): Data, TradeContinuousData
+    data class InquirePriceData(val stockCode: String, override var corp: CorporationRequest? = null, override val tradeContinuous: String? = ""): Data, TradeContinuousData
 
     override suspend fun call(data: InquirePriceData): InquirePriceResponse {
+        if (data.corp == null) data.corp = client.corp
+
         fun HttpRequestBuilder.inquirePrice() {
             auth(client)
             stock(data.stockCode)
             tradeId("FHKST01010100")
+            data.corp?.let { corporation(it) }
         }
 
         val res = client.httpClient.get(url) {

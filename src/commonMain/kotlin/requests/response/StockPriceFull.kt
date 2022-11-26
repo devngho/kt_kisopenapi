@@ -10,7 +10,7 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-interface StockPriceFull: StockPrice, Response {
+interface StockPriceFull: StockPrice, StockPriceForeigner, StockPriceChange, Response {
     @SerialName("iscd_stat_cls_code") val stockState: StockState?
     @SerialName("marg_rate") @Contextual val marginRate: BigDecimal?
     @SerialName("rprs_mrkt_kor_name") val marketName: String?
@@ -45,7 +45,6 @@ interface StockPriceFull: StockPrice, Response {
     @SerialName("per") @Contextual val per: BigDecimal?
     @SerialName("pbr") @Contextual val pbr: BigDecimal?
     @SerialName("stac_month") @Contextual val settlementMonth: Int?
-    @SerialName("vol_tnrt") @Contextual val tradeVolumeTurningRate: BigDecimal?
     @SerialName("eps") @Contextual val eps: BigDecimal?
     @SerialName("bps") @Contextual val bps: BigDecimal?
     @SerialName("d250_hgpr") @Contextual val highPriceD250: BigInteger?
@@ -73,6 +72,4 @@ interface StockPriceFull: StockPrice, Response {
     @SerialName("invt_caful_yn") @Serializable(with = YNSerializer::class) val investmentCareful: Boolean?
     @SerialName("mrkt_warn_cls_code") val marketWarnCode: MarketWarnCode?
     @SerialName("short_over_yn") @Serializable(with = YNSerializer::class) val shortOver: Boolean
-
-    @SerialName("acml_tr_pbmn") @Contextual val accumulateTradePrice: BigInteger?
 }

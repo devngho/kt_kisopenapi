@@ -5,7 +5,12 @@ https://apiportal.koreainvestment.com/about
 
 한국투자증권의 REST & WebSocket 방식 새 API 서비스를 쉽게 사용할 수 있는 Kotlin 라이브러리.
 
-> ❗비공식 API입니다.
+## 주의사항
+
+> 법인 사용이 가능하나, **개인 사용 목적**으로 개발되었습니다.
+
+> 개발자([devngho](https://github.com/devngho))는 라이브러리의 사용에 대해 **책임지지 않습니다**.
+
 ## 사용하기
 Maven central에 배포되어 있습니다.
 
@@ -24,10 +29,10 @@ InquirePrice(api).call(InquirePrice.InquirePriceData(""))
       - [x] 폐기
 - [ ] 국내주식
     - [ ] 주문
-      - [ ] 주문
+      - [x] 주문
       - [ ] 정정
       - [ ] 예약
-      - [ ] 잔고 조회
+      - [x] 잔고 조회
       - [ ] 퇴직연금
     - [ ] 시세
       - [x] 시세
@@ -70,13 +75,12 @@ InquirePrice(api).call(InquirePrice.InquirePriceData(""))
 
 ### Layer
 ```kotlin
-// 예시(미구현)
+// 예시(구현중)
 val stock = Stock(api, "")
 stock.updateBy(InquirePrice(api))
 stock.price
 
 stock.buy(price = 10000, count = 10)
-stock.buyMarket(count = 10)
 
 stock.useLiveConfirmPrice {
     it.price
@@ -85,7 +89,7 @@ stock.useLiveConfirmPrice {
 
 
 ```
-레이어를 통해 접속(권장, 캐싱 + 간단화)
+레이어를 통해 접속(권장)
 
 ## 오픈 소스 라이선스
 ### Kotlin

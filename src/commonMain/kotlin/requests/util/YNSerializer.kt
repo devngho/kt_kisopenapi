@@ -10,8 +10,10 @@ import kotlinx.serialization.encoding.Encoder
 object YNSerializer : KSerializer<Boolean> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("YN", PrimitiveKind.BOOLEAN)
     override fun serialize(encoder: Encoder, value: Boolean) {
-        encoder.encodeString(if (value) "y" else "n")
+        encoder.encodeString(serializeBoolean(value))
     }
+
+    fun serializeBoolean(value: Boolean): String = if (value) "y" else "n"
 
     override fun deserialize(decoder: Decoder): Boolean {
         return decoder.decodeString().lowercase() == "y"

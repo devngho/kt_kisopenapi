@@ -180,3 +180,151 @@ enum class PeriodDivisionCode(val num: String) {
         }
     }
 }
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable(with = ProductTypeCode.ProductTypeSerializer::class)
+enum class ProductTypeCode(val num: String) {
+    Stock("300"),
+    FutureOption("301"),
+    Bond("302"),
+    Nasdaq("512"),
+    NewYork("513"),
+    Amex("529"),
+    Japan("515"),
+    HongKong("501"),
+    HongKongCNY("543"),
+    HongKongUSD("558"),
+    VietnamHanoi("507"),
+    VietnamHoChiMinh("508"),
+    ChinaSanghaeA("551"),
+    ChinaSimCheonA("552")
+    ;
+
+    @ExperimentalSerializationApi
+    @Serializer(forClass = ProductTypeCode::class)
+    object ProductTypeSerializer : DeserializationStrategy<ProductTypeCode> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("ProductType", PrimitiveKind.STRING)
+
+        override fun deserialize(decoder: Decoder): ProductTypeCode {
+            val d = decoder.decodeString()
+            return ProductTypeCode.values().first { it.num == d }
+        }
+
+        override fun serialize(encoder: Encoder, value: ProductTypeCode) {
+            encoder.encodeString(value.num)
+        }
+    }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable(with = OrderTypeCode.OrderTypeSerializer::class)
+enum class OrderTypeCode(val num: String) {
+    /**
+     * 지정가
+     */
+    SelectPrice("00"),
+    /**
+    * 시장가
+    */
+    MarketPrice("01"),
+    /**
+    * 조건부 지정가
+    */
+    SelectPriceWithContition("02"),
+    /**
+    * 최유리 지정가
+    */
+    SelectPriceBest("03"),
+    /**
+    * 최우선 지정가
+    */
+    SelectPriceFirst("04"),
+    /**
+    * 장전 시간외
+    */
+    OutTimeBeforeMarket("05"),
+    /**
+    * 장후 시간외
+    */
+    OutTimeAfterMarket("06"),
+    /**
+    * 시간외 단일가
+    */
+    OutTimeOnlyPrice("07"),
+    /**
+    * 자기주식
+    */
+    SelfStock("08"),
+    /**
+    * 자기주식 S-Option
+    */
+    SelfStockSOption("09"),
+    /**
+    * 자기주식 금전신탁
+    */
+    SelfStockMoneyPrice("10"),
+    /**
+    * IOC 지정가
+    */
+    SelectPriceIOC("11"),
+    /**
+    * FOK 지정가
+    */
+    SelectPriceFOK("12"),
+    /**
+    * IOC 시장가
+    */
+    MarketPriceIOC("13"),
+    /**
+    * FOK 시장가
+    */
+    MarketPriceFOK("14"),
+    /**
+    * IOC 최유리
+    */
+    BestIOC("15"),
+    /**
+    * FOK 최유리
+    */
+    BestFOK("16")
+    ;
+
+    @ExperimentalSerializationApi
+    @Serializer(forClass = OrderTypeCode::class)
+    object OrderTypeSerializer : DeserializationStrategy<OrderTypeCode> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("OrderType", PrimitiveKind.STRING)
+
+        override fun deserialize(decoder: Decoder): OrderTypeCode {
+            val d = decoder.decodeString()
+            return OrderTypeCode.values().first { it.num == d }
+        }
+
+        override fun serialize(encoder: Encoder, value: OrderTypeCode) {
+            encoder.encodeString(value.num)
+        }
+    }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable(with = ConsumerTypeCode.ConsumerTypeSerializer::class)
+enum class ConsumerTypeCode(val num: String) {
+    Corporation("B"),
+    Personal("P")
+    ;
+
+
+    @ExperimentalSerializationApi
+    @Serializer(forClass = ConsumerTypeCode::class)
+    object ConsumerTypeSerializer : DeserializationStrategy<ConsumerTypeCode> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("ConsumerType", PrimitiveKind.STRING)
+
+        override fun deserialize(decoder: Decoder): ConsumerTypeCode {
+            val d = decoder.decodeString()
+            return ConsumerTypeCode.values().first { it.num == d }
+        }
+
+        override fun serialize(encoder: Encoder, value: ConsumerTypeCode) {
+            encoder.encodeString(value.num)
+        }
+    }
+}

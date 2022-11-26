@@ -4,6 +4,6 @@ import com.ionspin.kotlin.bignum.integer.BigInteger
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 
-interface StockPriceBase {
-    @SerialName("stck_prpr") @Contextual val price: BigInteger?
+interface StockTradeAccumulate: StockTrade {
+    @SerialName("acml_tr_pbmn") @Contextual val accumulateTradePrice: BigInteger?
 }
