@@ -18,4 +18,7 @@ object YNSerializer : KSerializer<Boolean> {
     override fun deserialize(decoder: Decoder): Boolean {
         return decoder.decodeString().lowercase() == "y"
     }
+
+    val Boolean.YN
+        get() = serializeBoolean(this)
 }

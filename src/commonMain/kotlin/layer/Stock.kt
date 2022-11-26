@@ -24,7 +24,11 @@ class Stock(override val client: KisOpenApi, override val code: String) : IStock
             StockPriceForeigner::class.simpleName,
             StockPriceHighMax::class.simpleName,
             StockTrade::class.simpleName,
-            StockTradeFull::class.simpleName -> {
+            StockTradeFull::class.simpleName,
+            StockTrade::class.simpleName,
+            StockTradeFull::class.simpleName,
+            StockTradeRate::class.simpleName,
+            StockTradeAccumulate::class.simpleName -> {
                 (InquirePrice(client).call(InquirePrice.InquirePriceData(code)).output as? StockPriceFull)?.let {
                     updateBy(it)
                 }
@@ -122,14 +126,14 @@ class Stock(override val client: KisOpenApi, override val code: String) : IStock
     override suspend fun buy(count: BigInteger, type: OrderTypeCode, price: BigInteger): OrderBuy.OrderResponse {
         if (client.account == null) throw RequestError("Buy request need account.")
         else {
-            return OrderBuy(client).call(OrderBuy.OrderData(code, client.account!![0], client.account!![1], type, count, price))
+            return OrderBuy(client).call(OrderBuy.OrderData(code, type, count, price))
         }
     }
 
     override suspend fun sell(count: BigInteger, type: OrderTypeCode, price: BigInteger): OrderBuy.OrderResponse {
         if (client.account == null) throw RequestError("Buy request need account.")
         else {
-            return OrderSell(client).call(OrderBuy.OrderData(code, client.account!![0], client.account!![1], type, count, price))
+            return OrderSell(client).call(OrderBuy.OrderData(code, type, count, price))
         }
     }
 }

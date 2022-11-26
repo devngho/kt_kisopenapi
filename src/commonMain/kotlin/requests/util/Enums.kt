@@ -10,6 +10,8 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
+
+
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable(with = StockState.StockStateSerializer::class)
 enum class StockState(val num: Int) {
@@ -324,6 +326,30 @@ enum class ConsumerTypeCode(val num: String) {
         }
 
         override fun serialize(encoder: Encoder, value: ConsumerTypeCode) {
+            encoder.encodeString(value.num)
+        }
+    }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable(with = InquireDivisionCode.InquireDivisionSerializer::class)
+enum class InquireDivisionCode(val num: String) {
+    ByLoanDays("01"),
+    ByStock("02")
+    ;
+
+
+    @ExperimentalSerializationApi
+    @Serializer(forClass = InquireDivisionCode::class)
+    object InquireDivisionSerializer : DeserializationStrategy<InquireDivisionCode> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("InquireDivision", PrimitiveKind.STRING)
+
+        override fun deserialize(decoder: Decoder): InquireDivisionCode {
+            val d = decoder.decodeString()
+            return InquireDivisionCode.values().first { it.num == d }
+        }
+
+        override fun serialize(encoder: Encoder, value: InquireDivisionCode) {
             encoder.encodeString(value.num)
         }
     }

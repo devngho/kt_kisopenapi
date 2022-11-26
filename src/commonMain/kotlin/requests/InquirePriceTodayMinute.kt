@@ -5,6 +5,7 @@ import io.github.devngho.kisopenapi.requests.util.*
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.requests.response.*
+import io.github.devngho.kisopenapi.requests.util.YNSerializer.YN
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -84,7 +85,7 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
                 parameters.run {
                     set("FID_ETC_CLS_CODE", "")
                     set("FID_INPUT_HOUR_1", data.startDate)
-                    set("FID_PW_DATA_INCU_YN", YNSerializer.serializeBoolean(data.usePreviousData))
+                    set("FID_PW_DATA_INCU_YN", data.usePreviousData.YN)
                 }
             }
         }

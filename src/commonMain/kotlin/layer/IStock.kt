@@ -4,12 +4,10 @@ import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.OrderBuy
-import io.github.devngho.kisopenapi.requests.Response
 import io.github.devngho.kisopenapi.requests.util.OrderTypeCode
-import kotlin.reflect.KClass
 
 
-interface IStock {
+interface IStock : Update{
     val client: KisOpenApi
     val code: String
     /**
@@ -48,9 +46,6 @@ interface IStock {
     var price: Price
     var name: Name
     var tradeVolume: TradeVolume
-
-    suspend fun updateBy(res: KClass<out Response>)
-    fun updateBy(res: Response)
 
     suspend fun buy(count: BigInteger, type: OrderTypeCode, price: BigInteger = BigInteger(0)): OrderBuy.OrderResponse
     suspend fun sell(count: BigInteger, type: OrderTypeCode, price: BigInteger = BigInteger(0)): OrderBuy.OrderResponse

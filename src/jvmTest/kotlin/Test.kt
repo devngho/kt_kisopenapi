@@ -1,14 +1,12 @@
 import io.github.devngho.kisopenapi.KisOpenApi
-import io.github.devngho.kisopenapi.requests.InquireConfirm
-import io.github.devngho.kisopenapi.requests.InquirePrice
-import io.github.devngho.kisopenapi.requests.RevokeToken
-import io.github.devngho.kisopenapi.requests.InquirePricePerDay
 import io.github.devngho.kisopenapi.requests.util.LockCode
 import io.github.devngho.kisopenapi.requests.util.PeriodDivisionCode
 import io.github.devngho.kisopenapi.requests.util.SignYesterday
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import com.ionspin.kotlin.bignum.serialization.kotlinx.humanReadableSerializerModule
+import io.github.devngho.kisopenapi.requests.*
+import io.github.devngho.kisopenapi.requests.util.InquireDivisionCode
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
@@ -92,7 +90,31 @@ class Tests {
         }
     }
 
-    @OptIn(ExperimentalSerializationApi::class)
+    @Test
+    fun loadBalance() {
+        runBlocking {
+            val key = File("key.txt").readLines()
+            val token = File("token.txt").readLines()
+            val account = File("account.txt").readLines()
+
+            val api = KisOpenApi.withToken(
+                token[0], key[0], key[1], false, account[0]
+            )
+
+            val res = InquireBalance(api).call(
+                InquireBalance.InquireBalanceData(false, InquireDivisionCode.ByStock,
+                    includeFund = false,
+                    includeYesterdaySell = false
+                )
+            )
+
+            println(res.toString().replace(", ", ", \n"))
+
+            println(res.next)
+        }
+    }
+
+            @OptIn(ExperimentalSerializationApi::class)
     private val json = Json {
         ignoreUnknownKeys = true
         serializersModule = humanReadableSerializerModule
