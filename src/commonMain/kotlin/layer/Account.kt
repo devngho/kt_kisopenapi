@@ -37,7 +37,7 @@ class Account(val client: KisOpenApi) : IAccount {
 
     private fun BalanceAccount.update() {
         this@Account.also {
-            it.assetAmount = assetAmount ?: it.assetAmount
+            it.assetAmount = this.netWorthAmount ?: it.assetAmount
             it.evalAmount = evalTotalAmount ?: it.evalAmount
         }
     }
