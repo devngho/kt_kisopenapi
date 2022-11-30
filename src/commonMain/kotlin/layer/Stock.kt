@@ -42,17 +42,17 @@ class Stock(override val client: KisOpenApi, override val code: String) : IStock
     }
 
     override fun updateBy(res: Response) {
-        if (res as? StockPriceBase != null) res.update()
-        if (res as? StockPrice != null) res.update()
-        if (res as? StockPriceChange != null) res.update()
-        if (res as? StockPriceForeigner != null) res.update()
-        if (res as? StockPriceFull != null) res.update()
-        if (res as? StockPriceHighMax != null) res.update()
-        if (res as? StockTrade != null) res.update()
-        if (res as? StockTradeAccumulate != null) res.update()
-        if (res as? StockTradeRate != null) res.update()
-        if (res as? StockTradeFull != null) res.update()
-        if (res as? BaseInfo != null) res.update()
+        if (res is StockPriceBase) res.update()
+        if (res is StockPrice) res.update()
+        if (res is StockPriceChange) res.update()
+        if (res is StockPriceForeigner) res.update()
+        if (res is StockPriceFull) res.update()
+        if (res is StockPriceHighMax) res.update()
+        if (res is StockTrade) res.update()
+        if (res is StockTradeAccumulate) res.update()
+        if (res is StockTradeRate) res.update()
+        if (res is StockTradeFull) res.update()
+        if (res is BaseInfo) res.update()
     }
 
     private fun BaseInfo.update() {

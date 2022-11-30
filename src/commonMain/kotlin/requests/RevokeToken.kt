@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
 class RevokeToken(override val client: KisOpenApi):
     DataRequest<RevokeToken.RevokeTokenData, RevokeToken.RevokeTokenResponse> {
     @Serializable
-    data class RevokeTokenResponse(val code: Int, val message: String): Response {
+    data class RevokeTokenResponse(val code: Int?, val message: String?): Response {
         override val error_description: String? = null
         override val error_code: String? = null
     }

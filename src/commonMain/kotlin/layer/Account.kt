@@ -30,9 +30,7 @@ class Account(val client: KisOpenApi) : IAccount {
     }
 
     override fun updateBy(res: Response) {
-        if (res as? BalanceAccount != null) {
-            res.update()
-        }
+        if (res is BalanceAccount) { res.update() }
     }
 
     private fun BalanceAccount.update() {

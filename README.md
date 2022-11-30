@@ -77,7 +77,7 @@ InquirePrice(api).call(InquirePrice.InquirePriceData(""))
 ```kotlin
 // 예시(구현중)
 val stock = Stock(api, "")
-stock.updateBy(InquirePrice(api))
+stock.updateBy(StockPrice::class)
 stock.price
 
 stock.buy(price = 10000, count = 10)

@@ -55,7 +55,7 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
     @Serializable
     data class InquirePriceTodayMinuteResponseOutput2(
         @SerialName("stck_bsop_date") val bizDate: String?,
-        @SerialName("stck_cntg_hour") val stockConfirmTime: String,
+        @SerialName("stck_cntg_hour") val stockConfirmTime: String?,
         @SerialName("prdy_vrss_vol_rate") @Contextual override val rateTradeVolumeFromYesterday: BigDecimal?,
         @SerialName("acml_vol") @Contextual override val accumulateTradeVolume: BigInteger?,
         @SerialName("acml_tr_pbmn") @Contextual override val accumulateTradePrice: BigInteger?,

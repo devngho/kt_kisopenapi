@@ -34,13 +34,13 @@ class InquireConfirm(override val client: KisOpenApi):
 
     @Serializable
     data class InquireConfirmResponseOutput(
-        @SerialName("stck_cntg_hour") val stockConfirmHour: Int,
-        @SerialName("stck_prpr") @Contextual override val price: BigInteger,
-        @SerialName("prdy_vrss") @Contextual override val changeFromYesterday: BigInteger,
-        @SerialName("prdy_vrss_sign") override val signFromYesterday: SignYesterday,
-        @SerialName("cntg_vol") @Contextual val confirmVolume: BigInteger,
-        @SerialName("tday_rltv") @Contextual val todayConfirmPowerVolume: BigDecimal,
-        @SerialName("prdy_ctrt") @Contextual override val rateFromYesterday: BigDecimal,
+        @SerialName("stck_cntg_hour") val stockConfirmHour: Int?,
+        @SerialName("stck_prpr") @Contextual override val price: BigInteger?,
+        @SerialName("prdy_vrss") @Contextual override val changeFromYesterday: BigInteger?,
+        @SerialName("prdy_vrss_sign") override val signFromYesterday: SignYesterday?,
+        @SerialName("cntg_vol") @Contextual val confirmVolume: BigInteger?,
+        @SerialName("tday_rltv") @Contextual val todayConfirmPowerVolume: BigDecimal?,
+        @SerialName("prdy_ctrt") @Contextual override val rateFromYesterday: BigDecimal?,
     ): StockPriceBase, StockPriceChange
 
     data class InquireConfirmData(val stockCode: String,/** 기본적으로 KisOpenApi의 corp 값을 불러옵니다. */override var corp: CorporationRequest? = null, override val tradeContinuous: String? = ""): Data, TradeContinuousData
