@@ -38,7 +38,7 @@ class InquirePrice(override val client: KisOpenApi):
         @SerialName("iscd_stat_cls_code") override val stockState: StockState?,
         @SerialName("marg_rate") @Contextual override val marginRate: BigDecimal?,
         @SerialName("rprs_mrkt_kor_name") override val marketName: String?,
-        @SerialName("new_hgpr_lwpr_cls_code") @Contextual override val newHighLowCode: BigInteger?,
+        @SerialName("new_hgpr_lwpr_cls_code") @Contextual override val newHighLowCode: String?,
         @SerialName("bstp_kor_isnm") override val sectorName: String?,
         @SerialName("temp_stop_yn") @Serializable(with = YNSerializer::class) override val tempStop: Boolean?,
         @SerialName("oprc_rang_cont_yn") @Serializable(with = YNSerializer::class) override val marketPriceRangeExtended: Boolean?,

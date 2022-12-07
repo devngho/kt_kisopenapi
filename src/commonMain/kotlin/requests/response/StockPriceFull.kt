@@ -14,7 +14,7 @@ interface StockPriceFull: StockPrice, StockPriceForeigner, StockPriceChange, Res
     @SerialName("iscd_stat_cls_code") val stockState: StockState?
     @SerialName("marg_rate") @Contextual val marginRate: BigDecimal?
     @SerialName("rprs_mrkt_kor_name") val marketName: String?
-    @SerialName("new_hgpr_lwpr_cls_code") @Contextual val newHighLowCode: BigInteger?
+    @SerialName("new_hgpr_lwpr_cls_code") @Contextual val newHighLowCode: String?
     @SerialName("bstp_kor_isnm") val sectorName: String?
     @SerialName("temp_stop_yn") @Serializable(with = YNSerializer::class) val tempStop: Boolean?
     @SerialName("oprc_rang_cont_yn") @Serializable(with = YNSerializer::class) val marketPriceRangeExtended: Boolean?

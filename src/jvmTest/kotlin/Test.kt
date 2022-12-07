@@ -33,7 +33,7 @@ class Tests {
             val token = File("token.txt").readLines()
 
             val api = KisOpenApi.withToken(
-                token[0], key[0], key[1], false
+                token[0], key[0], key[1]
             )
 
             println(RevokeToken(api).call(RevokeToken.RevokeTokenData(token[0])))
@@ -50,7 +50,7 @@ class Tests {
                 token[0], key[0], key[1], false
             )
 
-            println(InquirePrice(api).call(InquirePrice.InquirePriceData("012450")).toString().replace(", ", ", \n"))
+            println(InquirePrice(api).call(InquirePrice.InquirePriceData("419530")).toString().replace(", ", ", \n"))
         }
     }
 
@@ -89,6 +89,22 @@ class Tests {
             println(res.next)
         }
     }
+    @Test
+    fun loadStockMinutes(){
+        runBlocking {
+            val key = File("key.txt").readLines()
+            val token = File("token.txt").readLines()
+
+            val api = KisOpenApi.withToken(
+                token[0], key[0], key[1], false
+            )
+
+            val res = InquirePriceTodayMinute(api).call(InquirePriceTodayMinute.InquirePriceTodayMinuteData("012450", "150000", true)).output2!!.reversed()
+
+            println(res.toString().replace(", ", ", \n"))
+        }
+    }
+
 
     @Test
     fun loadBalance() {
