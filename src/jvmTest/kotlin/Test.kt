@@ -1,16 +1,8 @@
 import io.github.devngho.kisopenapi.KisOpenApi
-import io.github.devngho.kisopenapi.requests.util.LockCode
-import io.github.devngho.kisopenapi.requests.util.PeriodDivisionCode
-import io.github.devngho.kisopenapi.requests.util.SignYesterday
-import com.ionspin.kotlin.bignum.decimal.BigDecimal
-import com.ionspin.kotlin.bignum.integer.BigInteger
-import com.ionspin.kotlin.bignum.serialization.kotlinx.humanReadableSerializerModule
 import io.github.devngho.kisopenapi.requests.*
 import io.github.devngho.kisopenapi.requests.util.InquireDivisionCode
+import io.github.devngho.kisopenapi.requests.util.PeriodDivisionCode
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.testng.annotations.Test
 import java.io.File
 
@@ -127,30 +119,6 @@ class Tests {
             println(res.toString().replace(", ", ", \n"))
 
             println(res.next)
-        }
-    }
-
-            @OptIn(ExperimentalSerializationApi::class)
-    private val json = Json {
-        ignoreUnknownKeys = true
-        serializersModule = humanReadableSerializerModule
-        isLenient = true
-        explicitNulls = false
-    }
-
-    @Test
-    fun testStockDays(){
-        runBlocking {
-            println(json.encodeToString(
-                    InquirePricePerDay.InquirePricePerDayResponse(
-                        "a", "b", "c", "d", "e",
-                        listOf(
-                            InquirePricePerDay.InquirePricePerDayResponseOutput(
-                                "a", BigInteger(2), BigInteger(3), BigInteger(4), BigInteger(5), BigInteger(6),
-                                SignYesterday.Complement, BigDecimal.fromInt(1), LockCode.AllocationLock, BigDecimal.fromInt(2), BigInteger(2), BigDecimal.fromInt(3), BigInteger(4), BigDecimal.fromInt(5)
-                            )), null)
-                )
-            )
         }
     }
 }
