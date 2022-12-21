@@ -13,6 +13,17 @@ https://apiportal.koreainvestment.com/about
 
 ## 사용하기
 Maven central에 배포되어 있습니다.
+```kotlin
+repositories {
+    mavenCentral()
+    // ...
+}
+
+dependencies {
+    implementation("io.github.devngho:kt_kisopenapi:{version}")
+    // ...
+}
+```
 
 ## 개발 도와주기
 Pull requests를 사용하거나 Issues를 만들어주세요!
