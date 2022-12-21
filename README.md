@@ -1,5 +1,5 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.devngho/kt_kisopenapi/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.devngho/kt_kisopenapi)
-# kt-kisopenapi
+# kt_kisopenapi
 
 https://apiportal.koreainvestment.com/about
 
