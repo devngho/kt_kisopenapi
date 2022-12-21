@@ -25,6 +25,7 @@ class InquirePricePerDay(override val client: KisOpenApi):
         @SerialName("gt_uid") override var globalTradeID: String?,
         @SerialName("msg_cd") override val code: String?,
         @SerialName("msg1") override val msg: String?,
+        @SerialName("rt_cd") @Serializable(with = ResultCodeSerializer::class) override val isOk: Boolean?,
 
         var output: List<InquirePricePerDayResponseOutput>?, override var next: (suspend () -> Response)?
     ): Response, TradeContinuousResponse, Msg {

@@ -27,6 +27,7 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
         @SerialName("gt_uid") override var globalTradeID: String?,
         @SerialName("msg_cd") override val code: String?,
         @SerialName("msg1") override val msg: String?,
+        @SerialName("rt_cd") @Serializable(with = ResultCodeSerializer::class) override val isOk: Boolean?,
 
         var output1: InquirePriceTodayMinuteResponseOutput1?,
         var output2: List<InquirePriceTodayMinuteResponseOutput2>?, override var next: (suspend () -> Response)?

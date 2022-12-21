@@ -26,6 +26,7 @@ class InquireBalance(override val client: KisOpenApi):
         @SerialName("gt_uid") override var globalTradeID: String?,
         @SerialName("msg_cd") override val code: String?,
         @SerialName("msg1") override val msg: String?,
+        @SerialName("rt_cd") @Serializable(with = ResultCodeSerializer::class) override val isOk: Boolean?,
         @SerialName("ctx_area_fk100") val continuousAreaFK: String?,
         @SerialName("ctx_area_nk100") val continuousAreaNK: String?,
 

@@ -7,4 +7,5 @@ interface Msg {
     @SerialName("gt_uid") var globalTradeID: String?
     @SerialName("msg_cd") val code: String?
     @SerialName("msg1") val msg: String?
+    @SerialName("rt_cd") val isOk: Boolean?
 }

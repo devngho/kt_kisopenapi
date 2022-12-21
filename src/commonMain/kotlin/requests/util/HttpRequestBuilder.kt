@@ -36,5 +36,6 @@ fun HttpRequestBuilder.corporation(corp: CorporationRequest){
         corp.phoneNumber?.let { append("phone_number", it.replace("-", "").trim()) }
         corp.ipAddr?.let { append("ip_addr", it.replace(":", "").trim()) }
         corp.personalSecKey?.let { append("personalseckey", it) }
+        append("seq_no", if(corp.consumerType == ConsumerTypeCode.Personal) "" else "01")
     }
 }

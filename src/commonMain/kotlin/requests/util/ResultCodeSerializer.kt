@@ -7,18 +7,13 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
-object YNSerializer : KSerializer<Boolean> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("YN", PrimitiveKind.BOOLEAN)
+object ResultCodeSerializer : KSerializer<Boolean> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("rt_cd", PrimitiveKind.BOOLEAN)
     override fun serialize(encoder: Encoder, value: Boolean) {
-        encoder.encodeString(serializeBoolean(value))
+        encoder.encodeString(if (value) "0" else "1")
     }
-
-    private fun serializeBoolean(value: Boolean): String = if (value) "y" else "n"
 
     override fun deserialize(decoder: Decoder): Boolean {
-        return decoder.decodeString().lowercase() == "y"
+        return decoder.decodeString() == "0"
     }
-
-    val Boolean.YN
-        get() = serializeBoolean(this)
 }
