@@ -31,7 +31,7 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
 
         var output1: InquirePriceTodayMinuteResponseOutput1?,
         var output2: List<InquirePriceTodayMinuteResponseOutput2>?, override var next: (suspend () -> Response)?
-    ): Response, TradeContinuousResponse, Msg {
+    ): Response, TradeContinuousResponse, TradeIdMsg {
         override val error_description: String? = null
         override val error_code: String? = null
     }
@@ -39,7 +39,7 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
     @Serializable
     data class InquirePriceTodayMinuteResponseOutput1(
         @SerialName("prdy_vrss") @Contextual override val changeFromYesterday: BigInteger?,
-        @SerialName("prdy_vrss_sign") override val signFromYesterday: SignYesterday?,
+        @SerialName("prdy_vrss_sign") override val signFromYesterday: SignPrice?,
         @SerialName("prdy_ctrt") @Contextual override val rateFromYesterday: BigDecimal?,
         @SerialName("stck_prdy_clpr") @Contextual val priceFinalYesterday: BigInteger?,
         @SerialName("acml_prtt_rate") @Contextual val accumulateDivisionRate: BigDecimal?,

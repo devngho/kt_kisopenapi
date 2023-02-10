@@ -110,6 +110,7 @@ kotlin {
 
         fun KotlinDependencyHandler.standard() {
             implementation("io.ktor:ktor-client-core:$ktorVersion")
+            implementation("io.ktor:ktor-client-websockets:$ktorVersion")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
             implementation("com.ionspin.kotlin:bignum:0.3.7")
             implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:0.3.2")
@@ -119,6 +120,7 @@ kotlin {
             dependencies {
                 implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+                implementation("com.soywiz.korlibs.krypto:krypto:4.0.0-alpha-1")
                 standard()
             }
         }

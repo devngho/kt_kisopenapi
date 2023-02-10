@@ -22,7 +22,6 @@ class InquireBalance(override val client: KisOpenApi):
     @Serializable
     data class InquireBalanceResponse(
         @SerialName("tr_id") override var tradeId: String?,
-        @SerialName("tr_cont") var tradeCount: String?,
         @SerialName("gt_uid") override var globalTradeID: String?,
         @SerialName("msg_cd") override val code: String?,
         @SerialName("msg1") override val msg: String?,
@@ -33,8 +32,8 @@ class InquireBalance(override val client: KisOpenApi):
         var output1: List<InquireBalanceResponseOutput1>?,
         var output2: List<InquireBalanceResponseOutput2>?,
         override var next: (suspend () -> Response)?,
-        override val tradeContinuous: String?
-    ): Response, TradeContinuousResponse, Msg {
+        @SerialName("tr_cont") override var tradeContinuous: String?
+    ): Response, TradeContinuousResponse, TradeIdMsg {
         override val error_description: String? = null
         override val error_code: String? = null
     }
@@ -139,12 +138,12 @@ class InquireBalance(override val client: KisOpenApi):
             res.headers.forEach { s, strings ->
                 when(s) {
                     "tr_id" -> this.tradeId = strings[0]
-                    "tr_cont" -> this.tradeCount = strings[0]
+                    "tr_cont" -> this.tradeContinuous = strings[0]
                     "gt_uid" -> this.globalTradeID = strings[0]
                 }
             }
 
-            if (this.tradeCount == "F" || this.tradeCount == "M") {
+            if (this.tradeContinuous == "F" || this.tradeContinuous == "M") {
                 this.next = {
                     call(data.copy(tradeContinuous = "N", continuousAreaFK = this.continuousAreaFK!!, continuousAreaNK = this.continuousAreaNK!!))
                 }

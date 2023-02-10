@@ -69,8 +69,8 @@ enum class StockState(val num: Int) {
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-@Serializable(with = SignYesterday.SignYesterdaySerializer::class)
-enum class SignYesterday(val value: Int) {
+@Serializable(with = SignPrice.SignYesterdaySerializer::class)
+enum class SignPrice(val value: Int) {
     Max(1),
     Up(2),
     Complement(3),
@@ -78,16 +78,16 @@ enum class SignYesterday(val value: Int) {
     Down(5);
 
     @ExperimentalSerializationApi
-    @Serializer(forClass = SignYesterday::class)
-    object SignYesterdaySerializer : DeserializationStrategy<SignYesterday> {
-        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("SignYesterday", PrimitiveKind.INT)
+    @Serializer(forClass = SignPrice::class)
+    object SignYesterdaySerializer : DeserializationStrategy<SignPrice> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("SignPrice", PrimitiveKind.INT)
 
-        override fun deserialize(decoder: Decoder): SignYesterday {
+        override fun deserialize(decoder: Decoder): SignPrice {
             val d = decoder.decodeInt()
-            return SignYesterday.values().first { it.value == d }
+            return SignPrice.values().first { it.value == d }
         }
 
-        override fun serialize(encoder: Encoder, value: SignYesterday) {
+        override fun serialize(encoder: Encoder, value: SignPrice) {
             encoder.encodeString("${value.value}")
         }
     }
@@ -350,6 +350,62 @@ enum class InquireDivisionCode(val num: String) {
         }
 
         override fun serialize(encoder: Encoder, value: InquireDivisionCode) {
+            encoder.encodeString(value.num)
+        }
+    }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable(with = WeekdayCode.WeekdayCodeSerializer::class)
+enum class WeekdayCode(val num: String) {
+    Sat("07"),
+    Sun("01"),
+    Mon("02"),
+    Tue("03"),
+    Wed("04"),
+    Thu("05"),
+    Fri("06")
+    ;
+
+
+    @ExperimentalSerializationApi
+    @Serializer(forClass = WeekdayCode::class)
+    object WeekdayCodeSerializer : DeserializationStrategy<WeekdayCode> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Weekday", PrimitiveKind.STRING)
+
+        override fun deserialize(decoder: Decoder): WeekdayCode {
+            val d = decoder.decodeString()
+            return WeekdayCode.values().first { it.num == d }
+        }
+
+        override fun serialize(encoder: Encoder, value: WeekdayCode) {
+            encoder.encodeString(value.num)
+        }
+    }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable(with = HourCode.HourCodeSerializer::class)
+enum class HourCode(val num: String) {
+    InMarket("0"),
+    AfterMarket("A"),
+    BeforeMarket("B"),
+    VIActivated("C"),
+    AfterHourSinglePrice("D")
+    ;
+
+
+    @ExperimentalSerializationApi
+    @Serializer(forClass = HourCode::class)
+    object HourCodeSerializer : DeserializationStrategy<HourCode> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Hour", PrimitiveKind.STRING)
+
+        override fun deserialize(decoder: Decoder): HourCode {
+            val d = decoder.decodeString()
+            return HourCode.values().first { it.num == d }
+        }
+
+        override fun serialize(encoder: Encoder, value: HourCode) {
             encoder.encodeString(value.num)
         }
     }

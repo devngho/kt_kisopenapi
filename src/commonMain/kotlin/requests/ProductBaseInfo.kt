@@ -23,7 +23,7 @@ class ProductBaseInfo(override val client: KisOpenApi):
         @SerialName("rt_cd") @Serializable(with = ResultCodeSerializer::class) override val isOk: Boolean?,
 
         var output: ProductBaseInfoResponseOutput?, override var next: (suspend () -> Response)?
-    ): Response, TradeContinuousResponse, Msg {
+    ): Response, TradeContinuousResponse, TradeIdMsg {
         override val error_description: String? = null
         override val error_code: String? = null
     }

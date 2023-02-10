@@ -29,7 +29,7 @@ class InquirePrice(override val client: KisOpenApi):
 
         var output: InquirePriceResponseOutput?, override var next: (suspend () -> Response)?,
         override val tradeContinuous: String?
-    ): Response, TradeContinuousResponse, Msg {
+    ): Response, TradeContinuousResponse, TradeIdMsg {
         override val error_description: String? = null
         override val error_code: String? = null
     }
@@ -48,7 +48,7 @@ class InquirePrice(override val client: KisOpenApi):
         @SerialName("clw_pblc_yn") @Serializable(with = YNSerializer::class) override val hasElw: Boolean?,
         @SerialName("stck_prpr") @Contextual override val price: BigInteger?,
         @SerialName("prdy_vrss") @Contextual override val changeFromYesterday: BigInteger?,
-        @SerialName("prdy_vrss_sign") override val signFromYesterday: SignYesterday?,
+        @SerialName("prdy_vrss_sign") override val signFromYesterday: SignPrice?,
         @SerialName("prdy_ctrt") @Contextual override val rateFromYesterday: BigDecimal?,
         @SerialName("acml_vol") @Contextual override val accumulateTradeVolume: BigInteger?,
         @SerialName("prdy_vrss_vol_rate") @Contextual override val rateTradeVolumeFromYesterday: BigDecimal?,

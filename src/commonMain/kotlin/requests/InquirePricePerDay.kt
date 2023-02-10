@@ -28,7 +28,7 @@ class InquirePricePerDay(override val client: KisOpenApi):
         @SerialName("rt_cd") @Serializable(with = ResultCodeSerializer::class) override val isOk: Boolean?,
 
         var output: List<InquirePricePerDayResponseOutput>?, override var next: (suspend () -> Response)?
-    ): Response, TradeContinuousResponse, Msg {
+    ): Response, TradeContinuousResponse, TradeIdMsg {
         override val error_description: String? = null
         override val error_code: String? = null
     }
@@ -44,7 +44,7 @@ class InquirePricePerDay(override val client: KisOpenApi):
          */
         @SerialName("stck_clpr") @Contextual override val price: BigInteger?,
         @SerialName("prdy_vrss") @Contextual override val changeFromYesterday: BigInteger?,
-        @SerialName("prdy_vrss_sign") override val signFromYesterday: SignYesterday?,
+        @SerialName("prdy_vrss_sign") override val signFromYesterday: SignPrice?,
         @SerialName("prdy_ctrt") @Contextual override val rateFromYesterday: BigDecimal?,
         @SerialName("flng_cls_code") val lockCode: LockCode?,
         @SerialName("acml_prtt_rate") @Contextual val accumulateDivisionRate: BigDecimal?,

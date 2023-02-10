@@ -2,7 +2,6 @@ package io.github.devngho.kisopenapi.requests
 
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.util.*
-import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.requests.response.*
 import io.ktor.client.call.*
@@ -13,49 +12,49 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-class InquireConfirm(override val client: KisOpenApi):
-    DataRequest<InquireConfirm.InquireConfirmData, InquireConfirm.InquireConfirmResponse> {
-    private val url = if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/domestic-stock/v1/quotations/inquire-ccnl"
-                      else               "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-ccnl"
+class OrderBuy(override val client: KisOpenApi):
+    DataRequest<OrderBuy.OrderData, OrderBuy.OrderResponse> {
+    private val url = if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/domestic-stock/v1/trading/order-cash"
+    else               "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/trading/order-cash"
 
     @Serializable
-    data class InquireConfirmResponse(
-        @SerialName("tr_id") override var tradeId: String?,
+    data class OrderResponse(
         @SerialName("tr_cont") override var tradeContinuous: String?,
+        @SerialName("tr_id") override var tradeId: String?,
         @SerialName("gt_uid") override var globalTradeID: String?,
         @SerialName("msg_cd") override val code: String?,
         @SerialName("msg1") override val msg: String?,
         @SerialName("rt_cd") @Serializable(with = ResultCodeSerializer::class) override val isOk: Boolean?,
 
-        var output: List<InquireConfirmResponseOutput>?, override var next: (suspend () -> Response)?
+        var output: OrderResponseOutput?, override var next: (suspend () -> Response)?
     ): Response, TradeContinuousResponse, TradeIdMsg {
         override val error_description: String? = null
         override val error_code: String? = null
     }
 
     @Serializable
-    data class InquireConfirmResponseOutput(
-        @SerialName("stck_cntg_hour") val stockConfirmHour: Int?,
-        @SerialName("stck_prpr") @Contextual override val price: BigInteger?,
-        @SerialName("prdy_vrss") @Contextual override val changeFromYesterday: BigInteger?,
-        @SerialName("prdy_vrss_sign") override val signFromYesterday: SignPrice?,
-        @SerialName("cntg_vol") @Contextual val confirmVolume: BigInteger?,
-        @SerialName("tday_rltv") @Contextual val todayConfirmPowerVolume: BigDecimal?,
-        @SerialName("prdy_ctrt") @Contextual override val rateFromYesterday: BigDecimal?,
-    ): StockPriceBase, StockPriceChange
+    data class OrderResponseOutput(
+        @SerialName("KRX_FWDG_ORD_ORGNO") val orderOffice: String?,
+        @SerialName("ODNO") @Contextual val orderNumber: String?,
+        @SerialName("ORD_TMD") val orderTime: String?,
+    )
 
-    data class InquireConfirmData(val stockCode: String,/** 기본적으로 KisOpenApi의 corp 값을 불러옵니다. */override var corp: CorporationRequest? = null, override val tradeContinuous: String? = ""): Data, TradeContinuousData
+    data class OrderData(val stockCode: String, val orderType: OrderTypeCode, val count: BigInteger, val price: BigInteger = BigInteger(0),
+                         override var corp: CorporationRequest? = null, override val tradeContinuous: String? = ""): Data, TradeContinuousData
+    @Serializable
+    data class OrderDataJson(val CANO: String, val ACNT_PRDT_CD: String, val PDNO: String, val ORD_DVSN: OrderTypeCode, @Contextual val ORD_QTY: BigInteger, @Contextual val ORD_UNPR: BigInteger)
 
-    override suspend fun call(data: InquireConfirmData): InquireConfirmResponse {
+    override suspend fun call(data: OrderData): OrderResponse {
         if (data.corp == null) data.corp = client.corp
 
-        val res = client.httpClient.get(url) {
+        val res = client.httpClient.post(url) {
             auth(client)
-            tradeId("FHKST01010300")
+            tradeId(if(client.isDemo) "VTTC0802U" else "TTTC0802U")
             stock(data.stockCode)
             data.corp?.let { corporation(it) }
+            setBody(OrderDataJson(client.account!![0], client.account!![1], data.stockCode, data.orderType, data.count, data.price))
         }
-        return res.body<InquireConfirmResponse>().apply {
+        return res.body<OrderResponse>().apply {
             if (this.error_code != null) throw RequestError(this.error_description)
 
             res.headers.forEach { s, strings ->
