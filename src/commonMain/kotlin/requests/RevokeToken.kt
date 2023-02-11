@@ -12,8 +12,8 @@ class RevokeToken(override val client: KisOpenApi):
     DataRequest<RevokeToken.RevokeTokenData, RevokeToken.RevokeTokenResponse> {
     @Serializable
     data class RevokeTokenResponse(val code: Int?, val message: String?): Response {
-        override val error_description: String? = null
-        override val error_code: String? = null
+        override val errorDescription: String? = null
+        override val errorCode: String? = null
     }
 
     @Serializable
@@ -29,7 +29,7 @@ class RevokeToken(override val client: KisOpenApi):
             contentType(ContentType.Application.Json)
             setBody(RevokeTokenJson(data.token, client.appKey, client.appSecret))
         }.body<RevokeTokenResponse>().run {
-            if (this.error_code != null) throw RequestError(this.error_description)
+            if (this.errorCode != null) throw RequestError(this.errorDescription)
             this
         }
     }

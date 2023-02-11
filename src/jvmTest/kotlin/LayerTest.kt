@@ -11,17 +11,24 @@ import org.testng.annotations.Test
 import java.io.File
 
 class LayerTest {
+    val testStock = "005930"
+
+    private fun getApi(): KisOpenApi {
+        val key = File("key.txt").readLines()
+        val token = File("token.txt").readLines()
+        val account = File("account.txt").readLines()
+
+        return KisOpenApi.withToken(
+            token[0], key[0], key[1], false, account[0]
+        )
+    }
+
     @Test
     fun loadStockPriceByLayer(){
         runBlocking {
-            val key = File("key.txt").readLines()
-            val token = File("token.txt").readLines()
+            val api = getApi()
 
-            val api = KisOpenApi.withToken(
-                token[0], key[0], key[1], false
-            )
-
-            val stock = Stock(api, "012450")
+            val stock = Stock(api, testStock)
 
             stock.updateBy(StockPrice::class)
             stock.updateBy(BaseInfo::class)
@@ -35,15 +42,9 @@ class LayerTest {
     @Test
     fun buy() {
         runBlocking {
-            val key = File("key.txt").readLines()
-            val token = File("token.txt").readLines()
-            val account = File("account.txt").readLines()
+            val api = getApi()
 
-            val api = KisOpenApi.withToken(
-                token[0], key[0], key[1], false, account[0]
-            )
-
-            val stock = Stock(api, "012450")
+            val stock = Stock(api, testStock)
 
             stock.updateBy(StockPrice::class)
             stock.updateBy(BaseInfo::class)
@@ -55,29 +56,29 @@ class LayerTest {
     @Test
     fun sell() {
         runBlocking {
-            val key = File("key.txt").readLines()
-            val token = File("token.txt").readLines()
-            val account = File("account.txt").readLines()
+            val api = getApi()
 
-            val api = KisOpenApi.withToken(
-                token[0], key[0], key[1], false, account[0]
-            )
-
-            val stock = Stock(api, "012450")
+            val stock = Stock(api, testStock)
             println(stock.sell(BigInteger(1), OrderTypeCode.MarketPrice))
+        }
+    }
+
+    @Test
+    fun livePrice() {
+        runBlocking {
+            val api = getApi()
+
+            val stock = Stock(api, testStock)
+            stock.useLiveConfirmPrice {
+                println(it.price)
+            }
         }
     }
 
     @Test
     fun account() {
         runBlocking {
-            val key = File("key.txt").readLines()
-            val token = File("token.txt").readLines()
-            val account = File("account.txt").readLines()
-
-            val api = KisOpenApi.withToken(
-                token[0], key[0], key[1], false, account[0]
-            )
+            val api = getApi()
 
             val accountLayer = Account(api)
 

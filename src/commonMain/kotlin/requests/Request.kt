@@ -3,27 +3,21 @@ package io.github.devngho.kisopenapi.requests
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.response.CorporationRequest
 import io.github.devngho.kisopenapi.requests.response.LiveResponse
+import kotlinx.serialization.SerialName
 
 interface Data {
     val corp: CorporationRequest?
 }
-@Suppress("propertyName")
 interface Response {
-    val error_description: String?
-    val error_code: String?
+    @SerialName("error_description") val errorDescription: String?
+    @SerialName("error_code") val errorCode: String?
 }
 
 sealed interface Request<T: Response> {
     val client: KisOpenApi
 }
 
-sealed interface LiveRequest<T : Response>: Request<T>{
-    suspend fun register(init: ((LiveResponse) -> Unit)? = null, block: (T) -> Unit)
-    suspend fun unregister()
-
-}
-
-sealed interface LiveDataRequest<T: Data, U : Response>: Request<U>{
+sealed interface LiveRequest<T: Data, U : Response>: Request<U>{
     suspend fun register(data: T, init: ((LiveResponse) -> Unit)? = null, block: (U) -> Unit)
     suspend fun unregister(data: T)
 

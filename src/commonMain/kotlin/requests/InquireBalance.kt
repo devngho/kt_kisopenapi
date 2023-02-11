@@ -1,23 +1,21 @@
 package io.github.devngho.kisopenapi.requests
 
-import io.github.devngho.kisopenapi.KisOpenApi
-import io.github.devngho.kisopenapi.requests.util.*
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
+import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.response.*
+import io.github.devngho.kisopenapi.requests.util.*
 import io.github.devngho.kisopenapi.requests.util.YNSerializer.YN
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 class InquireBalance(override val client: KisOpenApi):
     DataRequest<InquireBalance.InquireBalanceData, InquireBalance.InquireBalanceResponse> {
-    private val url = if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/domestic-stock/v1/trading/inquire-daily-ccld"
-                        else             "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/trading/inquire-daily-ccld"
+    private val url = if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/domestic-stock/v1/trading/inquire-balance"
+                        else             "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/trading/inquire-balance-rlz-pl"
 
     @Serializable
     data class InquireBalanceResponse(
@@ -34,8 +32,8 @@ class InquireBalance(override val client: KisOpenApi):
         override var next: (suspend () -> Response)?,
         @SerialName("tr_cont") override var tradeContinuous: String?
     ): Response, TradeContinuousResponse, TradeIdMsg {
-        override val error_description: String? = null
-        override val error_code: String? = null
+        override val errorDescription: String? = null
+        override val errorCode: String? = null
     }
 
     @Serializable
@@ -67,8 +65,8 @@ class InquireBalance(override val client: KisOpenApi):
         @SerialName("sbst_pric") @Contextual override val substitutePrice: BigInteger?,
         @SerialName("stck_loan_unpr") @Contextual override val stockLoanPrice: BigInteger?,
     ): BalanceAccountStock {
-        override val error_description: String? = null
-        override val error_code: String? = null
+        override val errorDescription: String? = null
+        override val errorCode: String? = null
     }
 
     @Serializable
@@ -97,19 +95,33 @@ class InquireBalance(override val client: KisOpenApi):
         @SerialName("bfdy_tot_asst_evlu_amt") @Contextual override val totalEvalAssetAmountFromYesterday: BigInteger?,
         @SerialName("asst_icdc_amt") @Contextual override val assetChangeAmount: BigInteger?,
         @SerialName("asst_icdc_erng_rt") @Contextual override val assetChangeRate: BigDecimal?,
+        @SerialName("rlzt_pfls") @Contextual override val realizedProfitLoss: BigInteger?,
+        @SerialName("rlzt_erng_rt") @Contextual override val realizedProfitLossRate: BigDecimal?,
+        @SerialName("rlzt_evlu_pfls") @Contextual override val realEvalProfitLoss: BigInteger?,
+        @SerialName("rlzt_evlu_pfls_erng_rt") @Contextual override val realEvalProfitLossRate: BigDecimal?,
     ): BalanceAccount {
-        override val error_description: String? = null
-        override val error_code: String? = null
+        override val errorDescription: String? = null
+        override val errorCode: String? = null
     }
 
-    data class InquireBalanceData(val afterHourFinalPrice: Boolean, val inquireDivision: InquireDivisionCode, val includeFund: Boolean, val includeYesterdaySell: Boolean, override var corp: CorporationRequest? = null, override val tradeContinuous: String? = "", val continuousAreaFK: String = "", val continuousAreaNK: String = ""): Data, TradeContinuousData
+    data class InquireBalanceData(
+        val afterHourFinalPrice: Boolean = true,
+        val inquireDivision: InquireDivisionCode = InquireDivisionCode.ByStock,
+        val includeFund: Boolean = false,
+        val includeYesterdaySell: Boolean = false,
+        val includeCost: Boolean = false,
+        override var corp: CorporationRequest? = null,
+        override val tradeContinuous: String? = "",
+        val continuousAreaFK: String = "",
+        val continuousAreaNK: String = ""
+    ) : Data, TradeContinuousData
 
     override suspend fun call(data: InquireBalanceData): InquireBalanceResponse {
         if (data.corp == null) data.corp = client.corp
 
         fun HttpRequestBuilder.InquireBalance() {
             auth(client)
-            tradeId(if(client.isDemo) "VTTC8434R" else "TTTC8434R")
+            tradeId(if(client.isDemo) "VTTC8434R" else "TTTC8494R")
             data.corp?.let { corporation(it) }
 
             url {
@@ -123,6 +135,7 @@ class InquireBalance(override val client: KisOpenApi):
                     set("FUND_STTL_ICLD_YN", data.includeFund.YN)
                     set("FNCG_AMT_AUTO_RDPT_YN", "N")
                     set("PRCS_DVSN", if (data.includeYesterdaySell) "00" else "01")
+                    if (!client.isDemo) set("COST_ICLD_YN", data.includeCost.YN)
                     set("CTX_AREA_FK100", data.continuousAreaFK)
                     set("CTX_AREA_NK100", data.continuousAreaNK)
                 }
@@ -133,7 +146,7 @@ class InquireBalance(override val client: KisOpenApi):
             InquireBalance()
         }
         return res.body<InquireBalanceResponse>().apply {
-            if (this.error_code != null) throw RequestError(this.error_description)
+            if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             res.headers.forEach { s, strings ->
                 when(s) {

@@ -3,17 +3,33 @@
 
 https://apiportal.koreainvestment.com/about
 
-한국투자증권의 REST & WebSocket 방식 새 API 서비스를 쉽게 사용할 수 있는 Kotlin 라이브러리.
+한국투자증권의 REST & WebSocket 방식 새 API 서비스를 쉽게 사용할 수 있는 Kotlin 라이브러리입니다.
 
 ## 주의사항
 
 > 법인 사용이 가능하나, **개인 사용 목적**으로 개발되었습니다.
 
-> 개발자([devngho](https://github.com/devngho))는 라이브러리의 사용에 대해 **책임지지 않습니다**.
+> 개발자([devngho](https://github.com/devngho))와 기여자는 라이브러리의 사용에 대해 손해 등의 **책임을 지지 않습니다**.
 
 ## 사용하기
 Maven central에 배포되어 있습니다.
 
+**Gradle(Groovy)**
+```groovy
+implementation 'io.github.devngho:kt_kisopenapi:[VERSION]' // For kotlin multiplatform
+
+implementation 'io.github.devngho:kt_kisopenapi-jvm:[VERSION]' // For JVM
+
+implementation 'io.github.devngho:kt_kisopenapi-native:[VERSION]' // For kotlin multiplatform native
+```
+**Gradle(Kotlin)**
+```kotlin
+implementation("io.github.devngho:kt_kisopenapi:[VERSION]") // For kotlin multiplatform
+
+implementation("io.github.devngho:kt_kisopenapi-jvm:[VERSION]") // For JVM
+
+implementation("io.github.devngho:kt_kisopenapi-native:[VERSION]") // For kotlin multiplatform native
+```
 ## 개발 도와주기
 Pull requests를 사용하거나 Issues를 만들어주세요!
 ## 구현 진행
@@ -43,7 +59,7 @@ InquirePrice(api).call(InquirePrice.InquirePriceData(""))
       - [ ] 회원사
       - [ ] ELW
       - [ ] 기간별 시세
-      - [ ] 실시간 시세
+      - [x] 실시간 시세
 - [ ] 국내선물옵션
     - [ ] 주문
         - [ ] 주문 
@@ -72,10 +88,9 @@ InquirePrice(api).call(InquirePrice.InquirePriceData(""))
         - [ ] 상세
         - [ ] 현재가
 - [ ] 예제 코드
-
 ### Layer
 ```kotlin
-// 예시(구현중)
+// 예시(구현됨)
 val stock = Stock(api, "")
 stock.updateBy(StockPrice::class)
 stock.price
@@ -83,8 +98,8 @@ stock.price
 stock.buy(price = 10000, count = 10)
 
 stock.useLiveConfirmPrice {
-    it.price
-    stock.closeLiveConfirmPrice() // or it.close()
+    print(it)
+    this.close()
 }
 
 
@@ -92,8 +107,9 @@ stock.useLiveConfirmPrice {
 레이어를 통해 접속(권장)
 
 ## 오픈 소스 라이선스
-### Kotlin
-- [Kotlin/kotlinx.coroutines](https://github.com/Kotlin/kotlinx.coroutines) - [Apache License Version 2.0](https://www.apache.org/licenses/LICENSE-2.0)
-- [ktorio/ktor](https://github.com/ktorio/ktor) - [Apache License Version 2.0](https://www.apache.org/licenses/LICENSE-2.0)
+### Official
+- [Kotlin/kotlinx.coroutines](https://github.com/Kotlin/kotlinx.coroutines) : 코루틴 비동기 처리를 위한 라이브러리 - [Apache License Version 2.0](https://github.com/Kotlin/kotlinx.coroutines/blob/master/LICENSE.txt)
+- [ktorio/ktor](https://github.com/ktorio/ktor) : API 접속을 위한 라이브러리 - [Apache License Version 2.0](https://github.com/ktorio/ktor/blob/main/LICENSE)
 ### Other
-- [ionspin/kotlin-multiplatform-bignum](http://github.com/ionspin/kotlin-multiplatform-bignum/) - [Apache License Version 2.0](https://www.apache.org/licenses/LICENSE-2.0)
+- [korge/krypto](https://github.com/korlibs/korge/tree/main/krypto) : WebSocket AES 처리를 위한 라이브러리 - [MIT License](https://github.com/korlibs/korge/blob/main/krypto/LICENSE)
+- [ionspin/kotlin-multiplatform-bignum](http://github.com/ionspin/kotlin-multiplatform-bignum/) : 큰 수 처리를 위한 라이브러리 - [Apache License Version 2.0](https://github.com/ionspin/kotlin-multiplatform-bignum/blob/main/LICENSE)

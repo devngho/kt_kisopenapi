@@ -1,14 +1,12 @@
 package io.github.devngho.kisopenapi.requests
 
-import io.github.devngho.kisopenapi.KisOpenApi
-import io.github.devngho.kisopenapi.requests.util.*
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
+import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.response.*
+import io.github.devngho.kisopenapi.requests.util.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -30,8 +28,8 @@ class InquirePrice(override val client: KisOpenApi):
         var output: InquirePriceResponseOutput?, override var next: (suspend () -> Response)?,
         override val tradeContinuous: String?
     ): Response, TradeContinuousResponse, TradeIdMsg {
-        override val error_description: String? = null
-        override val error_code: String? = null
+        override val errorDescription: String? = null
+        override val errorCode: String? = null
     }
 
     @Serializable
@@ -110,8 +108,8 @@ class InquirePrice(override val client: KisOpenApi):
         @SerialName("stck_sdpr") @Contextual override val criteriaPrice: BigInteger?,
         @SerialName("acml_tr_pbmn") @Contextual override val accumulateTradePrice: BigInteger?
     ): StockPriceFull, StockTradeFull {
-        override val error_description: String? = null
-        override val error_code: String? = null
+        override val errorDescription: String? = null
+        override val errorCode: String? = null
     }
 
     data class InquirePriceData(val stockCode: String, override var corp: CorporationRequest? = null, override val tradeContinuous: String? = ""): Data, TradeContinuousData
@@ -130,7 +128,7 @@ class InquirePrice(override val client: KisOpenApi):
             inquirePrice()
         }
         return res.body<InquirePriceResponse>().apply {
-            if (this.error_code != null) throw RequestError(this.error_description)
+            if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             res.headers.forEach { s, strings ->
                 when(s) {

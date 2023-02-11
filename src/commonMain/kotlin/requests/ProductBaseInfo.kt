@@ -24,8 +24,8 @@ class ProductBaseInfo(override val client: KisOpenApi):
 
         var output: ProductBaseInfoResponseOutput?, override var next: (suspend () -> Response)?
     ): Response, TradeContinuousResponse, TradeIdMsg {
-        override val error_description: String? = null
-        override val error_code: String? = null
+        override val errorDescription: String? = null
+        override val errorCode: String? = null
     }
 
     @Serializable
@@ -51,8 +51,8 @@ class ProductBaseInfo(override val client: KisOpenApi):
         @SerialName("ivst_prdt_type_cd_name") override val productInvestmentTypeName: String?,
         @SerialName("frst_erlm_date") override val firstRegisterDate: String?,
     ): BaseInfo {
-        override val error_description: String? = null
-        override val error_code: String? = null
+        override val errorDescription: String? = null
+        override val errorCode: String? = null
     }
 
     data class ProductBaseInfoData(val code: String, val type: ProductTypeCode,
@@ -74,7 +74,7 @@ class ProductBaseInfo(override val client: KisOpenApi):
             }
         }
         return res.body<ProductBaseInfoResponse>().apply {
-            if (this.error_code != null) throw RequestError(this.error_description)
+            if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             res.headers.forEach { s, strings ->
                 when(s) {

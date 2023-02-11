@@ -1,13 +1,14 @@
 package io.github.devngho.kisopenapi.requests
 
-import io.github.devngho.kisopenapi.KisOpenApi
-import io.github.devngho.kisopenapi.requests.util.*
 import com.ionspin.kotlin.bignum.integer.BigInteger
-import io.github.devngho.kisopenapi.requests.response.*
+import io.github.devngho.kisopenapi.KisOpenApi
+import io.github.devngho.kisopenapi.requests.response.CorporationRequest
+import io.github.devngho.kisopenapi.requests.response.TradeContinuousData
+import io.github.devngho.kisopenapi.requests.response.TradeContinuousResponse
+import io.github.devngho.kisopenapi.requests.response.TradeIdMsg
+import io.github.devngho.kisopenapi.requests.util.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -28,8 +29,8 @@ class OrderBuy(override val client: KisOpenApi):
 
         var output: OrderResponseOutput?, override var next: (suspend () -> Response)?
     ): Response, TradeContinuousResponse, TradeIdMsg {
-        override val error_description: String? = null
-        override val error_code: String? = null
+        override val errorDescription: String? = null
+        override val errorCode: String? = null
     }
 
     @Serializable
@@ -55,7 +56,7 @@ class OrderBuy(override val client: KisOpenApi):
             setBody(OrderDataJson(client.account!![0], client.account!![1], data.stockCode, data.orderType, data.count, data.price))
         }
         return res.body<OrderResponse>().apply {
-            if (this.error_code != null) throw RequestError(this.error_description)
+            if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             res.headers.forEach { s, strings ->
                 when(s) {

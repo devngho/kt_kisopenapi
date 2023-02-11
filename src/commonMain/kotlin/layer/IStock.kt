@@ -1,33 +1,18 @@
 package io.github.devngho.kisopenapi.layer
 
-import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.KisOpenApi
+import io.github.devngho.kisopenapi.requests.InquireLivePrice
 import io.github.devngho.kisopenapi.requests.OrderBuy
+import io.github.devngho.kisopenapi.requests.response.StockPriceBase
+import io.github.devngho.kisopenapi.requests.response.StockTrade
+import io.github.devngho.kisopenapi.requests.util.Closeable
 import io.github.devngho.kisopenapi.requests.util.OrderTypeCode
 
 
-interface IStock : Update{
+interface IStock : Updatable{
     val client: KisOpenApi
     val code: String
-    /**
-     * @param price 현재가
-     * @param changeFromDayBefore 전일 대비 변화
-     * @param changeRateFromDayBefore 전일 대비 변화율
-     * @param maxPrice 상한가
-     * @param minPrice 하한가
-     * @param highPrice 최고가
-     * @param lowPrice 최저가
-     */
-    data class Price(
-        var price: BigInteger? = null,
-        var changeFromDayBefore: BigInteger? = null,
-        var changeRateFromDayBefore: BigDecimal? = null,
-        var maxPrice: BigInteger? = null,
-        var minPrice: BigInteger? = null,
-        var lowPrice: BigInteger? = null,
-        var highPrice: BigInteger? = null
-    )
 
     data class Name(
         var name: String? = null,
@@ -38,15 +23,11 @@ interface IStock : Update{
         var nameEngShort: String? = null
     )
 
-    data class TradeVolume(
-        var volumeRateFromYesterday: BigDecimal? = null,
-        var volumeAccumulate: BigInteger? = null,
-    )
-
-    var price: Price
+    var price: StockPriceBase
     var name: Name
-    var tradeVolume: TradeVolume
+    var tradeVolume: StockTrade
 
     suspend fun buy(count: BigInteger, type: OrderTypeCode, price: BigInteger = BigInteger(0)): OrderBuy.OrderResponse
     suspend fun sell(count: BigInteger, type: OrderTypeCode, price: BigInteger = BigInteger(0)): OrderBuy.OrderResponse
+    suspend fun useLiveConfirmPrice(block: Closeable.(InquireLivePrice.InquireLivePriceResponse) -> Unit)
 }

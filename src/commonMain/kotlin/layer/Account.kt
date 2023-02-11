@@ -52,7 +52,7 @@ class Account(val client: KisOpenApi) : IAccount {
                             this.buyPriceAverage = it.buyAveragePrice ?: this.buyPriceAverage
                             this.count = it.count ?: this.count
                             this.evalAmount = it.evalAmount ?: this.evalAmount
-                            this.price.price = it.price
+                            this.price = it
                             this.name.nameShort = it.productName
                         }
                     } else null

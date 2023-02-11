@@ -5,8 +5,6 @@ import io.github.devngho.kisopenapi.requests.response.*
 import io.github.devngho.kisopenapi.requests.util.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -27,8 +25,8 @@ class InquireHoliday(override val client: KisOpenApi):
         override var next: (suspend () -> InquireHolidayResponse)?,
         override var tradeContinuous: String?
     ): Response, TradeContinuousResponse, Msg {
-        override val error_description: String? = null
-        override val error_code: String? = null
+        override val errorDescription: String? = null
+        override val errorCode: String? = null
     }
 
     @Serializable
@@ -43,8 +41,8 @@ class InquireHoliday(override val client: KisOpenApi):
         @SerialName("opnd_yn") @Serializable(with = YNSerializer::class) override val isMarketOpen: Boolean,
         @SerialName("sttl_day_yn") @Serializable(with = YNSerializer::class) override val isPayDay: Boolean,
     ): Holiday, Response {
-        override val error_description: String? = null
-        override val error_code: String? = null
+        override val errorDescription: String? = null
+        override val errorCode: String? = null
     }
 
     data class InquireHolidayData(
@@ -75,7 +73,7 @@ class InquireHoliday(override val client: KisOpenApi):
             }
         }
         return res.body<InquireHolidayResponse>().apply {
-            if (this.error_code != null) throw RequestError(this.error_description)
+            if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             res.headers.forEach { s, strings ->
                 when(s) {

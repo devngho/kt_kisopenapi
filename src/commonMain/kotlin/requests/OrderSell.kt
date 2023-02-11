@@ -30,7 +30,7 @@ class OrderSell(override val client: KisOpenApi):
             )
         }
         return res.body<OrderBuy.OrderResponse>().apply {
-            if (this.error_code != null) throw RequestError(this.error_description)
+            if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             res.headers.forEach { s, strings ->
                 when(s) {

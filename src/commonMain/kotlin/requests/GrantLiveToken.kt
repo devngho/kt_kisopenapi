@@ -4,7 +4,6 @@ import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.util.RequestError
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -12,8 +11,8 @@ import kotlinx.serialization.Serializable
 class GrantLiveToken(override val client: KisOpenApi): NoDataRequest<GrantLiveToken.GrantTokenResponse> {
     @Serializable
     data class GrantTokenResponse(@SerialName("approval_key") val approvalKey: String): Response {
-        override val error_description: String? = null
-        override val error_code: String? = null
+        override val errorDescription: String? = null
+        override val errorCode: String? = null
     }
 
     @Serializable
@@ -27,7 +26,7 @@ class GrantLiveToken(override val client: KisOpenApi): NoDataRequest<GrantLiveTo
             contentType(ContentType.Application.Json)
             setBody(GrantTokenJson("client_credentials", client.appKey, client.appSecret))
         }.body<GrantTokenResponse>().run {
-            if (this.error_code != null) throw RequestError(this.error_description)
+            if (this.errorCode != null) throw RequestError(this.errorDescription)
             this
         }
     }

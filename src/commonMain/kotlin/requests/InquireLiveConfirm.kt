@@ -4,6 +4,7 @@ import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.decimal.toBigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import com.ionspin.kotlin.bignum.integer.toBigInteger
+import com.soywiz.krypto.encoding.Base64
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.response.CorporationRequest
 import io.github.devngho.kisopenapi.requests.response.LiveResponse
@@ -13,8 +14,8 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.launch
 import kotlinx.serialization.*
 
-class InquireLivePrice(override val client: KisOpenApi): LiveRequest<InquireLivePrice.InquireLivePriceData, InquireLivePrice.InquireLivePriceResponse> {
-    private fun buildCallBody(data: InquireLivePriceData, trType: String) = """
+class InquireLiveConfirm(override val client: KisOpenApi): LiveRequest<InquireLiveConfirm.InquireLiveConfirmData, InquireLiveConfirm.InquireLiveConfirmResponse> {
+    private fun buildCallBody(data: InquireLiveConfirmData, trType: String) = """
                 {
                     "header": {
                         "approval_key":"${client.websocketToken}",
@@ -23,15 +24,15 @@ class InquireLivePrice(override val client: KisOpenApi): LiveRequest<InquireLive
                     },
                     "body": {
                         "input": {
-                            "tr_id":"H0STCNT0",
-                            "tr_key":"${data.stockCode}"
+                            "tr_id": "${if(client.isDemo) "H0STCNI9" else "H0STCNI0"}",
+                            "tr_key":"${client.htsId}"
                         }
                     }
                 }
             """.trimIndent()
 
     @Serializable
-    data class InquireLivePriceResponse(
+    data class InquireLiveConfirmResponse(
         @SerialName("mksc_shrn_iscd") val stockShortCode: String?  = null,
         @SerialName("stck_cntg_hour") val stockConfirmTime: String?  = null,
         @SerialName("stck_prpr") @Contextual val price: BigInteger?  = null,
@@ -74,7 +75,7 @@ class InquireLivePrice(override val client: KisOpenApi): LiveRequest<InquireLive
         @SerialName("shnu_cntg_smtn") @Contextual val buyTotalCount: BigInteger?  = null,
         @SerialName("vol_tnrt") @Contextual val tradeVolumeTurningRate: BigDecimal?  = null,
         @SerialName("prdy_smns_hour_acml_vol") @Contextual val accumulateTradeVolumeFromYesterdaySameHour: BigInteger?  = null,
-        @SerialName("prdy_smns_hour_acml_vol_rate") @Contextual val rateAccumulateTradeVolumeFromYesterdaySameHour: BigDecimal?  = null,
+        @SerialName("prdy_smns_hour_acml_vol_rate") @Contextual val rateAccumulateTradeVolumeFromYesterdaySameHour: BigInteger?  = null,
         @SerialName("hour_cls_code") val hourCode: HourCode?  = null,
         @SerialName("mrkt_trtm_cls_code") val marketTerminatedCode: String?  = null,
         @SerialName("vi_stnd_prc") @Contextual val viActivatePrice: BigInteger?  = null,
@@ -83,10 +84,12 @@ class InquireLivePrice(override val client: KisOpenApi): LiveRequest<InquireLive
         override val errorCode: String? = null
     }
 
-    data class InquireLivePriceData(val stockCode: String, override var corp: CorporationRequest? = null): Data
+    data class InquireLiveConfirmData(override var corp: CorporationRequest? = null): Data
 
+    lateinit var iv: String
+    lateinit var key: String
 
-    override suspend fun register(data: InquireLivePriceData, init: ((LiveResponse) -> Unit)?, block: (InquireLivePriceResponse) -> Unit) {
+    override suspend fun register(data: InquireLiveConfirmData, init: ((LiveResponse) -> Unit)?, block: (InquireLiveConfirmResponse) -> Unit) {
         if (data.corp == null) data.corp = client.corp
         if (client.websocket == null) client.buildWebsocket()
 
@@ -96,12 +99,15 @@ class InquireLivePrice(override val client: KisOpenApi): LiveRequest<InquireLive
                 client.websocketIncoming?.collect {
                     if (it is Frame.Text) {
                         it.readText()
+                            .apply { println(this) }
                             .apply {
                                 if (this[0] != '0' && this[0] != '1') {
                                     json.decodeFromString<LiveResponse>(this).run {
-                                        if (this.header?.tradeId == "H0STCNT0" && this.header.tradeKey == data.stockCode && init != null) init(
-                                            this
-                                        )
+                                        if (this.header?.tradeId == (if (client.isDemo) "H0STCNI9" else "H0STCNI0") && this.header.tradeKey == client.htsId && init != null) {
+                                            iv = this.output!!.iv!!
+                                            key = this.output.key!!
+                                            init(this)
+                                        }
                                     }
 
                                     return@collect
@@ -110,65 +116,62 @@ class InquireLivePrice(override val client: KisOpenApi): LiveRequest<InquireLive
                             .run {
                                 split("|")
                                     .run {
-                                        if (get(1) == "H0STCNT0") get(3).split("^")
+                                        println(decodeAES(key, iv, Base64.decode(get(3))).decodeToString().split("^"))
+                                        if (get(1) != "H0STCNT0") decodeAES(key, iv, Base64.decode(get(3))).decodeToString().split("^")
                                         else return@collect
                                     }
                                     .run {
-                                        if (get(0) == data.stockCode) this
+                                        if (get(0) == client.htsId) this
                                         else return@collect
                                     }
                                     .run {
-                                        try {
-                                            block(
-                                                InquireLivePriceResponse(
-                                                    this[0],
-                                                    this[1],
-                                                    this[2].toBigInteger(),
-                                                    SignPrice.values().find { f -> f.value.toString() == this[3] },
-                                                    this[4].toBigInteger(),
-                                                    this[5].toBigDecimal(),
-                                                    this[6].toBigDecimal(),
-                                                    this[7].toBigInteger(),
-                                                    this[8].toBigInteger(),
-                                                    this[9].toBigInteger(),
-                                                    this[10].toBigInteger(),
-                                                    this[11].toBigInteger(),
-                                                    this[12].toBigInteger(),
-                                                    this[13].toBigInteger(),
-                                                    this[14].toBigInteger(),
-                                                    this[15].toBigInteger(),
-                                                    this[16].toBigInteger(),
-                                                    this[17].toBigInteger(),
-                                                    this[18].toBigDecimal(),
-                                                    this[19].toBigInteger(),
-                                                    this[20].toBigInteger(),
-                                                    this[21],
-                                                    this[22].toBigDecimal(),
-                                                    this[23].toBigDecimal(),
-                                                    this[24],
-                                                    SignPrice.values().find { f -> f.value.toString() == this[25] },
-                                                    this[26].toBigInteger(),
-                                                    this[27],
-                                                    SignPrice.values().find { f -> f.value.toString() == this[28] },
-                                                    this[29].toBigInteger(),
-                                                    this[30],
-                                                    SignPrice.values().find { f -> f.value.toString() == this[31] },
-                                                    this[32].toBigInteger(),
-                                                    this[33],
-                                                    this[34],
-                                                    this[35].YN,
-                                                    this[36].toBigInteger(),
-                                                    this[37].toBigInteger(),
-                                                    this[38].toBigInteger(),
-                                                    this[39].toBigInteger(),
-                                                    this[40].toBigDecimal(),
-                                                    this[41].toBigInteger(),
-                                                    this[42].toBigDecimal(),
-                                                    HourCode.values().find { f -> f.num == this[43] },
-                                                    this[44]
-                                                )
-                                            )
-                                        }catch (e: Exception) {e.printStackTrace()}
+                                        block(InquireLiveConfirmResponse(
+                                            this[0],
+                                            this[1],
+                                            this[2].toBigInteger(),
+                                            SignPrice.values().find { f -> f.value.toString() == this[3] },
+                                            this[4].toBigInteger(),
+                                            this[5].toBigDecimal(),
+                                            this[6].toBigDecimal(),
+                                            this[7].toBigInteger(),
+                                            this[8].toBigInteger(),
+                                            this[9].toBigInteger(),
+                                            this[10].toBigInteger(),
+                                            this[11].toBigInteger(),
+                                            this[12].toBigInteger(),
+                                            this[13].toBigInteger(),
+                                            this[14].toBigInteger(),
+                                            this[15].toBigInteger(),
+                                            this[16].toBigInteger(),
+                                            this[17].toBigInteger(),
+                                            this[18].toBigDecimal(),
+                                            this[19].toBigInteger(),
+                                            this[20].toBigInteger(),
+                                            this[21],
+                                            this[22].toBigDecimal(),
+                                            this[23].toBigDecimal(),
+                                            this[24],
+                                            SignPrice.values().find { f -> f.value.toString() == this[25] },
+                                            this[26].toBigInteger(),
+                                            this[27],
+                                            SignPrice.values().find { f -> f.value.toString() == this[28] },
+                                            this[29].toBigInteger(),
+                                            this[30],
+                                            SignPrice.values().find { f -> f.value.toString() == this[31] },
+                                            this[32].toBigInteger(),
+                                            this[33],
+                                            this[34],
+                                            this[35].YN,
+                                            this[36].toBigInteger(),
+                                            this[37].toBigInteger(),
+                                            this[38].toBigInteger(),
+                                            this[39].toBigInteger(),
+                                            this[40].toBigDecimal(),
+                                            this[41].toBigInteger(),
+                                            this[42].toBigInteger(),
+                                            HourCode.values().find { f -> f.num == this[43] },
+                                            this[44]
+                                        ))
                                     }
                             }
                     }
@@ -177,7 +180,7 @@ class InquireLivePrice(override val client: KisOpenApi): LiveRequest<InquireLive
         }
     }
 
-    override suspend fun unregister(data: InquireLivePriceData) {
+    override suspend fun unregister(data: InquireLiveConfirmData) {
         if (data.corp == null) data.corp = client.corp
         if (client.websocket == null) client.buildWebsocket()
 

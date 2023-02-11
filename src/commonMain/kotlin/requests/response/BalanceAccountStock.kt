@@ -6,7 +6,7 @@ import io.github.devngho.kisopenapi.requests.Response
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 
-interface BalanceAccountStock: Response {
+interface BalanceAccountStock: Response, StockPriceFull {
     @SerialName("pdno") val productCode: String?
     @SerialName("prdt_name") val productName: String?
     @SerialName("trad_dvsn_name") val buySellDivision: String?
@@ -18,7 +18,7 @@ interface BalanceAccountStock: Response {
     @SerialName("ord_psbl_qty") @Contextual val countCanOrder: BigInteger?
     @SerialName("pchs_avg_pric") @Contextual val buyAveragePrice: BigDecimal?
     @SerialName("pchs_amt") @Contextual val buyAmount: BigInteger?
-    @SerialName("prpr") @Contextual val price: BigInteger?
+    @SerialName("prpr") @Contextual override val price: BigInteger?
     @SerialName("evlu_amt") @Contextual val evalAmount: BigInteger?
     @SerialName("evlu_pfls_amt") @Contextual val evalProfitLossAmount: BigInteger?
     @SerialName("evlu_pfls_rt") @Contextual val evalProfitLossRate: BigDecimal?
@@ -28,9 +28,9 @@ interface BalanceAccountStock: Response {
     @SerialName("stln_slng_chgs") @Contextual val amountShortSelling: BigInteger?
     @SerialName("expd_dt") val expireDate: String?
     @SerialName("fltt_rt") @Contextual val changeRate: BigDecimal?
-    @SerialName("bfdy_cprs_icdc") @Contextual val changeFromYesterday: BigInteger?
+    @SerialName("bfdy_cprs_icdc") @Contextual override val changeFromYesterday: BigInteger?
     @SerialName("item_mgna_rt_name") val stockMarginRateName: String?
     @SerialName("grta_rt_name") val depositRateName: String?
-    @SerialName("sbst_pric") @Contextual val substitutePrice: BigInteger?
+    @SerialName("sbst_pric") @Contextual override val substitutePrice: BigInteger?
     @SerialName("stck_loan_unpr") @Contextual val stockLoanPrice: BigInteger?
 }

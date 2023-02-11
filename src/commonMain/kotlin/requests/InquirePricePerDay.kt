@@ -1,14 +1,12 @@
 package io.github.devngho.kisopenapi.requests
 
-import io.github.devngho.kisopenapi.KisOpenApi
-import io.github.devngho.kisopenapi.requests.util.*
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
+import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.response.*
+import io.github.devngho.kisopenapi.requests.util.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -29,8 +27,8 @@ class InquirePricePerDay(override val client: KisOpenApi):
 
         var output: List<InquirePricePerDayResponseOutput>?, override var next: (suspend () -> Response)?
     ): Response, TradeContinuousResponse, TradeIdMsg {
-        override val error_description: String? = null
-        override val error_code: String? = null
+        override val errorDescription: String? = null
+        override val errorCode: String? = null
     }
 
     @Serializable
@@ -53,8 +51,8 @@ class InquirePricePerDay(override val client: KisOpenApi):
         @SerialName("frgn_ntby_qty") @Contextual override val foreignerNetBuyCount: BigInteger?,
         @SerialName("prdy_vrss_vol_rate") @Contextual override val rateTradeVolumeFromYesterday: BigDecimal?
     ): StockPriceHighMax, StockTrade, StockPriceChange, StockPriceForeigner {
-        override val error_description: String? = null
-        override val error_code: String? = null
+        override val errorDescription: String? = null
+        override val errorCode: String? = null
     }
 
     data class InquirePricePerDayData(val stockCode: String, val period: PeriodDivisionCode = PeriodDivisionCode.Days30, val useOriginalPrice: Boolean = false,
@@ -77,7 +75,7 @@ class InquirePricePerDay(override val client: KisOpenApi):
             }
         }
         return res.body<InquirePricePerDayResponse>().apply {
-            if (this.error_code != null) throw RequestError(this.error_description)
+            if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             res.headers.forEach { s, strings ->
                 when(s) {

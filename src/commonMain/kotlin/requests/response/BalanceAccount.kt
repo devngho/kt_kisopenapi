@@ -33,4 +33,8 @@ interface BalanceAccount: Response {
     @SerialName("bfdy_tot_asst_evlu_amt") @Contextual val totalEvalAssetAmountFromYesterday: BigInteger?
     @SerialName("asst_icdc_amt") @Contextual val assetChangeAmount: BigInteger?
     @SerialName("asst_icdc_erng_rt") @Contextual val assetChangeRate: BigDecimal?
+    @SerialName("rlzt_pfls") @Contextual val realizedProfitLoss: BigInteger?
+    @SerialName("rlzt_erng_rt") @Contextual val realizedProfitLossRate: BigDecimal?
+    @SerialName("rlzt_evlu_pfls") @Contextual val realEvalProfitLoss: BigInteger?
+    @SerialName("rlzt_evlu_pfls_erng_rt") @Contextual val realEvalProfitLossRate: BigDecimal?
 }
