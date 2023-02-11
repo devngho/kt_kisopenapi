@@ -1,9 +1,9 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.devngho/kt_kisopenapi/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.devngho/kt_kisopenapi)
-# kt-kisopenapi
+# kt_kisopenapi
 
 https://apiportal.koreainvestment.com/about
 
-한국투자증권의 REST & WebSocket 방식 새 API 서비스를 쉽게 사용할 수 있는 Kotlin 라이브러리입니다.
+한국투자증권의 REST & WebSocket 방식 새 API 서비스를 쉽게 사용할 수 있는 Kotlin 라이브러리.
 
 ## 주의사항
 
@@ -107,9 +107,10 @@ stock.useLiveConfirmPrice {
 레이어를 통해 접속(권장)
 
 ## 오픈 소스 라이선스
-### Official
-- [Kotlin/kotlinx.coroutines](https://github.com/Kotlin/kotlinx.coroutines) : 코루틴 비동기 처리를 위한 라이브러리 - [Apache License Version 2.0](https://github.com/Kotlin/kotlinx.coroutines/blob/master/LICENSE.txt)
-- [ktorio/ktor](https://github.com/ktorio/ktor) : API 접속을 위한 라이브러리 - [Apache License Version 2.0](https://github.com/ktorio/ktor/blob/main/LICENSE)
+### Kotlin
+- [Jetbrains/Kotlin](https://github.com/JetBrains/kotlin) - [Apache License Version 2.0](https://github.com/JetBrains/kotlin/blob/master/license/LICENSE.txt)
+- [Kotlin/kotlinx.coroutines](https://github.com/Kotlin/kotlinx.coroutines) - [Apache License Version 2.0](https://github.com/Kotlin/kotlinx.coroutines/blob/master/LICENSE.txt)
+- [ktorio/ktor](https://github.com/ktorio/ktor) - [Apache License Version 2.0](https://github.com/ktorio/ktor/blob/main/LICENSE)
 ### Other
 - [korge/krypto](https://github.com/korlibs/korge/tree/main/krypto) : WebSocket AES 처리를 위한 라이브러리 - [MIT License](https://github.com/korlibs/korge/blob/main/krypto/LICENSE)
 - [ionspin/kotlin-multiplatform-bignum](http://github.com/ionspin/kotlin-multiplatform-bignum/) : 큰 수 처리를 위한 라이브러리 - [Apache License Version 2.0](https://github.com/ionspin/kotlin-multiplatform-bignum/blob/main/LICENSE)
