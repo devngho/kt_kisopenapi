@@ -45,6 +45,7 @@ class Stock(override val client: KisOpenApi, override val code: String) : IStock
 
     override fun updateBy(res: Response) {
         if (res is StockPriceBase) price = res
+        if (res is StockTrade) tradeVolume = res
         if (res is BaseInfo) res.update()
     }
 

@@ -16,7 +16,7 @@ class GrantToken(override val client: KisOpenApi): NoDataRequest<GrantToken.Gran
     }
 
     @Serializable
-    data class GrantTokenJson(val grant_type: String, val appkey: String, val appsecret: String)
+    data class GrantTokenJson(@SerialName("grant_type") val grantType: String, @SerialName("appkey") val appKey: String, @SerialName("appsecret") val appSecret: String)
 
     override suspend fun call(): GrantTokenResponse {
         return client.httpClient.post(
