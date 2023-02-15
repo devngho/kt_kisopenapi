@@ -6,6 +6,7 @@ https://apiportal.koreainvestment.com/about
 한국투자증권의 REST & WebSocket 방식 새 API 서비스를 쉽게 사용할 수 있는 Kotlin 라이브러리.
 
 ## 주의사항
+> 이 라이브러리는 **개발중**으로, API가 수시로 변경될 수 있습니다.
 
 > 법인 사용이 가능하나, **개인 사용 목적**으로 개발되었습니다.
 
