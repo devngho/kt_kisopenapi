@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "io.github.devngho"
-version = "0.1.29"
+version = "0.1.30"
 
 repositories {
     mavenCentral()
@@ -89,7 +89,8 @@ kotlin {
     }
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
-    val nativeTarget = when {
+
+    when {
         hostOs == "Mac OS X" -> macosX64("native")
         hostOs == "Linux" -> linuxX64("native")
         isMingwX64 -> mingwX64("native")
@@ -113,7 +114,7 @@ kotlin {
             implementation("io.ktor:ktor-client-websockets:$ktorVersion")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
             implementation("com.ionspin.kotlin:bignum:0.3.7")
-            implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:0.3.2")
+            implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:0.3.7")
         }
 
         val commonMain by getting {

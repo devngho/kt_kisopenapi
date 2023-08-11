@@ -34,7 +34,24 @@ implementation("io.github.devngho:kt_kisopenapi-native:[VERSION]") // For kotlin
 ## 개발 도와주기
 Pull requests를 사용하거나 Issues를 만들어주세요!
 ## 구현 진행
-### API
+### 권장 방식
+```kotlin
+// 예시(구현됨)
+val stock = Stock(api, "")
+stock.updateBy(StockPrice::class)
+stock.price
+
+stock.buy(price = 10000, count = 10)
+
+stock.useLiveConfirmPrice {
+    print(it)
+    this.close()
+}
+
+
+```
+추상화된 클래스를 통해 접속(권장)
+### 로우 레벨 API
 다이렉트로 API 접속(비권장)
 ```kotlin
 // 예시
@@ -71,12 +88,12 @@ InquirePrice(api).call(InquirePrice.InquirePriceData(""))
         - [ ] 기간별 시세
 - [ ] 해외주식
   - [ ] 주문
-    - [ ] 주문
+    - [x] 주문
     - [ ] 정정
     - [ ] 예약
     - [ ] 잔고 조회
   - [ ] 현재가
-    - [ ] 체결가
+    - [x] 체결가
     - [ ] 기간별 시세
     - [ ] 조건검색
 - [ ] 해외선물옵션
@@ -89,23 +106,6 @@ InquirePrice(api).call(InquirePrice.InquirePriceData(""))
         - [ ] 상세
         - [ ] 현재가
 - [ ] 예제 코드
-### Layer
-```kotlin
-// 예시(구현됨)
-val stock = Stock(api, "")
-stock.updateBy(StockPrice::class)
-stock.price
-
-stock.buy(price = 10000, count = 10)
-
-stock.useLiveConfirmPrice {
-    print(it)
-    this.close()
-}
-
-
-```
-레이어를 통해 접속(권장)
 
 ## 오픈 소스 라이선스
 ### Kotlin

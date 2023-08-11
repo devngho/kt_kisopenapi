@@ -12,7 +12,6 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 
 class KisOpenApi internal constructor(val appKey: String, val appSecret: String, val isDemo: Boolean, /** 계좌번호(XXXXXXXX-XX 형식) */var account: List<String>?, var htsId: String? = null, var corp: CorporationRequest? = CorporationRequest()) {
     lateinit var oauthToken: String
@@ -33,7 +32,6 @@ class KisOpenApi internal constructor(val appKey: String, val appSecret: String,
                     websocketIncoming?.emit(it)
                     if (it is Frame.Text)
                         it.readText()
-                            .apply { println(this) }
                             .apply { if (this[0] == '0' || this[0] == '1') return@consumeEach }
                             .apply {
                                 json.decodeFromString<LiveResponse>(this).run {

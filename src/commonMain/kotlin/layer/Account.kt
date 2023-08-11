@@ -47,7 +47,7 @@ class Account(val client: KisOpenApi) : IAccount {
                 this.mapNotNull {
                     if (it.productCode != null) {
                         AccountStock(
-                            Stock(client, it.productCode!!)
+                            StockDomestic(client, it.productCode!!)
                         ).apply {
                             this.buyPriceAverage = it.buyAveragePrice ?: this.buyPriceAverage
                             this.count = it.count ?: this.count

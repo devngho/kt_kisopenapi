@@ -37,7 +37,7 @@ class OrderBuy(override val client: KisOpenApi):
     data class OrderResponseOutput(
         @SerialName("KRX_FWDG_ORD_ORGNO") val orderOffice: String?,
         @SerialName("ODNO") @Contextual val orderNumber: String?,
-        @SerialName("ORD_TMD") val orderTime: String?,
+        @SerialName("ORD_TMD") @Serializable(with = HHMMSSSerializer::class) val orderTime: Time?,
     )
 
     data class OrderData(val stockCode: String, val orderType: OrderTypeCode, val count: BigInteger, val price: BigInteger = BigInteger(0),
@@ -47,6 +47,8 @@ class OrderBuy(override val client: KisOpenApi):
 
     override suspend fun call(data: OrderData): OrderResponse {
         if (data.corp == null) data.corp = client.corp
+
+        if (data.price.isZero() && data.orderType == OrderTypeCode.SelectPrice) throw RequestError("Price must be set when order type is SelectPrice.")
 
         val res = client.httpClient.post(url) {
             auth(client)

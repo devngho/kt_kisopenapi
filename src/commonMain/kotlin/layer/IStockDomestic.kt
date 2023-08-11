@@ -10,21 +10,12 @@ import io.github.devngho.kisopenapi.requests.util.Closeable
 import io.github.devngho.kisopenapi.requests.util.OrderTypeCode
 
 
-interface IStock : Updatable{
-    val client: KisOpenApi
-    val code: String
-
-    data class Name(
-        var name: String? = null,
-        var name120: String? = null,
-        var nameEng: String? = null,
-        var nameEng120: String? = null,
-        var nameShort: String? = null,
-        var nameEngShort: String? = null
-    )
+interface IStockDomestic : IStockBase{
+    override val client: KisOpenApi
+    override val code: String
 
     var price: StockPriceBase
-    var name: Name
+    override var name: IStockBase.Name
     var tradeVolume: StockTrade
 
     suspend fun buy(count: BigInteger, type: OrderTypeCode, price: BigInteger = BigInteger(0)): OrderBuy.OrderResponse

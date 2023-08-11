@@ -13,6 +13,8 @@ class OrderSell(override val client: KisOpenApi):
     override suspend fun call(data: OrderBuy.OrderData): OrderBuy.OrderResponse {
         if (data.corp == null) data.corp = client.corp
 
+        if (data.price.isZero() && data.orderType == OrderTypeCode.SelectPrice) throw RequestError("Price must be set when order type is SelectPrice.")
+
         val res = client.httpClient.post(url) {
             auth(client)
             tradeId(if(client.isDemo) "VTTC0801U" else "TTTC0801U")

@@ -1,6 +1,7 @@
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.*
 import io.github.devngho.kisopenapi.requests.util.InquireDivisionCode
+import io.github.devngho.kisopenapi.requests.util.OverseasMarket
 import io.github.devngho.kisopenapi.requests.util.PeriodDivisionCode
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -9,6 +10,8 @@ import java.io.File
 
 class Tests {
     private val testStock = "005930"
+    private val testOverseasStock = "KO"
+    private val testOverseasMarket = OverseasMarket.NEWYORK
 
     private fun getApi(): KisOpenApi {
         val key = File("key.txt").readLines()
@@ -42,7 +45,16 @@ class Tests {
         runBlocking {
             val api = getApi()
 
-            println(InquirePrice(api).call(InquirePrice.InquirePriceData(testStock)).toString().replace(", ", ", \n"))
+            println(InquirePrice(api).call(InquirePrice.InquirePriceData(testStock)).toString().replace(", " , ", \n"))
+        }
+    }
+
+    @Test
+    fun loadOverseasStock(){
+        runBlocking {
+            val api = getApi()
+
+            println(InquireOverseasPrice(api).call(InquireOverseasPrice.InquirePriceData(testOverseasStock, testOverseasMarket)).toString().replace(", " , ", \n"))
         }
     }
 
@@ -135,6 +147,25 @@ class Tests {
     }
 
     @Test
+    fun loadOverseasLivePrice() {
+        runBlocking {
+            val key = File("key.txt").readLines()
+
+            val api = KisOpenApi.with(
+                key[0], key[1], false, grantWebsocket = true
+            )
+
+            InquireOverseasLivePrice(api).register(InquireOverseasLivePrice.InquireLivePriceData(testOverseasStock, testOverseasMarket), {
+                println(it.toString().replace(", ", ", \n"))
+            }) {
+                println("${it.price?.doubleValue(false)} ${it.confirmVolume}")
+            }
+
+            while (true) { delay(1000) }
+        }
+    }
+
+    @Test
     fun loadLiveConfirm() {
         runBlocking {
             val key = File("key.txt").readLines()
@@ -150,7 +181,7 @@ class Tests {
                 println(it.toString().replace(", ", ", \n"))
             }
 
-            delay(100000L)
+            while(true) { delay(1000) }
         }
     }
 }

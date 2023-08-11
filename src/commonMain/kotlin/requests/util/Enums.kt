@@ -1,9 +1,6 @@
 package io.github.devngho.kisopenapi.requests.util
 
-import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
+import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -14,6 +11,7 @@ import kotlinx.serialization.encoding.Encoder
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable(with = StockState.StockStateSerializer::class)
+@Suppress("unused")
 enum class StockState(val num: Int) {
     /**
      * 그 외
@@ -53,8 +51,7 @@ enum class StockState(val num: Int) {
     ShortOverheat(59);
 
     @ExperimentalSerializationApi
-    @Serializer(forClass = StockState::class)
-    object StockStateSerializer : DeserializationStrategy<StockState> {
+    object StockStateSerializer : KSerializer<StockState> {
         override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("StockState", PrimitiveKind.INT)
 
         override fun deserialize(decoder: Decoder): StockState {
@@ -70,6 +67,7 @@ enum class StockState(val num: Int) {
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable(with = SignPrice.SignYesterdaySerializer::class)
+@Suppress("unused")
 enum class SignPrice(val value: Int) {
     Max(1),
     Up(2),
@@ -78,8 +76,7 @@ enum class SignPrice(val value: Int) {
     Down(5);
 
     @ExperimentalSerializationApi
-    @Serializer(forClass = SignPrice::class)
-    object SignYesterdaySerializer : DeserializationStrategy<SignPrice> {
+    object SignYesterdaySerializer : KSerializer<SignPrice> {
         override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("SignPrice", PrimitiveKind.INT)
 
         override fun deserialize(decoder: Decoder): SignPrice {
@@ -95,6 +92,7 @@ enum class SignPrice(val value: Int) {
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable(with = MarketWarnCode.MarketWarnCodeSerializer::class)
+@Suppress("unused")
 enum class MarketWarnCode(val value: Int) {
     /**
      * 없음
@@ -117,8 +115,7 @@ enum class MarketWarnCode(val value: Int) {
     Danger(3);
 
     @ExperimentalSerializationApi
-    @Serializer(forClass = MarketWarnCode::class)
-    object MarketWarnCodeSerializer : DeserializationStrategy<MarketWarnCode> {
+    object MarketWarnCodeSerializer : KSerializer<MarketWarnCode> {
         override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("MarketWarnCode", PrimitiveKind.INT)
 
         override fun deserialize(decoder: Decoder): MarketWarnCode {
@@ -134,6 +131,7 @@ enum class MarketWarnCode(val value: Int) {
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable(with = LockCode.LockCodeSerializer::class)
+@Suppress("unused")
 enum class LockCode(val num: Int) {
     Other(0),
     PermissionLock(1),
@@ -145,8 +143,7 @@ enum class LockCode(val num: Int) {
     PermissionQuarterAllocationLock(7);
 
     @ExperimentalSerializationApi
-    @Serializer(forClass = LockCode::class)
-    object LockCodeSerializer : DeserializationStrategy<LockCode> {
+    object LockCodeSerializer : KSerializer<LockCode> {
         override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("LockCode", PrimitiveKind.INT)
 
         override fun deserialize(decoder: Decoder): LockCode {
@@ -162,14 +159,14 @@ enum class LockCode(val num: Int) {
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable(with = PeriodDivisionCode.PeriodDivisionCodeSerializer::class)
+@Suppress("unused")
 enum class PeriodDivisionCode(val num: String) {
     Days30("D"),
     Weeks30("W"),
     Months30("M");
 
     @ExperimentalSerializationApi
-    @Serializer(forClass = PeriodDivisionCode::class)
-    object PeriodDivisionCodeSerializer : DeserializationStrategy<PeriodDivisionCode> {
+    object PeriodDivisionCodeSerializer : KSerializer<PeriodDivisionCode> {
         override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("PeriodDivisionCode", PrimitiveKind.STRING)
 
         override fun deserialize(decoder: Decoder): PeriodDivisionCode {
@@ -185,6 +182,7 @@ enum class PeriodDivisionCode(val num: String) {
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable(with = ProductTypeCode.ProductTypeSerializer::class)
+@Suppress("unused")
 enum class ProductTypeCode(val num: String) {
     Stock("300"),
     FutureOption("301"),
@@ -203,8 +201,7 @@ enum class ProductTypeCode(val num: String) {
     ;
 
     @ExperimentalSerializationApi
-    @Serializer(forClass = ProductTypeCode::class)
-    object ProductTypeSerializer : DeserializationStrategy<ProductTypeCode> {
+    object ProductTypeSerializer : KSerializer<ProductTypeCode> {
         override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("ProductType", PrimitiveKind.STRING)
 
         override fun deserialize(decoder: Decoder): ProductTypeCode {
@@ -220,6 +217,7 @@ enum class ProductTypeCode(val num: String) {
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable(with = OrderTypeCode.OrderTypeSerializer::class)
+@Suppress("unused")
 enum class OrderTypeCode(val num: String) {
     /**
      * 지정가
@@ -288,12 +286,36 @@ enum class OrderTypeCode(val num: String) {
     /**
     * FOK 최유리
     */
-    BestFOK("16")
+    BestFOK("16"),
+
+    /**
+     * 장개시지정가(미국 매매 전용)
+     */
+    USALimitOnOpen("32"),
+
+    /**
+     * 장마감지정가(미국 매매 전용)
+     */
+    USALimitOnClose("34"),
+
+    /**
+     * 장개시시장가(미국 매도 전용)
+     */
+    USAMarketOnOpen("31"),
+
+    /**
+     * 장마감시장가(미국 매도 전용)
+     */
+    USAMarketOnClose("33"),
+
+    /**
+     * 단주지정가(홍콩 매도 전용)
+     */
+    HONGKONGSingleSelectPrice("50")
     ;
 
     @ExperimentalSerializationApi
-    @Serializer(forClass = OrderTypeCode::class)
-    object OrderTypeSerializer : DeserializationStrategy<OrderTypeCode> {
+    object OrderTypeSerializer : KSerializer<OrderTypeCode> {
         override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("OrderType", PrimitiveKind.STRING)
 
         override fun deserialize(decoder: Decoder): OrderTypeCode {
@@ -309,6 +331,7 @@ enum class OrderTypeCode(val num: String) {
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable(with = ConsumerTypeCode.ConsumerTypeSerializer::class)
+@Suppress("unused")
 enum class ConsumerTypeCode(val num: String) {
     Corporation("B"),
     Personal("P")
@@ -316,8 +339,7 @@ enum class ConsumerTypeCode(val num: String) {
 
 
     @ExperimentalSerializationApi
-    @Serializer(forClass = ConsumerTypeCode::class)
-    object ConsumerTypeSerializer : DeserializationStrategy<ConsumerTypeCode> {
+    object ConsumerTypeSerializer : KSerializer<ConsumerTypeCode> {
         override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("ConsumerType", PrimitiveKind.STRING)
 
         override fun deserialize(decoder: Decoder): ConsumerTypeCode {
@@ -333,6 +355,7 @@ enum class ConsumerTypeCode(val num: String) {
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable(with = InquireDivisionCode.InquireDivisionSerializer::class)
+@Suppress("unused")
 enum class InquireDivisionCode(val num: String) {
     ByLoanDays("01"),
     ByStock("02")
@@ -340,8 +363,7 @@ enum class InquireDivisionCode(val num: String) {
 
 
     @ExperimentalSerializationApi
-    @Serializer(forClass = InquireDivisionCode::class)
-    object InquireDivisionSerializer : DeserializationStrategy<InquireDivisionCode> {
+    object InquireDivisionSerializer : KSerializer<InquireDivisionCode> {
         override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("InquireDivision", PrimitiveKind.STRING)
 
         override fun deserialize(decoder: Decoder): InquireDivisionCode {
@@ -357,6 +379,7 @@ enum class InquireDivisionCode(val num: String) {
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable(with = WeekdayCode.WeekdayCodeSerializer::class)
+@Suppress("unused")
 enum class WeekdayCode(val num: String) {
     Sat("07"),
     Sun("01"),
@@ -369,8 +392,7 @@ enum class WeekdayCode(val num: String) {
 
 
     @ExperimentalSerializationApi
-    @Serializer(forClass = WeekdayCode::class)
-    object WeekdayCodeSerializer : DeserializationStrategy<WeekdayCode> {
+    object WeekdayCodeSerializer : KSerializer<WeekdayCode> {
         override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Weekday", PrimitiveKind.STRING)
 
         override fun deserialize(decoder: Decoder): WeekdayCode {
@@ -386,6 +408,7 @@ enum class WeekdayCode(val num: String) {
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable(with = HourCode.HourCodeSerializer::class)
+@Suppress("unused")
 enum class HourCode(val num: String) {
     InMarket("0"),
     AfterMarket("A"),
@@ -396,8 +419,7 @@ enum class HourCode(val num: String) {
 
 
     @ExperimentalSerializationApi
-    @Serializer(forClass = HourCode::class)
-    object HourCodeSerializer : DeserializationStrategy<HourCode> {
+    object HourCodeSerializer : KSerializer<HourCode> {
         override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Hour", PrimitiveKind.STRING)
 
         override fun deserialize(decoder: Decoder): HourCode {
@@ -407,6 +429,110 @@ enum class HourCode(val num: String) {
 
         override fun serialize(encoder: Encoder, value: HourCode) {
             encoder.encodeString(value.num)
+        }
+    }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable(with = OverseasMarket.OverseasMarketSerializer::class)
+enum class OverseasMarket(val code: String) {
+    HONGKONG("HKS"),
+    NEWYORK("NYS"),
+    NASDAQ("NAS"),
+    AMEX("AMS"),
+    TOYKO("TSE"),
+    SHANGHAI("SHS"),
+    SHENZHEN("SZS"),
+    SHANGHAI_INDEX("SHI"),
+    SHENZHEN_INDEX("SZI"),
+    HOCHIMINH("HSX"),
+    HANOI("HNX"),
+    NEWYORK_DAY("BAY"),
+    NASDAQ_DAY("BAQ"),
+    AMEX_DAY("BAA"),
+    HKS("HKS"),
+    NYS("NYS"),
+    NAS("NAS"),
+    AMS("AMS"),
+    TSE("TSE"),
+    SHS("SHS"),
+    SZS("SZS"),
+    SHI("SHI"),
+    SZI("SZI"),
+    HSX("HSX"),
+    HNX("HNX"),
+    BAY("BAY"),
+    BAQ("BAQ"),
+    BAA("BAA");
+
+    @ExperimentalSerializationApi
+    object OverseasMarketSerializer : KSerializer<OverseasMarket> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("OverseasMarket", PrimitiveKind.STRING)
+
+        override fun deserialize(decoder: Decoder): OverseasMarket {
+            val d = decoder.decodeString()
+            return OverseasMarket.valueOf(d.uppercase())
+        }
+
+        override fun serialize(encoder: Encoder, value: OverseasMarket) {
+            encoder.encodeString(value.code)
+        }
+    }
+
+    companion object {
+        val OverseasMarket.fourChar: String
+            get() = when(this) {
+                NASDAQ,
+                NAS,
+                NASDAQ_DAY,
+                BAQ -> "NASD"
+                NEWYORK,
+                NYS,
+                NEWYORK_DAY,
+                BAY -> "NYSE"
+                AMEX,
+                AMS,
+                AMEX_DAY,
+                BAA -> "AMEX"
+                TOYKO,
+                TSE -> "TKSE"
+                SHANGHAI,
+                SHANGHAI_INDEX,
+                SHS,
+                SHI -> "SHAA"
+                HONGKONG,
+                HKS -> "SEHK"
+                SHENZHEN,
+                SHENZHEN_INDEX,
+                SZI,
+                SZS -> "SZAA"
+                HANOI,
+                HNX -> "HASE"
+                HOCHIMINH,
+                HSX -> "VNSE"
+            }
+    }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable(with = MarketStatus.MarketStatusSerializer::class)
+@Suppress("unused")
+enum class MarketStatus(val code: String) {
+    OPEN("1"),
+    BEFORE_START("2"),
+    AFTER_CLOSE("3");
+
+    @ExperimentalSerializationApi
+    object MarketStatusSerializer : KSerializer<MarketStatus> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("MarketStatus", PrimitiveKind.STRING)
+
+        override fun deserialize(decoder: Decoder): MarketStatus {
+            val d = decoder.decodeString()
+            return MarketStatus.values().first { it.code == d }
+        }
+
+        override fun serialize(encoder: Encoder, value: MarketStatus) {
+            encoder.encodeString(value.code)
         }
     }
 }

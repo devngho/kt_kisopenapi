@@ -10,9 +10,9 @@ import kotlinx.coroutines.runBlocking
 import kotlin.reflect.KClass
 
 
-class Stock(override val client: KisOpenApi, override val code: String) : IStock{
+class StockDomestic(override val client: KisOpenApi, override val code: String) : IStockDomestic{
     override lateinit var price: StockPriceBase
-    override var name = IStock.Name()
+    override var name = IStockBase.Name()
     override lateinit var tradeVolume: StockTrade
     private var liveConfirmPrice: KMutex<InquireLivePrice?> = mutex(null)
 
@@ -50,7 +50,7 @@ class Stock(override val client: KisOpenApi, override val code: String) : IStock
     }
 
     private fun BaseInfo.update() {
-        this@Stock.name.also {
+        this@StockDomestic.name.also {
             it.name = name ?: it.name
             it.name120 = name120 ?: it.name120
             it.nameEng = nameEng ?: it.nameEng
@@ -68,7 +68,7 @@ class Stock(override val client: KisOpenApi, override val code: String) : IStock
     }
 
     override suspend fun sell(count: BigInteger, type: OrderTypeCode, price: BigInteger): OrderBuy.OrderResponse {
-        if (client.account == null) throw RequestError("Buy request need account.")
+        if (client.account == null) throw RequestError("Sell request need account.")
         else {
             return OrderSell(client).call(OrderBuy.OrderData(code, type, count, price))
         }
@@ -78,10 +78,10 @@ class Stock(override val client: KisOpenApi, override val code: String) : IStock
         runBlocking {
             liveConfirmPrice.setIfNull {
                 InquireLivePrice(client).apply {
-                    (this@runBlocking).launch { register(InquireLivePrice.InquireLivePriceData(this@Stock.code)) {
+                    (this@runBlocking).launch { register(InquireLivePrice.InquireLivePriceData(this@StockDomestic.code)) {
                         (object : Closeable {
                             override suspend fun close() {
-                                unregister(InquireLivePrice.InquireLivePriceData(this@Stock.code))
+                                unregister(InquireLivePrice.InquireLivePriceData(this@StockDomestic.code))
                             }
                         }).block(it)
                     } }
