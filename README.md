@@ -36,8 +36,8 @@ Pull requests를 사용하거나 Issues를 만들어주세요!
 ## 구현 진행
 ### 권장 방식
 ```kotlin
-// 예시(구현됨)
-val stock = Stock(api, "")
+// 국내 주식을 조회/거래하는 예시. 자세한 내용은 Wiki를 확인하세요.
+val stock = StockDomestic(api, "주식 종목 코드")
 stock.updateBy(StockPrice::class)
 stock.price
 
