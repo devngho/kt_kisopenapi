@@ -12,7 +12,7 @@ import kotlin.reflect.KClass
 
 
 class StockOverseas(override val client: KisOpenApi, override val code: String, override val market: OverseasMarket) : IStockOverseas{
-    override lateinit var price: StockOverseasPrice
+    override lateinit var price: StockOverseasPriceBase
     override var name = IStockBase.Name()
     private var liveConfirmPrice: KMutex<InquireOverseasLivePrice?> = mutex(null)
 

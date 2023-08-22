@@ -1,12 +1,11 @@
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.KisOpenApi
-import io.github.devngho.kisopenapi.layer.Account
+import io.github.devngho.kisopenapi.layer.AccountDomestic
+import io.github.devngho.kisopenapi.layer.AccountOverseas
 import io.github.devngho.kisopenapi.layer.StockDomestic
 import io.github.devngho.kisopenapi.layer.StockOverseas
-import io.github.devngho.kisopenapi.requests.response.BalanceAccount
-import io.github.devngho.kisopenapi.requests.response.BaseInfo
-import io.github.devngho.kisopenapi.requests.response.StockOverseasPrice
-import io.github.devngho.kisopenapi.requests.response.StockPrice
+import io.github.devngho.kisopenapi.requests.response.*
+import io.github.devngho.kisopenapi.requests.util.Currency
 import io.github.devngho.kisopenapi.requests.util.OrderTypeCode
 import io.github.devngho.kisopenapi.requests.util.OverseasMarket
 import kotlinx.coroutines.runBlocking
@@ -140,11 +139,24 @@ class LayerTest {
         runBlocking {
             val api = getApi()
 
-            val accountLayer = Account(api)
+            val accountLayer = AccountDomestic(api)
 
             accountLayer.updateBy(BalanceAccount::class)
 
             println(accountLayer.assetAmount)
+        }
+    }
+
+    @Test
+    fun accountOverseas() {
+        runBlocking {
+            val api = getApi()
+
+            val accountLayer = AccountOverseas(api, OverseasMarket.NYS, Currency.USD)
+
+            accountLayer.updateBy(BalanceAccountOverseas::class)
+
+            println(accountLayer.accountStocks.map { "${it.name.nameShort}: ${it.count}주(평단 $${it.buyPriceAverage?.toStringExpanded()})" }.joinToString("\n"))
         }
     }
 }

@@ -463,7 +463,8 @@ enum class OverseasMarket(val code: String) {
     HNX("HNX"),
     BAY("BAY"),
     BAQ("BAQ"),
-    BAA("BAA");
+    BAA("BAA")
+    ;
 
     @ExperimentalSerializationApi
     object OverseasMarketSerializer : KSerializer<OverseasMarket> {
@@ -532,6 +533,99 @@ enum class MarketStatus(val code: String) {
         }
 
         override fun serialize(encoder: Encoder, value: MarketStatus) {
+            encoder.encodeString(value.code)
+        }
+    }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable(with = Currency.CurrencySerializer::class)
+@Suppress("unused")
+enum class Currency(val code: String) {
+    USD("USD"),
+    HKD("HKD"),
+    CNY("CNY"),
+    JPY("JPY"),
+    VND("VND");
+
+    @ExperimentalSerializationApi
+    object CurrencySerializer : KSerializer<Currency> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Currency", PrimitiveKind.STRING)
+
+        override fun deserialize(decoder: Decoder): Currency {
+            val d = decoder.decodeString()
+            return Currency.values().first { it.code == d }
+        }
+
+        override fun serialize(encoder: Encoder, value: Currency) {
+            encoder.encodeString(value.code)
+        }
+    }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable(with = LoanType.LoanTypeSerializer::class)
+@Suppress("unused")
+enum class LoanType(val code: String) {
+    /** 해당 사항 없음 **/
+    None("00"),
+    /** 자기융자 일반형 **/
+    GeneralSelf("01"),
+    /** 자기융자 투자형 **/
+    InvestmentSelf("03"),
+    /** 유통융자 일반형 **/
+    GeneralDistribution("05"),
+    /** 유통융자 투자형 **/
+    InvestmentDistribution("06"),
+    /** 자기대주 **/
+    SelfStock("07"),
+    /** 유통대주 **/
+    DistributionStock("09"),
+    /** 주식담보대출 **/
+    StockCollateral("11"),
+    /** 수익증권담보대출 **/
+    IncomeSecuritiesCollateral("12"),
+    /** ELS담보대출 **/
+    ELS("13"),
+    /** 채권담보대출 **/
+    BondCollateral("14"),
+    /** 해외주식담보대출 **/
+    OverseasStockCollateral("15"),
+    /** 기업신용공여 **/
+    CorporateCredit("16"),
+    /** 소액자동담보대출 **/
+    SmallAutoCollateral("31"),
+    /** 매도담보대출 **/
+    SellCollateral("41"),
+    /** 환매자금대출 **/
+    RedemptionCollateral("42"),
+    /** 매입환매자금대출 **/
+    BuyRedemptionCollateral("43"),
+    /** 대여매도담보대출 **/
+    LendSellCollateral("44"),
+    /** 대차거래 **/
+    Borrowing("81"),
+    /** 법인CMA론 **/
+    CorporationCMA("82"),
+    /** 공모주청약자금대출 **/
+    PublicOfferingSubscription("91"),
+    /** 매입자금 **/
+    Buy("92"),
+    /** 미수론서비스 **/
+    UnpaidService("93"),
+    /** 대여 **/
+    Lend("94");
+
+    @ExperimentalSerializationApi
+    object LoanTypeSerializer : KSerializer<LoanType> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("LoanType", PrimitiveKind.STRING)
+
+        override fun deserialize(decoder: Decoder): LoanType {
+            val d = decoder.decodeString()
+            return LoanType.values().firstOrNull { it.code == d } ?: None
+        }
+
+        override fun serialize(encoder: Encoder, value: LoanType) {
             encoder.encodeString(value.code)
         }
     }

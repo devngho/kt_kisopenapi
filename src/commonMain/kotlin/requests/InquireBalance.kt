@@ -15,7 +15,7 @@ import kotlinx.serialization.Serializable
 class InquireBalance(override val client: KisOpenApi):
     DataRequest<InquireBalance.InquireBalanceData, InquireBalance.InquireBalanceResponse> {
     private val url = if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/domestic-stock/v1/trading/inquire-balance"
-                        else             "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/trading/inquire-balance-rlz-pl"
+                        else             "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/trading/inquire-balance"
 
     @Serializable
     data class InquireBalanceResponse(

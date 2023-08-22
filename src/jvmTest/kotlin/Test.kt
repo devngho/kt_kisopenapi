@@ -1,12 +1,10 @@
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.*
-import io.github.devngho.kisopenapi.requests.util.InquireDivisionCode
-import io.github.devngho.kisopenapi.requests.util.OverseasMarket
-import io.github.devngho.kisopenapi.requests.util.PeriodDivisionCode
+import io.github.devngho.kisopenapi.requests.util.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import org.testng.annotations.Test
 import java.io.File
+import kotlin.test.Test
 
 class Tests {
     private val testStock = "005930"
@@ -115,6 +113,22 @@ class Tests {
     }
 
     @Test
+    fun loadOverseasBalance() {
+        runBlocking {
+            val api = getApi()
+
+            val res = InquireOverseasBalance(api).call(
+                InquireOverseasBalance.InquireBalanceData(OverseasMarket.NYS, Currency.USD)
+            )
+
+            println(res.toString().replace(", ", ", \n"))
+
+
+            println(res.next)
+        }
+    }
+
+    @Test
     fun loadHoliday() {
         runBlocking {
             val api = getApi()
@@ -182,6 +196,20 @@ class Tests {
             }
 
             while(true) { delay(1000) }
+        }
+    }
+
+    @Test
+    fun overseasCondition() {
+        runBlocking {
+            val api = getApi()
+
+            InquireOverseasCondition(api).call(
+                InquireOverseasCondition.ConditionData(
+                    exchange = OverseasMarket.NEWYORK,
+                    priceRange = BigDecimalRange(100.0, 101.0),
+                )
+            ).toString().replace(", ", ", \n").let { println(it) }
         }
     }
 }

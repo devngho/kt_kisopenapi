@@ -6,7 +6,7 @@ https://apiportal.koreainvestment.com/about
 한국투자증권의 REST & WebSocket 방식 새 API 서비스를 쉽게 사용할 수 있는 Kotlin 라이브러리.
 
 ## 주의사항
-> 이 라이브러리는 **개발중**으로, API가 수시로 변경될 수 있습니다.
+> 이 라이브러리는 **개발중(알파 버전)**으로, API가 수시로 변경될 수 있습니다.
 
 > 법인 사용이 가능하나, **개인 사용 목적**으로 개발되었습니다.
 
@@ -37,7 +37,7 @@ Pull requests를 사용하거나 Issues를 만들어주세요!
 ### 권장 방식
 ```kotlin
 // 예시(구현됨)
-val stock = Stock(api, "")
+val stock = StockDomestic(api, "")
 stock.updateBy(StockPrice::class)
 stock.price
 
@@ -91,11 +91,11 @@ InquirePrice(api).call(InquirePrice.InquirePriceData(""))
     - [x] 주문
     - [ ] 정정
     - [ ] 예약
-    - [ ] 잔고 조회
+    - [x] 잔고 조회
   - [ ] 현재가
     - [x] 체결가
     - [ ] 기간별 시세
-    - [ ] 조건검색
+    - [x] 조건검색
 - [ ] 해외선물옵션
     - [ ] 주문
         - [ ] 주문
