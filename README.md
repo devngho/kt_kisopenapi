@@ -8,9 +8,9 @@ https://apiportal.koreainvestment.com/about
 ## 주의사항
 > 이 라이브러리는 **개발중(알파 버전)**으로, API가 수시로 변경될 수 있습니다.
 
-> 법인 사용이 가능하나, **개인 사용 목적**으로 개발되었습니다.
+> 법인 사용이 가능하나, **개인 사용 목적**으로 개발되었으며 법인 사용은 **테스트되지 않았습니다**.
 
-> 개발자([devngho](https://github.com/devngho))와 기여자는 라이브러리의 사용에 대해 손해 등의 **책임을 지지 않습니다**.
+> 개발자([devngho](https://github.com/devngho))와 기여자는 라이브러리의 사용으로 발상한 손해 등에 대한 **책임을 지지 않습니다**.
 
 ## 사용하기
 Maven central에 배포되어 있습니다.
@@ -108,6 +108,9 @@ InquirePrice(api).call(InquirePrice.InquirePriceData(""))
 - [ ] 예제 코드
 
 ## 오픈 소스 라이선스
+이 라이브러리는 MIT License를 사용합니다. 자세한 내용은 LICENSE 파일을 참조하세요.
+
+다음은 사용하는 라이브러리의 라이선스입니다.
 ### Kotlin
 - [Jetbrains/Kotlin](https://github.com/JetBrains/kotlin) - [Apache License Version 2.0](https://github.com/JetBrains/kotlin/blob/master/license/LICENSE.txt)
 - [Kotlin/kotlinx.coroutines](https://github.com/Kotlin/kotlinx.coroutines) - [Apache License Version 2.0](https://github.com/Kotlin/kotlinx.coroutines/blob/master/LICENSE.txt)
