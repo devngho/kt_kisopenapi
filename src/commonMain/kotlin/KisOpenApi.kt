@@ -12,8 +12,9 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
+import kotlin.jvm.JvmStatic
 
-class KisOpenApi internal constructor(val appKey: String, val appSecret: String, val isDemo: Boolean, /** 계좌번호(XXXXXXXX-XX 형식) */var account: List<String>?, var htsId: String? = null, var corp: CorporationRequest? = CorporationRequest()) {
+class KisOpenApi internal constructor(val appKey: String, val appSecret: String, val isDemo: Boolean, /** 계좌번호(XXXXXXXX-XX 형식) */var account: List<String>?, var htsId: String? = null, var corp: CorporationRequest? = CorporationRequest(), var useHashKey: Boolean = false) {
     lateinit var oauthToken: String
     var websocketToken: String? = null
     var websocket: DefaultClientWebSocketSession? = null
@@ -50,8 +51,9 @@ class KisOpenApi internal constructor(val appKey: String, val appSecret: String,
         /**
          * KisOpenApi 객체를 생성합니다.
          */
-        fun withToken(token: String, appKey: String, appSecret: String, isDemo: Boolean = false,  websocketToken: String? = null,/** 계좌번호(XXXXXXXX-XX 형식) */account: String? = null, id: String? = null, corp: CorporationRequest? = CorporationRequest()) =
-            KisOpenApi(appKey, appSecret, isDemo, account?.split("-"), id, corp)
+        @JvmStatic
+        fun withToken(token: String, appKey: String, appSecret: String, isDemo: Boolean = false,  websocketToken: String? = null,/** 계좌번호(XXXXXXXX-XX 형식) */account: String? = null, id: String? = null, corp: CorporationRequest? = CorporationRequest(), hashKey: Boolean = false) =
+            KisOpenApi(appKey, appSecret, isDemo, account?.split("-"), id, corp, hashKey)
                 .apply {
                     oauthToken = token
                     if(websocketToken != null) this.websocketToken = websocketToken
@@ -61,8 +63,9 @@ class KisOpenApi internal constructor(val appKey: String, val appSecret: String,
          * KisOpenApi 객체를 생성합니다.
          * 토큰 발급 API를 알아서 발급합니다.
          */
-        suspend fun with(appKey: String, appSecret: String, isDemo: Boolean = false,  /** 계좌번호(XXXXXXXX-XX 형식) */account: String? = null, id: String? = null, corp: CorporationRequest? = CorporationRequest(), grantWebsocket: Boolean = false) =
-            KisOpenApi(appKey, appSecret, isDemo, account?.split("-"), id, corp)
+        @JvmStatic
+        suspend fun with(appKey: String, appSecret: String, isDemo: Boolean = false,  /** 계좌번호(XXXXXXXX-XX 형식) */account: String? = null, id: String? = null, corp: CorporationRequest? = CorporationRequest(), grantWebsocket: Boolean = false, hashKey: Boolean = false) =
+            KisOpenApi(appKey, appSecret, isDemo, account?.split("-"), id, corp, hashKey)
                 .apply {
                     oauthToken = GrantToken(this).call().accessToken
                     if(grantWebsocket) this.websocketToken = GrantLiveToken(this).call().approvalKey

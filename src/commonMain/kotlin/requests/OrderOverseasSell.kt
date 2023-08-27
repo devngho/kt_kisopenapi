@@ -1,6 +1,7 @@
 package io.github.devngho.kisopenapi.requests
 
 import io.github.devngho.kisopenapi.KisOpenApi
+import io.github.devngho.kisopenapi.requests.HashKey.Companion.hashKey
 import io.github.devngho.kisopenapi.requests.util.*
 import io.github.devngho.kisopenapi.requests.util.OverseasMarket.Companion.fourChar
 import io.ktor.client.call.*
@@ -103,6 +104,8 @@ class OrderOverseasSell(override val client: KisOpenApi):
                     "00"
                 ))
             )
+
+            hashKey<OrderOverseasBuy.OrderDataJson>(client)
         }
         return res.body<OrderOverseasBuy.OrderResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)

@@ -33,6 +33,7 @@ class InquireOverseasCondition(override val client: KisOpenApi): DataRequest<Inq
 
     @Serializable
     data class ConditionResponseOutput @OptIn(ExperimentalSerializationApi::class) constructor(
+        @SerialName("symb") val code: String?,
         @SerialName("rsym") val liveLoadCode: String?,
         @SerialName("excd") @Serializable(with = OverseasMarket.OverseasMarketSerializer::class) val exchange: OverseasMarket?,
         @SerialName("zdiv") override val decimalPoint: Int? = null,

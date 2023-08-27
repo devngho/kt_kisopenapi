@@ -25,6 +25,7 @@ sealed interface LiveRequest<T: Data, U : Response>: Request<U>{
 
 sealed interface NoDataRequest<T : Response>: Request<T>{
     suspend fun call(): T
+
 }
 
 sealed interface DataRequest<T: Data, U: Response>: Request<U> {

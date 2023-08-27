@@ -3,6 +3,7 @@ package io.github.devngho.kisopenapi.requests
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.KisOpenApi
+import io.github.devngho.kisopenapi.requests.HashKey.Companion.hashKey
 import io.github.devngho.kisopenapi.requests.response.CorporationRequest
 import io.github.devngho.kisopenapi.requests.response.TradeContinuousData
 import io.github.devngho.kisopenapi.requests.response.TradeContinuousResponse
@@ -122,6 +123,8 @@ class OrderOverseasBuy(override val client: KisOpenApi):
             stock(data.stockCode)
             data.corp?.let { corporation(it) }
             setBody(OrderDataJson(client.account!![0], client.account!![1], data.market.fourChar, data.stockCode, orderType, data.count, data.price, "0"))
+
+            hashKey<OrderDataJson>(client)
         }
         return res.body<OrderResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)

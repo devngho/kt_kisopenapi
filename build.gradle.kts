@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "io.github.devngho"
-version = "0.1.31"
+version = "0.1.32"
 
 repositories {
     mavenCentral()
@@ -128,6 +128,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-cio:$ktorVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:$coroutineVersion")
                 standard()
             }
         }

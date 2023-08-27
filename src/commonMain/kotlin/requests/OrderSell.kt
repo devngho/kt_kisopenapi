@@ -1,6 +1,7 @@
 package io.github.devngho.kisopenapi.requests
 
 import io.github.devngho.kisopenapi.KisOpenApi
+import io.github.devngho.kisopenapi.requests.HashKey.Companion.hashKey
 import io.github.devngho.kisopenapi.requests.util.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -30,6 +31,8 @@ class OrderSell(override val client: KisOpenApi):
                     data.price
                 )
             )
+
+            hashKey<OrderBuy.OrderDataJson>(client)
         }
         return res.body<OrderBuy.OrderResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
