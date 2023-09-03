@@ -6,7 +6,7 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 
 interface StockPriceHighMax : StockPriceBase, Response {
-    @SerialName("stck_oprc") @Contextual val marketPrice: BigInteger?
+    @SerialName("stck_oprc") @Contextual val openingPrice: BigInteger?
     @SerialName("stck_hgpr") @Contextual val highPrice: BigInteger?
     @SerialName("stck_lwpr") @Contextual val lowPrice: BigInteger?
 }

@@ -59,7 +59,7 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
         @SerialName("acml_vol") @Contextual override val accumulateTradeVolume: BigInteger?,
         @SerialName("acml_tr_pbmn") @Contextual override val accumulateTradePrice: BigInteger?,
         @SerialName("stck_prpr") @Contextual override val price: BigInteger?,
-        @SerialName("stck_oprc") @Contextual override val marketPrice: BigInteger?,
+        @SerialName("stck_oprc") @Contextual override val openingPrice: BigInteger?,
         @SerialName("stck_hgpr") @Contextual override val highPrice: BigInteger?,
         @SerialName("stck_lwpr") @Contextual override val lowPrice: BigInteger?,
         @SerialName("cntg_vol") @Contextual val confirmVolume: BigInteger?
@@ -69,7 +69,7 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
     }
 
     data class InquirePriceTodayMinuteData(val stockCode: String,/** Time style : HHMMSS */val startDate: String, val usePreviousData: Boolean,
-                                           override var corp: CorporationRequest? = null, override val tradeContinuous: String? = ""): Data, TradeContinuousData
+                                           override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data, TradeContinuousData
 
     override suspend fun call(data: InquirePriceTodayMinuteData): InquirePriceTodayMinuteResponse {
         if (data.corp == null) data.corp = client.corp
@@ -91,19 +91,8 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
         return res.body<InquirePriceTodayMinuteResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
-            res.headers.forEach { s, strings ->
-                when(s) {
-                    "tr_id" -> this.tradeId = strings[0]
-                    "tr_cont" -> this.tradeContinuous = strings[0]
-                    "gt_uid" -> this.globalTradeID = strings[0]
-                }
-            }
-
-            if (this.tradeContinuous == "F" || this.tradeContinuous == "M") {
-                this.next = {
-                    call(data.copy(tradeContinuous = "N"))
-                }
-            }
+            processHeader(res)
+            setNext(data, this)
         }
     }
 }

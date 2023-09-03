@@ -3,10 +3,7 @@ package io.github.devngho.kisopenapi.requests
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.HashKey.Companion.hashKey
-import io.github.devngho.kisopenapi.requests.response.CorporationRequest
-import io.github.devngho.kisopenapi.requests.response.TradeContinuousData
-import io.github.devngho.kisopenapi.requests.response.TradeContinuousResponse
-import io.github.devngho.kisopenapi.requests.response.TradeIdMsg
+import io.github.devngho.kisopenapi.requests.response.*
 import io.github.devngho.kisopenapi.requests.util.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -42,7 +39,7 @@ class OrderBuy(override val client: KisOpenApi):
     )
 
     data class OrderData(val stockCode: String, val orderType: OrderTypeCode, val count: BigInteger, val price: BigInteger = BigInteger(0),
-                         override var corp: CorporationRequest? = null, override val tradeContinuous: String? = ""): Data, TradeContinuousData
+                         override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data, TradeContinuousData
     @Serializable
     data class OrderDataJson(val CANO: String, val ACNT_PRDT_CD: String, val PDNO: String, val ORD_DVSN: OrderTypeCode, @Contextual val ORD_QTY: BigInteger, @Contextual val ORD_UNPR: BigInteger)
 
@@ -63,19 +60,8 @@ class OrderBuy(override val client: KisOpenApi):
         return res.body<OrderResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
-            res.headers.forEach { s, strings ->
-                when(s) {
-                    "tr_id" -> this.tradeId = strings[0]
-                    "tr_cont" -> this.tradeContinuous = strings[0]
-                    "gt_uid" -> this.globalTradeID = strings[0]
-                }
-            }
-
-            if (this.tradeContinuous == "F" || this.tradeContinuous == "M") {
-                this.next = {
-                    call(data.copy(tradeContinuous = "N"))
-                }
-            }
+            processHeader(res)
+            setNext(data, this)
         }
     }
 }

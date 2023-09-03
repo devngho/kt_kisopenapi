@@ -26,7 +26,7 @@ class InquirePrice(override val client: KisOpenApi):
         @SerialName("rt_cd") @Serializable(with = ResultCodeSerializer::class) override val isOk: Boolean?,
 
         var output: InquirePriceResponseOutput?, override var next: (suspend () -> Response)?,
-        override val tradeContinuous: String?
+        override var tradeContinuous: String?
     ): Response, TradeContinuousResponse, TradeIdMsg {
         override val errorDescription: String? = null
         override val errorCode: String? = null
@@ -50,7 +50,7 @@ class InquirePrice(override val client: KisOpenApi):
         @SerialName("prdy_ctrt") @Contextual override val rateFromYesterday: BigDecimal?,
         @SerialName("acml_vol") @Contextual override val accumulateTradeVolume: BigInteger?,
         @SerialName("prdy_vrss_vol_rate") @Contextual override val rateTradeVolumeFromYesterday: BigDecimal?,
-        @SerialName("stck_oprc") @Contextual override val marketPrice: BigInteger?,
+        @SerialName("stck_oprc") @Contextual override val openingPrice: BigInteger?,
         @SerialName("stck_hgpr") @Contextual override val highPrice: BigInteger?,
         @SerialName("stck_lwpr") @Contextual override val lowPrice: BigInteger?,
         @SerialName("stck_mxpr") @Contextual override val maxPrice: BigInteger?,
@@ -112,7 +112,7 @@ class InquirePrice(override val client: KisOpenApi):
         override val errorCode: String? = null
     }
 
-    data class InquirePriceData(val stockCode: String, override var corp: CorporationRequest? = null, override val tradeContinuous: String? = ""): Data, TradeContinuousData
+    data class InquirePriceData(val stockCode: String, override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data, TradeContinuousData
 
     override suspend fun call(data: InquirePriceData): InquirePriceResponse {
         if (data.corp == null) data.corp = client.corp
@@ -130,19 +130,8 @@ class InquirePrice(override val client: KisOpenApi):
         return res.body<InquirePriceResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
-            res.headers.forEach { s, strings ->
-                when(s) {
-                    "tr_id" -> this.tradeId = strings[0]
-                    "tr_cont" -> this.tradeCount = strings[0]
-                    "gt_uid" -> this.globalTradeID = strings[0]
-                }
-            }
-
-            if (this.tradeCount == "F" || this.tradeCount == "M") {
-                this.next = {
-                    call(data.copy(tradeContinuous = "N"))
-                }
-            }
+            processHeader(res)
+            setNext(data, this)
         }
     }
 }

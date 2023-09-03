@@ -56,7 +56,7 @@ class ProductBaseInfo(override val client: KisOpenApi):
     }
 
     data class ProductBaseInfoData(val code: String, val type: ProductTypeCode,
-                                   override var corp: CorporationRequest? = null, override val tradeContinuous: String? = ""): Data,
+                                   override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data,
         TradeContinuousData
 
     override suspend fun call(data: ProductBaseInfoData): ProductBaseInfoResponse {
@@ -76,19 +76,8 @@ class ProductBaseInfo(override val client: KisOpenApi):
         return res.body<ProductBaseInfoResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
-            res.headers.forEach { s, strings ->
-                when(s) {
-                    "tr_id" -> this.tradeId = strings[0]
-                    "tr_cont" -> this.tradeContinuous = strings[0]
-                    "gt_uid" -> this.globalTradeID = strings[0]
-                }
-            }
-
-            if (this.tradeContinuous == "F" || this.tradeContinuous == "M") {
-                this.next = {
-                    call(data.copy(tradeContinuous = "N"))
-                }
-            }
+            processHeader(res)
+            setNext(data, this)
         }
     }
 }

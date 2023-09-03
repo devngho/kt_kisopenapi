@@ -130,19 +130,7 @@ class InquireOverseasCondition(override val client: KisOpenApi): DataRequest<Inq
         return res.body<ConditionResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
-            res.headers.forEach { s, strings ->
-                when(s) {
-                    "tr_id" -> this.tradeId = strings[0]
-                    "tr_cont" -> this.tradeContinuous = strings[0]
-                    "gt_uid" -> this.globalTradeID = strings[0]
-                }
-            }
-
-//            if (this.tradeContinuous == "F" || this.tradeContinuous == "M") {
-//                this.next = {
-//                    call(data.copy(tradeContinuous = "N"))
-//                }
-//            }
+            processHeader(res)
         }
     }
 }

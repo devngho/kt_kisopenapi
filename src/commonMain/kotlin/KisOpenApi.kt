@@ -50,6 +50,15 @@ class KisOpenApi internal constructor(val appKey: String, val appSecret: String,
 
         /**
          * KisOpenApi 객체를 생성합니다.
+         * @param token 사용할 토큰
+         * @param appKey 앱 키
+         * @param appSecret 앱 시크릿
+         * @param isDemo 모의투자 여부
+         * @param websocketToken 웹소켓 토큰
+         * @param account 계좌번호(XXXXXXXX-XX 형식)
+         * @param id HTS ID
+         * @param corp 호출하는 개인/기관 정보
+         * @param hashKey 해시키 사용 여부
          */
         @JvmStatic
         fun withToken(token: String, appKey: String, appSecret: String, isDemo: Boolean = false,  websocketToken: String? = null,/** 계좌번호(XXXXXXXX-XX 형식) */account: String? = null, id: String? = null, corp: CorporationRequest? = CorporationRequest(), hashKey: Boolean = false) =
@@ -62,6 +71,14 @@ class KisOpenApi internal constructor(val appKey: String, val appSecret: String,
         /**
          * KisOpenApi 객체를 생성합니다.
          * 토큰 발급 API를 알아서 발급합니다.
+         * @param appKey 앱 키
+         *  @param appSecret 앱 시크릿
+         *  @param isDemo 모의투자 여부
+         *  @param grantWebsocket 웹소켓 토큰 발급 여부
+         *  @param account 계좌번호(XXXXXXXX-XX 형식)
+         *  @param id HTS ID
+         *  @param corp 호출하는 개인/기관 정보
+         *  @param hashKey 해시키 사용 여부
          */
         @JvmStatic
         suspend fun with(appKey: String, appSecret: String, isDemo: Boolean = false,  /** 계좌번호(XXXXXXXX-XX 형식) */account: String? = null, id: String? = null, corp: CorporationRequest? = CorporationRequest(), grantWebsocket: Boolean = false, hashKey: Boolean = false) =

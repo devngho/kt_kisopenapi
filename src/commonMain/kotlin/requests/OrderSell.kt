@@ -2,6 +2,7 @@ package io.github.devngho.kisopenapi.requests
 
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.HashKey.Companion.hashKey
+import io.github.devngho.kisopenapi.requests.response.setNext
 import io.github.devngho.kisopenapi.requests.util.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -37,19 +38,8 @@ class OrderSell(override val client: KisOpenApi):
         return res.body<OrderBuy.OrderResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
-            res.headers.forEach { s, strings ->
-                when(s) {
-                    "tr_id" -> this.tradeId = strings[0]
-                    "tr_cont" -> this.tradeContinuous = strings[0]
-                    "gt_uid" -> this.globalTradeID = strings[0]
-                }
-            }
-
-            if (this.tradeContinuous == "F" || this.tradeContinuous == "M") {
-                this.next = {
-                    call(data.copy(tradeContinuous = "N"))
-                }
-            }
+            processHeader(res)
+            setNext(data, this)
         }
     }
 }

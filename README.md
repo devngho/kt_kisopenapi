@@ -13,8 +13,6 @@ https://apiportal.koreainvestment.com/about
 > 개발자([devngho](https://github.com/devngho))와 기여자는 라이브러리의 사용으로 발상한 손해 등에 대한 **책임을 지지 않습니다**.
 
 ## 사용하기
-Maven central에 배포되어 있습니다.
-
 **Gradle(Groovy)**
 ```groovy
 implementation 'io.github.devngho:kt_kisopenapi:[VERSION]'
@@ -23,9 +21,10 @@ implementation 'io.github.devngho:kt_kisopenapi:[VERSION]'
 ```kotlin
 implementation("io.github.devngho:kt_kisopenapi:[VERSION]")
 ```
-## 개발 도와주기
-Pull requests를 사용하거나 Issues를 만들어주세요!
-## 구현 진행
+## 기여하기
+- 직접 기능을 추가하거나 버그를 수정하고 Pull Request를 보내주세요.
+- 또는 기능 추가를 요청하거나 버그를 제보하는 Issue를 남겨주세요.
+## 예시
 ### 권장 방식
 ```kotlin
 // 국내 주식을 조회/거래하는 예시. 자세한 내용은 Wiki를 확인하세요.
@@ -46,9 +45,7 @@ StockDomestic stock = new StockDomestic(api, "주식 종목 코드");
 JavaUtil.updateBy(stock, StockPrice.class);
 stock.price;
 ```
-추상화된 클래스를 통해 접속(권장)
 ### 로우 레벨 API
-다이렉트로 API 접속(비권장)
 ```kotlin
 // 예시
 InquirePrice(api).call(InquirePrice.InquirePriceData(""))
@@ -80,13 +77,20 @@ JavaUtil.callWithData(new InquirePrice(api), new InquirePrice.InquirePriceData("
       - [ ] 기간별 시세
       - [x] 실시간 시세
 - [ ] 국내선물옵션
-    - [ ] 주문
-        - [ ] 주문 
-        - [ ] 정정
-        - [ ] 잔고 조회
-    - [ ] 시세
-        - [ ] 시세
-        - [ ] 기간별 시세
+
+[//]: # (    - [ ] 주문)
+
+[//]: # (        - [ ] 주문 )
+
+[//]: # (        - [ ] 정정)
+
+[//]: # (        - [ ] 잔고 조회)
+
+[//]: # (    - [ ] 시세)
+
+[//]: # (        - [ ] 시세)
+
+[//]: # (        - [ ] 기간별 시세)
 - [ ] 해외주식
   - [ ] 주문
     - [x] 주문
@@ -99,15 +103,23 @@ JavaUtil.callWithData(new InquirePrice(api), new InquirePrice.InquirePriceData("
     - [x] 조건검색
     - [x] 실시간 시세
 - [ ] 해외선물옵션
-    - [ ] 주문
-        - [ ] 주문
-        - [ ] 정정
-        - [ ] 잔고 조회
-        - [ ] 주문 내역
-    - [ ] 시세
-        - [ ] 상세
-        - [ ] 현재가
-- [ ] 예제 코드
+
+[//]: # (    - [ ] 주문)
+
+[//]: # (        - [ ] 주문)
+
+[//]: # (        - [ ] 정정)
+
+[//]: # (        - [ ] 잔고 조회)
+
+[//]: # (        - [ ] 주문 내역)
+
+[//]: # (    - [ ] 시세)
+
+[//]: # (        - [ ] 상세)
+
+[//]: # (        - [ ] 현재가)
+[//]: # (- [ ] 예제 코드)
 
 ## 오픈 소스 라이선스
 이 라이브러리는 MIT License를 사용합니다. 자세한 내용은 LICENSE 파일을 참조하세요.

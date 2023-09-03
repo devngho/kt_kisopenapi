@@ -22,7 +22,7 @@ class InquireHoliday(override val client: KisOpenApi):
         @SerialName("ctx_area_nk") val continuousAreaNK: String?,
 
         var output: List<InquireHolidayOutput>?,
-        override var next: (suspend () -> InquireHolidayResponse)?,
+        override var next: (suspend () -> Response)?,
         override var tradeContinuous: String?
     ): Response, TradeContinuousResponse, Msg {
         override val errorDescription: String? = null
@@ -31,10 +31,7 @@ class InquireHoliday(override val client: KisOpenApi):
 
     @Serializable
     data class InquireHolidayOutput(
-        /**
-         * YYYYMMDD
-         */
-        @SerialName("bass_dt") override val baseDate: String,
+        @Serializable(with = YYYYMMDDSerializer::class) @SerialName("bass_dt") override val baseDate: Date,
         @SerialName("wday_dvsn_cd") override val weekdayCode: WeekdayCode,
         @SerialName("bzdy_yn") @Serializable(with = YNSerializer::class) override val isBizDay: Boolean,
         @SerialName("tr_day_yn") @Serializable(with = YNSerializer::class) override val isTradeDay: Boolean,
@@ -51,7 +48,7 @@ class InquireHoliday(override val client: KisOpenApi):
          */
         val baseDate: String,
         override var corp: CorporationRequest? = null,
-        override val tradeContinuous: String? = "",
+        override var tradeContinuous: String? = "",
         val continuousAreaFK: String = "",
         val continuousAreaNK: String = "")
         : Data, TradeContinuousData
@@ -75,11 +72,7 @@ class InquireHoliday(override val client: KisOpenApi):
         return res.body<InquireHolidayResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
-            res.headers.forEach { s, strings ->
-                when(s) {
-                    "tr_cont" -> this.tradeContinuous = strings[0]
-                }
-            }
+            processHeader(res)
 
             if (this.tradeContinuous == "F" || this.tradeContinuous == "M") {
                 this.next = {

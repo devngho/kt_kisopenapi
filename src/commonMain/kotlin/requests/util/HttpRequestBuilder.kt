@@ -1,8 +1,14 @@
 package io.github.devngho.kisopenapi.requests.util
 
 import io.github.devngho.kisopenapi.KisOpenApi
+import io.github.devngho.kisopenapi.requests.DataRequest
+import io.github.devngho.kisopenapi.requests.Response
 import io.github.devngho.kisopenapi.requests.response.CorporationRequest
+import io.github.devngho.kisopenapi.requests.response.TradeContinuousData
+import io.github.devngho.kisopenapi.requests.response.TradeContinuousResponse
+import io.github.devngho.kisopenapi.requests.response.TradeIdMsg
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 
 fun HttpRequestBuilder.auth(client: KisOpenApi) {
@@ -37,5 +43,15 @@ fun HttpRequestBuilder.corporation(corp: CorporationRequest){
         corp.ipAddr?.let { append("ip_addr", it.replace(":", "").trim()) }
         corp.personalSecKey?.let { append("personalseckey", it) }
         append("seq_no", if(corp.consumerType == ConsumerTypeCode.Personal) "" else "01")
+    }
+}
+
+fun <T: Response> T.processHeader(res: HttpResponse){
+    res.headers.forEach { s, strings ->
+        when(s) {
+            "tr_id" -> if (this is TradeIdMsg) this.tradeId = strings[0]
+            "tr_cont" -> if (this is TradeContinuousResponse) this.tradeContinuous = strings[0]
+            "gt_uid" -> if (this is TradeIdMsg) this.globalTradeID = strings[0]
+        }
     }
 }

@@ -111,7 +111,7 @@ class InquireBalance(override val client: KisOpenApi):
         val includeYesterdaySell: Boolean = false,
         val includeCost: Boolean = false,
         override var corp: CorporationRequest? = null,
-        override val tradeContinuous: String? = "",
+        override var tradeContinuous: String? = "",
         val continuousAreaFK: String = "",
         val continuousAreaNK: String = ""
     ) : Data, TradeContinuousData
@@ -148,14 +148,7 @@ class InquireBalance(override val client: KisOpenApi):
         return res.body<InquireBalanceResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
-            res.headers.forEach { s, strings ->
-                when(s) {
-                    "tr_id" -> this.tradeId = strings[0]
-                    "tr_cont" -> this.tradeContinuous = strings[0]
-                    "gt_uid" -> this.globalTradeID = strings[0]
-                }
-            }
-
+            processHeader(res)
             if (this.tradeContinuous == "F" || this.tradeContinuous == "M") {
                 this.next = {
                     call(data.copy(tradeContinuous = "N", continuousAreaFK = this.continuousAreaFK!!, continuousAreaNK = this.continuousAreaNK!!))
