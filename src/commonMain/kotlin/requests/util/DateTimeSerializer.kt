@@ -10,9 +10,14 @@ import kotlinx.serialization.encoding.Encoder
 
 @Serializable(with = YYYYMMDDSerializer::class)
 data class Date(val year: Int, val month: Int, val day: Int)
+
 @Serializable(with = HHMMSSSerializer::class)
 data class Time(val hour: Int, val minute: Int, val second: Int)
 
+/**
+ * Serializa date to YYYYMMDD format
+ * like 20210101
+ */
 object YYYYMMDDSerializer : KSerializer<Date> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Date", PrimitiveKind.STRING)
     override fun serialize(encoder: Encoder, value: Date) {

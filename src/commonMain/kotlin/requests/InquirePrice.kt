@@ -104,7 +104,7 @@ class InquirePrice(override val client: KisOpenApi):
         @SerialName("last_ssts_cntg_qty") @Contextual override val shortSellingLastConfirmedTradeCount: BigInteger?,
         @SerialName("invt_caful_yn") @Serializable(with = YNSerializer::class) override val investmentCareful: Boolean?,
         @SerialName("mrkt_warn_cls_code") override val marketWarnCode: MarketWarnCode?,
-        @SerialName("short_over_yn") @Serializable(with = YNSerializer::class) override val shortOver: Boolean,
+        @SerialName("short_over_yn") @Serializable(with = YNSerializer::class) override val shortOver: Boolean?,
         @SerialName("stck_sdpr") @Contextual override val criteriaPrice: BigInteger?,
         @SerialName("acml_tr_pbmn") @Contextual override val accumulateTradePrice: BigInteger?
     ): StockPriceFull, StockTradeFull {

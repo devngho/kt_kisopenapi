@@ -56,7 +56,7 @@ enum class StockState(val num: Int) {
 
         override fun deserialize(decoder: Decoder): StockState {
             val d = decoder.decodeInt()
-            return StockState.values().first { it.num == d }
+            return entries.first { it.num == d }
         }
 
         override fun serialize(encoder: Encoder, value: StockState) {
@@ -81,7 +81,7 @@ enum class SignPrice(val value: Int) {
 
         override fun deserialize(decoder: Decoder): SignPrice {
             val d = decoder.decodeInt()
-            return SignPrice.values().first { it.value == d }
+            return entries.first { it.value == d }
         }
 
         override fun serialize(encoder: Encoder, value: SignPrice) {
@@ -120,7 +120,7 @@ enum class MarketWarnCode(val value: Int) {
 
         override fun deserialize(decoder: Decoder): MarketWarnCode {
             val d = decoder.decodeInt()
-            return MarketWarnCode.values().first { it.value == d }
+            return entries.first { it.value == d }
         }
 
         override fun serialize(encoder: Encoder, value: MarketWarnCode) {
@@ -148,34 +148,11 @@ enum class LockCode(val num: Int) {
 
         override fun deserialize(decoder: Decoder): LockCode {
             val d = decoder.decodeInt()
-            return LockCode.values().first { it.num == d }
+            return entries.first { it.num == d }
         }
 
         override fun serialize(encoder: Encoder, value: LockCode) {
             encoder.encodeString(if (value.num < 10) "0${value.num}" else "${value.num}")
-        }
-    }
-}
-
-@OptIn(ExperimentalSerializationApi::class)
-@Serializable(with = PeriodDivisionCode.PeriodDivisionCodeSerializer::class)
-@Suppress("unused")
-enum class PeriodDivisionCode(val num: String) {
-    Days30("D"),
-    Weeks30("W"),
-    Months30("M");
-
-    @ExperimentalSerializationApi
-    object PeriodDivisionCodeSerializer : KSerializer<PeriodDivisionCode> {
-        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("PeriodDivisionCode", PrimitiveKind.STRING)
-
-        override fun deserialize(decoder: Decoder): PeriodDivisionCode {
-            val d = decoder.decodeString()
-            return PeriodDivisionCode.values().first { it.num == d }
-        }
-
-        override fun serialize(encoder: Encoder, value: PeriodDivisionCode) {
-            encoder.encodeString(value.num)
         }
     }
 }
@@ -206,7 +183,7 @@ enum class ProductTypeCode(val num: String) {
 
         override fun deserialize(decoder: Decoder): ProductTypeCode {
             val d = decoder.decodeString()
-            return ProductTypeCode.values().first { it.num == d }
+            return entries.first { it.num == d }
         }
 
         override fun serialize(encoder: Encoder, value: ProductTypeCode) {
@@ -320,7 +297,7 @@ enum class OrderTypeCode(val num: String) {
 
         override fun deserialize(decoder: Decoder): OrderTypeCode {
             val d = decoder.decodeString()
-            return OrderTypeCode.values().first { it.num == d }
+            return entries.first { it.num == d }
         }
 
         override fun serialize(encoder: Encoder, value: OrderTypeCode) {
@@ -344,7 +321,7 @@ enum class ConsumerTypeCode(val num: String) {
 
         override fun deserialize(decoder: Decoder): ConsumerTypeCode {
             val d = decoder.decodeString()
-            return ConsumerTypeCode.values().first { it.num == d }
+            return entries.first { it.num == d }
         }
 
         override fun serialize(encoder: Encoder, value: ConsumerTypeCode) {
@@ -368,7 +345,7 @@ enum class InquireDivisionCode(val num: String) {
 
         override fun deserialize(decoder: Decoder): InquireDivisionCode {
             val d = decoder.decodeString()
-            return InquireDivisionCode.values().first { it.num == d }
+            return entries.first { it.num == d }
         }
 
         override fun serialize(encoder: Encoder, value: InquireDivisionCode) {
@@ -397,7 +374,7 @@ enum class WeekdayCode(val num: String) {
 
         override fun deserialize(decoder: Decoder): WeekdayCode {
             val d = decoder.decodeString()
-            return WeekdayCode.values().first { it.num == d }
+            return entries.first { it.num == d }
         }
 
         override fun serialize(encoder: Encoder, value: WeekdayCode) {
@@ -424,7 +401,7 @@ enum class HourCode(val num: String) {
 
         override fun deserialize(decoder: Decoder): HourCode {
             val d = decoder.decodeString()
-            return HourCode.values().first { it.num == d }
+            return entries.first { it.num == d }
         }
 
         override fun serialize(encoder: Encoder, value: HourCode) {
@@ -529,7 +506,7 @@ enum class MarketStatus(val code: String) {
 
         override fun deserialize(decoder: Decoder): MarketStatus {
             val d = decoder.decodeString()
-            return MarketStatus.values().first { it.code == d }
+            return entries.first { it.code == d }
         }
 
         override fun serialize(encoder: Encoder, value: MarketStatus) {
@@ -554,7 +531,7 @@ enum class Currency(val code: String) {
 
         override fun deserialize(decoder: Decoder): Currency {
             val d = decoder.decodeString()
-            return Currency.values().first { it.code == d }
+            return entries.first { it.code == d }
         }
 
         override fun serialize(encoder: Encoder, value: Currency) {
@@ -622,7 +599,7 @@ enum class LoanType(val code: String) {
 
         override fun deserialize(decoder: Decoder): LoanType {
             val d = decoder.decodeString()
-            return LoanType.values().firstOrNull { it.code == d } ?: None
+            return entries.firstOrNull { it.code == d } ?: None
         }
 
         override fun serialize(encoder: Encoder, value: LoanType) {

@@ -5,6 +5,7 @@ import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.response.*
 import io.github.devngho.kisopenapi.requests.util.*
+import io.github.devngho.kisopenapi.requests.util.YYYYMMDDSerializer.YYYY_MM_DD
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import kotlinx.serialization.*
@@ -14,18 +15,19 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
-class InquirePricePerDay(override val client: KisOpenApi):
-    DataRequest<InquirePricePerDay.InquirePricePerDayData, InquirePricePerDay.InquirePricePerDayResponse> {
-    private val url = if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/domestic-stock/v1/quotations/inquire-daily-price"
-                      else               "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-daily-price"
+class InquirePriceSeries(override val client: KisOpenApi):
+    DataRequest<InquirePriceSeries.InquirePriceSeriesData, InquirePriceSeries.InquirePriceSeriesResponse> {
+    private val url = if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice"
+                      else               "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice"
 
     @OptIn(ExperimentalSerializationApi::class)
     @Serializable(with = PeriodDivisionCode.PeriodDivisionCodeSerializer::class)
     @Suppress("unused")
     enum class PeriodDivisionCode(val num: String) {
-        Days30("D"),
-        Weeks30("W"),
-        Months30("M");
+        Days("D"),
+        Weeks("W"),
+        Months("M"),
+        Years("Y");
 
         @ExperimentalSerializationApi
         object PeriodDivisionCodeSerializer : KSerializer<PeriodDivisionCode> {
@@ -43,7 +45,7 @@ class InquirePricePerDay(override val client: KisOpenApi):
     }
 
     @Serializable
-    data class InquirePricePerDayResponse(
+    data class InquirePriceSeriesResponse(
         @SerialName("tr_id") override var tradeId: String?,
         @SerialName("tr_cont") override var tradeContinuous: String?,
         @SerialName("gt_uid") override var globalTradeID: String?,
@@ -51,14 +53,14 @@ class InquirePricePerDay(override val client: KisOpenApi):
         @SerialName("msg1") override val msg: String?,
         @SerialName("rt_cd") @Serializable(with = ResultCodeSerializer::class) override val isOk: Boolean?,
 
-        var output: List<InquirePricePerDayResponseOutput>?, override var next: (suspend () -> Response)?
+        var output1: InquirePrice.InquirePriceResponseOutput?, var output2: List<InquirePriceSeriesResponseOutput2>?, override var next: (suspend () -> Response)?
     ): Response, TradeContinuousResponse, TradeIdMsg {
         override val errorDescription: String? = null
         override val errorCode: String? = null
     }
 
     @Serializable
-    data class InquirePricePerDayResponseOutput(
+    data class InquirePriceSeriesResponseOutput2(
         @SerialName("stck_bsop_date") val bizDate: String?,
         @SerialName("stck_oprc") @Contextual override val openingPrice: BigInteger?,
         @SerialName("stck_hgpr") @Contextual override val highPrice: BigInteger?,
@@ -67,40 +69,47 @@ class InquirePricePerDay(override val client: KisOpenApi):
          * Close Price
          */
         @SerialName("stck_clpr") @Contextual override val price: BigInteger?,
-        @SerialName("prdy_vrss") @Contextual override val changeFromYesterday: BigInteger?,
-        @SerialName("prdy_vrss_sign") override val signFromYesterday: SignPrice?,
-        @SerialName("prdy_ctrt") @Contextual override val rateFromYesterday: BigDecimal?,
+        @SerialName("prdy_vrss") @Contextual val changeFromYesterday: BigInteger?,
+        @SerialName("prdy_vrss_sign") val signFromYesterday: SignPrice?,
         @SerialName("flng_cls_code") val lockCode: LockCode?,
         @SerialName("acml_prtt_rate") @Contextual val accumulateDivisionRate: BigDecimal?,
-        @SerialName("acml_vol") @Contextual override val accumulateTradeVolume: BigInteger?,
-        @SerialName("hts_frgn_ehrt") @Contextual override val htsForeignerExhaustionRate: BigDecimal?,
-        @SerialName("frgn_ntby_qty") @Contextual override val foreignerNetBuyCount: BigInteger?,
-        @SerialName("prdy_vrss_vol_rate") @Contextual override val rateTradeVolumeFromYesterday: BigDecimal?
-    ): StockPriceHighMax, StockTrade, StockPriceChange, StockPriceForeigner {
+        @SerialName("acml_vol") @Contextual val accumulateTradeVolume: BigInteger?,
+        @SerialName("acml_tr_pbmn") @Contextual val accumulateTradePrice: BigInteger?,
+        @SerialName("prtt_rate") @Contextual val divisionRate: BigDecimal?,
+        @SerialName("mod_yn") @Serializable(with = YNSerializer::class) val isModified: Boolean?,
+        @SerialName("revl_issu_reas") val reasonForRevision: String?,
+    ): StockPriceHighMax {
         override val errorDescription: String? = null
         override val errorCode: String? = null
     }
 
-    data class InquirePricePerDayData(val stockCode: String, val period: PeriodDivisionCode = PeriodDivisionCode.Days30, val useOriginalPrice: Boolean = false,
-                                      override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data, TradeContinuousData
+    data class InquirePriceSeriesData(
+        val stockCode: String,
+        val period: PeriodDivisionCode = PeriodDivisionCode.Days,
+        val useOriginalPrice: Boolean = false,
+        val startDate: Date = Date(0, 0, 0),
+        val endDate: Date = Date(0, 0, 0),
+        override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data, TradeContinuousData
 
-    override suspend fun call(data: InquirePricePerDayData): InquirePricePerDayResponse {
+    override suspend fun call(data: InquirePriceSeriesData): InquirePriceSeriesResponse {
         if (data.corp == null) data.corp = client.corp
 
         val res = client.httpClient.get(url) {
             auth(client)
-            tradeId("FHKST01010400")
+            tradeId("FHKST03010100")
             stock(data.stockCode)
             data.corp?.let { corporation(it) }
 
             url {
                 parameters.run {
                     append("FID_PERIOD_DIV_CODE", data.period.num)
+                    append("FID_INPUT_DATE_1", data.startDate.YYYY_MM_DD)
+                    append("FID_INPUT_DATE_2", data.endDate.YYYY_MM_DD)
                     append("FID_ORG_ADJ_PRC", if (data.useOriginalPrice) "1" else "0")
                 }
             }
         }
-        return res.body<InquirePricePerDayResponse>().apply {
+        return res.body<InquirePriceSeriesResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             processHeader(res)

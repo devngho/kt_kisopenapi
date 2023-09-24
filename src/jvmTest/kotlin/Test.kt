@@ -74,10 +74,30 @@ class Tests {
         runBlocking {
             val api = getApi()
 
-            val res = InquirePricePerDay(api).call(InquirePricePerDay.InquirePricePerDayData(testStock, PeriodDivisionCode.Days30))
+            val res = InquirePricePerDay(api).call(InquirePricePerDay.InquirePricePerDayData(testStock, InquirePricePerDay.PeriodDivisionCode.Days30))
 
             println(res.toString().replace(", ", ", \n"))
 
+            println(res.next)
+        }
+    }
+
+    @Test
+    fun loadStockDaysPeriod(){
+        runBlocking {
+            val api = getApi()
+
+            val res = InquirePriceSeries(api)
+                .call(
+                    InquirePriceSeries.InquirePriceSeriesData(
+                    testStock,
+                    InquirePriceSeries.PeriodDivisionCode.Days,
+                    startDate = Date(2023, 1, 1),
+                    endDate = Date(2023, 3, 31)
+                ))
+
+//            println(res.toString().replace(", ", ", \n"))
+            println(res.output2?.map { "${it.bizDate}: KRW ${it.price?.intValue()}" }?.joinToString("\n"))
             println(res.next)
         }
     }

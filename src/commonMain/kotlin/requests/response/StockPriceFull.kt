@@ -71,5 +71,5 @@ interface StockPriceFull: StockPrice, StockPriceForeigner, StockPriceChange, Res
     @SerialName("last_ssts_cntg_qty") @Contextual val shortSellingLastConfirmedTradeCount: BigInteger?
     @SerialName("invt_caful_yn") @Serializable(with = YNSerializer::class) val investmentCareful: Boolean?
     @SerialName("mrkt_warn_cls_code") val marketWarnCode: MarketWarnCode?
-    @SerialName("short_over_yn") @Serializable(with = YNSerializer::class) val shortOver: Boolean
+    @SerialName("short_over_yn") @Serializable(with = YNSerializer::class) val shortOver: Boolean?
 }

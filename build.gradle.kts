@@ -1,15 +1,15 @@
 import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 
 plugins {
-    kotlin("multiplatform") version "1.7.20"
-    kotlin("plugin.serialization") version "1.7.20"
-    id("org.jetbrains.dokka") version "1.7.20"
+    kotlin("multiplatform") version "1.9.0"
+    kotlin("plugin.serialization") version "1.9.0"
+    id("org.jetbrains.dokka") version "1.9.0"
     `maven-publish`
     signing
 }
 
 group = "io.github.devngho"
-version = "0.1.33"
+version = "0.1.34"
 
 repositories {
     mavenCentral()
@@ -80,7 +80,7 @@ kotlin {
 
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
+            kotlinOptions.jvmTarget = "19"
         }
         withJava()
         testRuns["test"].executionTask.configure {
