@@ -74,7 +74,7 @@ JavaUtil.callWithData(new InquirePrice(api), new InquirePrice.InquirePriceData("
       - [ ] 투자자
       - [ ] 회원사
       - [ ] ELW
-      - [ ] 기간별 시세
+      - [x] 기간별 시세
       - [x] 실시간 시세
 - [ ] 국내선물옵션
 

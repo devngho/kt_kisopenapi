@@ -2,7 +2,6 @@ package io.github.devngho.kisopenapi.requests.response
 
 import io.github.devngho.kisopenapi.requests.Data
 import io.github.devngho.kisopenapi.requests.DataRequest
-import io.github.devngho.kisopenapi.requests.Request
 import io.github.devngho.kisopenapi.requests.Response
 import kotlinx.serialization.SerialName
 
@@ -17,7 +16,7 @@ interface TradeContinuousResponse: Response {
     var next: (suspend () -> Response)?
 }
 
-inline fun <T: DataRequest<U, V>, U: TradeContinuousData, V: TradeContinuousResponse> T.setNext(data: U, res: V) {
+fun <T: DataRequest<U, V>, U: TradeContinuousData, V: TradeContinuousResponse> T.setNext(data: U, res: V) {
     if (res.tradeContinuous == "F" || res.tradeContinuous == "M") {
         res.next = {
             this.call(data.apply {

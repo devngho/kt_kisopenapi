@@ -148,3 +148,17 @@ kotlin {
         }
     }
 }
+
+tasks {
+    getByName("signKotlinMultiplatformPublication") {
+        dependsOn("publishJvmPublicationToSonatypeReleaseRepositoryRepository", "publishJvmPublicationToMavenLocal")
+    }
+    getByName("signNativePublication") {
+        dependsOn(
+            "publishJvmPublicationToSonatypeReleaseRepositoryRepository",
+            "publishJvmPublicationToMavenLocal",
+            "publishKotlinMultiplatformPublicationToMavenLocal",
+            "publishKotlinMultiplatformPublicationToSonatypeReleaseRepositoryRepository"
+        )
+    }
+}
