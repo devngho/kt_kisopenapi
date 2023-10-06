@@ -10,7 +10,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 interface BalanceAccountStockOverseas: Response, StockOverseasPriceBase {
-    @SerialName("ovrs_pdno") val productCode: String?
+    @SerialName("ovrs_pdno")
+    val ticker: String?
     @SerialName("ovrs_item_name") val productName: String?
     @SerialName("ovrs_cblc_qty") @Contextual val count: BigInteger?
     @SerialName("ord_psbl_qty") @Contextual val countCanOrder: BigInteger?

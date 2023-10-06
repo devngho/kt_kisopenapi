@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
-
 plugins {
     kotlin("multiplatform") version "1.9.0"
     kotlin("plugin.serialization") version "1.9.0"
@@ -9,7 +7,7 @@ plugins {
 }
 
 group = "io.github.devngho"
-version = "0.1.34"
+version = "0.1.35"
 
 repositories {
     mavenCentral()
@@ -83,8 +81,8 @@ kotlin {
             kotlinOptions.jvmTarget = "19"
         }
         withJava()
-        testRuns["test"].executionTask.configure {
-            useTestNG()
+        tasks.withType<Test>().configureEach {
+            useJUnitPlatform()
         }
     }
     val hostOs = System.getProperty("os.name")
@@ -97,53 +95,43 @@ kotlin {
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
 
-    val platform = when {
-        hostOs == "Mac Os X" -> "macosx64"
-        hostOs == "Linux" -> "linuxx64"
-        isMingwX64 -> "mingwx64"
-        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-    }
-
     
     sourceSets {
         val ktorVersion = "2.1.3"
-        val coroutineVersion = "1.6.4"
-
-        fun KotlinDependencyHandler.standard() {
-            implementation("io.ktor:ktor-client-core:$ktorVersion")
-            implementation("io.ktor:ktor-client-websockets:$ktorVersion")
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
-            implementation("com.ionspin.kotlin:bignum:0.3.7")
-            implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:0.3.7")
-        }
+        val coroutineVersion = "1.7.3"
 
         val commonMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
                 implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
                 implementation("com.soywiz.korlibs.krypto:krypto:4.0.0-alpha-1")
-                standard()
+
+                implementation("io.ktor:ktor-client-core:$ktorVersion")
+                implementation("io.ktor:ktor-client-websockets:$ktorVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
+                implementation("com.ionspin.kotlin:bignum:0.3.7")
+                implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:0.3.7")
             }
         }
         val jvmMain by getting {
             dependencies {
+                implementation(kotlin("stdlib"))
                 implementation("io.ktor:ktor-client-cio:$ktorVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:$coroutineVersion")
-                standard()
             }
         }
         val jvmTest by getting {
             dependencies {
+                implementation(kotlin("reflect"))
                 implementation(kotlin("test"))
                 implementation("io.ktor:ktor-client-cio:$ktorVersion")
-                standard()
+                implementation("io.kotest:kotest-runner-junit5:5.7.2")
+                implementation("io.kotest:kotest-assertions-core:5.7.2")
+                implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.0")
             }
         }
         val nativeMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-curl:$ktorVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core-$platform:$coroutineVersion")
-                standard()
             }
         }
     }

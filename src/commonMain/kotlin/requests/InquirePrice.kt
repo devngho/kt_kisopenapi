@@ -94,7 +94,7 @@ class InquirePrice(override val client: KisOpenApi):
         @SerialName("w52_lwpr_date") override val lowPriceDateW52: String?,
         @SerialName("whol_loan_rmnd_rate") @Contextual override val totalLoanBalanceRate: BigDecimal?,
         @SerialName("ssts_yn") @Serializable(with = YNSerializer::class) override val shortSelling: Boolean?,
-        @SerialName("stck_shrn_iscd") override val stockShortCode: String?,
+        @SerialName("stck_shrn_iscd") override val ticker: String?,
         @SerialName("fcam_cnnm") override val facePriceCurrencyName: String?,
         @SerialName("cpfn_cnnm") override val capitalFinanceCurrencyName: String?,
         @SerialName("apprch_rate") @Contextual override val approachRate: BigDecimal?,
@@ -112,14 +112,18 @@ class InquirePrice(override val client: KisOpenApi):
         override val errorCode: String? = null
     }
 
-    data class InquirePriceData(val stockCode: String, override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data, TradeContinuousData
+    data class InquirePriceData(
+        val ticker: String,
+        override var corp: CorporationRequest? = null,
+        override var tradeContinuous: String? = ""
+    ) : Data, TradeContinuousData
 
     override suspend fun call(data: InquirePriceData): InquirePriceResponse {
         if (data.corp == null) data.corp = client.corp
 
         fun HttpRequestBuilder.inquirePrice() {
             auth(client)
-            stock(data.stockCode)
+            stock(data.ticker)
             tradeId("FHKST01010100")
             data.corp?.let { corporation(it) }
         }

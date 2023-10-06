@@ -38,7 +38,7 @@ class InquireBalance(override val client: KisOpenApi):
 
     @Serializable
     data class InquireBalanceResponseOutput1(
-        @SerialName("pdno") override val productCode: String?,
+        @SerialName("pdno") override val ticker: String?,
         @SerialName("prdt_name") override val productName: String?,
         @SerialName("trad_dvsn_name") override val buySellDivision: String?,
         @SerialName("bfdy_buy_qty") @Contextual override val buyCountYesterday: BigInteger?,

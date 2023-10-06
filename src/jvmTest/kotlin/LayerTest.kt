@@ -1,162 +1,68 @@
-import com.ionspin.kotlin.bignum.integer.BigInteger
-import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.layer.AccountDomestic
 import io.github.devngho.kisopenapi.layer.AccountOverseas
 import io.github.devngho.kisopenapi.layer.StockDomestic
 import io.github.devngho.kisopenapi.layer.StockOverseas
-import io.github.devngho.kisopenapi.requests.response.*
+import io.github.devngho.kisopenapi.requests.response.BalanceAccount
+import io.github.devngho.kisopenapi.requests.response.BaseInfo
+import io.github.devngho.kisopenapi.requests.response.StockOverseasPrice
+import io.github.devngho.kisopenapi.requests.response.StockPrice
 import io.github.devngho.kisopenapi.requests.util.Currency
-import io.github.devngho.kisopenapi.requests.util.OrderTypeCode
-import io.github.devngho.kisopenapi.requests.util.OverseasMarket
-import kotlinx.coroutines.runBlocking
-import org.testng.annotations.Test
-import java.io.File
+import io.kotest.common.ExperimentalKotest
+import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 
-class LayerTest {
-    val testStock = "005930"
-    private val testOverseasStock = "KO"
-    private val testOverseasMarket = OverseasMarket.NEWYORK
+@OptIn(ExperimentalKotest::class)
+class LayerTest : BehaviorSpec({
+    given("API 토큰") {
+        given("종목 코드") {
+            `when`("StockDomestic 업데이트") {
+                val stock = StockDomestic(api, testStock)
 
-    private fun getApi(): KisOpenApi {
-        val key = File("key.txt").readLines()
-        val token = File("token.txt").readLines()
-        val account = File("account.txt").readLines()
+                stock.updateBy(StockPrice::class)
+                stock.updateBy(BaseInfo::class)
 
-        return KisOpenApi.withToken(
-            token[0], key[0], key[1], false, account = account[0]
-        )
-    }
+                then("종목 이름을 가져올 수 있다") {
+                    stock.name.nameShort shouldBe "삼성전자"
+                }
+                then("종목 가격을 가져올 수 있다") {
+                    stock.price.price shouldNotBe null
+                }
+            }
 
-    @Test
-    fun loadStockPriceByLayer(){
-        runBlocking {
-            val api = getApi()
+            `when`("StockOverseas 업데이트") {
+                val stock = StockOverseas(api, testOverseasStock, testOverseasMarket)
 
-            val stock = StockDomestic(api, testStock)
+                stock.updateBy(StockOverseasPrice::class)
+                stock.updateBy(BaseInfo::class)
 
-            stock.updateBy(StockPrice::class)
-            stock.updateBy(BaseInfo::class)
-
-            println(stock.price)
-            println(stock.name)
-            println(stock.tradeVolume)
-        }
-    }
-
-    @Test
-    fun loadStockOverseasPriceByLayer() {
-        runBlocking {
-            val api = getApi()
-
-            val stock = StockOverseas(api, testOverseasStock, testOverseasMarket)
-
-            stock.updateBy(StockOverseasPrice::class)
-            stock.updateBy(BaseInfo::class)
-
-            println(stock.price)
-            println(stock.name)
-        }
-    }
-
-    @Test
-    fun buy() {
-        runBlocking {
-            val api = getApi()
-
-            val stock = StockDomestic(api, testStock)
-
-            stock.updateBy(StockPrice::class)
-            stock.updateBy(BaseInfo::class)
-
-            println(stock.buy(BigInteger(1), OrderTypeCode.MarketPrice))
-        }
-    }
-
-    @Test
-    fun buyOverseas() {
-        runBlocking {
-            val api = getApi()
-
-            val stock = StockOverseas(api, testOverseasStock, testOverseasMarket)
-
-            stock.updateBy(StockOverseasPrice::class)
-            stock.updateBy(BaseInfo::class)
-
-            println(stock.buy(BigInteger(1), OrderTypeCode.SelectPrice, stock.price.price!!))
-        }
-    }
-
-    @Test
-    fun sell() {
-        runBlocking {
-            val api = getApi()
-
-            val stock = StockDomestic(api, testStock)
-            println(stock.sell(BigInteger(1), OrderTypeCode.MarketPrice))
-        }
-    }
-
-    @Test
-    fun sellOverseas() {
-        runBlocking {
-            val api = getApi()
-
-            val stock = StockOverseas(api, testOverseasStock, testOverseasMarket)
-
-            stock.updateBy(StockOverseasPrice::class)
-            stock.updateBy(BaseInfo::class)
-
-            println(stock.sell(BigInteger(1), OrderTypeCode.SelectPrice, stock.price.price!!))
-        }
-    }
-
-    @Test
-    fun livePrice() {
-        runBlocking {
-            val api = getApi()
-
-            val stock = StockDomestic(api, testStock)
-            stock.useLiveConfirmPrice {
-                println(it.price)
+                then("종목 이름을 가져올 수 있다") {
+                    stock.name.name shouldBe "애플"
+                }
+                then("종목 가격을 가져올 수 있다") {
+                    stock.price.price shouldNotBe null
+                }
             }
         }
-    }
 
-    @Test
-    fun livePriceOverseas() {
-        runBlocking {
-            val api = getApi()
-
-            val stock = StockOverseas(api, testOverseasStock, testOverseasMarket)
-            stock.useLiveConfirmPrice {
-                println(it.price)
-            }
-        }
-    }
-
-    @Test
-    fun account() {
-        runBlocking {
-            val api = getApi()
-
+        `when`("AccountDomestic 업데이트") {
             val accountLayer = AccountDomestic(api)
 
             accountLayer.updateBy(BalanceAccount::class)
 
-            println(accountLayer.assetAmount)
+            then("계좌 잔액을 가져올 수 있다") {
+                accountLayer.assetAmount shouldNotBe null
+            }
+        }
+
+        `when`("AccountOverseas 업데이트") {
+            val accountLayer = AccountOverseas(api, testOverseasMarket, Currency.USD)
+
+            accountLayer.updateBy(BalanceAccount::class)
+
+            then("계좌 잔액을 가져올 수 있다") {
+                accountLayer.assetAmount shouldNotBe null
+            }
         }
     }
-
-    @Test
-    fun accountOverseas() {
-        runBlocking {
-            val api = getApi()
-
-            val accountLayer = AccountOverseas(api, OverseasMarket.NYS, Currency.USD)
-
-            accountLayer.updateBy(BalanceAccountOverseas::class)
-
-            println(accountLayer.accountStocks.map { "${it.name.nameShort}: ${it.count}주(평단 $${it.buyPriceAverage?.toStringExpanded()})" }.joinToString("\n"))
-        }
-    }
-}
+})

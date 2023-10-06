@@ -16,7 +16,14 @@ class GrantLiveToken(override val client: KisOpenApi): NoDataRequest<GrantLiveTo
     }
 
     @Serializable
-    data class GrantTokenJson(val grant_type: String, val appkey: String, val secretkey: String)
+    data class GrantTokenData(
+        @SerialName("grant_type")
+        val grantType: String,
+        @SerialName("appkey")
+        val appKey: String,
+        @SerialName("secretkey")
+        val secretKey: String
+    )
 
     override suspend fun call(): GrantTokenResponse {
         return client.httpClient.post(
@@ -24,7 +31,7 @@ class GrantLiveToken(override val client: KisOpenApi): NoDataRequest<GrantLiveTo
             else               "https://openapi.koreainvestment.com:9443/oauth2/Approval"
         ) {
             contentType(ContentType.Application.Json)
-            setBody(GrantTokenJson("client_credentials", client.appKey, client.appSecret))
+            setBody(GrantTokenData("client_credentials", client.appKey, client.appSecret))
         }.body<GrantTokenResponse>().run {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
             this

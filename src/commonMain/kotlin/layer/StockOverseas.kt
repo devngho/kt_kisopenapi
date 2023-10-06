@@ -4,14 +4,17 @@ import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.*
-import io.github.devngho.kisopenapi.requests.response.*
+import io.github.devngho.kisopenapi.requests.response.BaseInfo
+import io.github.devngho.kisopenapi.requests.response.StockOverseasPrice
+import io.github.devngho.kisopenapi.requests.response.StockOverseasPriceBase
 import io.github.devngho.kisopenapi.requests.util.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.reflect.KClass
 
 
-class StockOverseas(override val client: KisOpenApi, override val code: String, override val market: OverseasMarket) : IStockOverseas{
+class StockOverseas(override val client: KisOpenApi, override val ticker: String, override val market: OverseasMarket) :
+    IStockOverseas {
     override lateinit var price: StockOverseasPriceBase
     override var name = IStockBase.Name()
     private var liveConfirmPrice: KMutex<InquireOverseasLivePrice?> = mutex(null)
@@ -19,7 +22,12 @@ class StockOverseas(override val client: KisOpenApi, override val code: String, 
     override suspend fun updateBy(res: KClass<out Response>){
         when(res.simpleName) {
             StockOverseasPrice::class.simpleName -> {
-                (InquireOverseasPrice(client).call(InquireOverseasPrice.InquirePriceData(code, market)).output as? StockOverseasPrice)?.let {
+                (InquireOverseasPrice(client).call(
+                    InquireOverseasPrice.InquirePriceData(
+                        ticker,
+                        market
+                    )
+                ).output as? StockOverseasPrice)?.let {
                     updateBy(it)
                 }
             }
@@ -36,7 +44,7 @@ class StockOverseas(override val client: KisOpenApi, override val code: String, 
                     OverseasMarket.SHENZHEN, OverseasMarket.SZS -> ProductTypeCode.ChinaSimCheonA
                     else -> ProductTypeCode.Stock
                 }
-                ProductBaseInfo(client).call(ProductBaseInfo.ProductBaseInfoData(code, type)).output?.let {
+                ProductBaseInfo(client).call(ProductBaseInfo.ProductBaseInfoData(ticker, type)).output?.let {
                     updateBy(it)
                 }
             }
@@ -63,14 +71,14 @@ class StockOverseas(override val client: KisOpenApi, override val code: String, 
     override suspend fun buy(count: BigInteger, type: OrderTypeCode, price: BigDecimal): OrderOverseasBuy.OrderResponse {
         if (client.account == null) throw RequestError("Buy request need account.")
         else {
-            return OrderOverseasBuy(client).call(OrderOverseasBuy.OrderData(code, market, type, count, price))
+            return OrderOverseasBuy(client).call(OrderOverseasBuy.OrderData(ticker, market, type, count, price))
         }
     }
 
     override suspend fun sell(count: BigInteger, type: OrderTypeCode, price: BigDecimal): OrderOverseasBuy.OrderResponse {
         if (client.account == null) throw RequestError("Sell request need account.")
         else {
-            return OrderOverseasSell(client).call(OrderOverseasBuy.OrderData(code, market, type, count, price))
+            return OrderOverseasSell(client).call(OrderOverseasBuy.OrderData(ticker, market, type, count, price))
         }
     }
 
@@ -78,10 +86,16 @@ class StockOverseas(override val client: KisOpenApi, override val code: String, 
         runBlocking {
             liveConfirmPrice.setIfNull {
                 InquireOverseasLivePrice(client).apply {
-                    (this@runBlocking).launch { register(InquireOverseasLivePrice.InquireLivePriceData(this@StockOverseas.code, market)) {
+                    (this@runBlocking).launch {
+                        register(InquireOverseasLivePrice.InquireLivePriceData(this@StockOverseas.ticker, market)) {
                         (object : Closeable {
                             override suspend fun close() {
-                                unregister(InquireOverseasLivePrice.InquireLivePriceData(this@StockOverseas.code, market))
+                                unregister(
+                                    InquireOverseasLivePrice.InquireLivePriceData(
+                                        this@StockOverseas.ticker,
+                                        market
+                                    )
+                                )
                             }
                         }).block(it)
                     } }

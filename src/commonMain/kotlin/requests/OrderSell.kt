@@ -20,13 +20,13 @@ class OrderSell(override val client: KisOpenApi):
         val res = client.httpClient.post(url) {
             auth(client)
             tradeId(if(client.isDemo) "VTTC0801U" else "TTTC0801U")
-            stock(data.stockCode)
+            stock(data.ticker)
             data.corp?.let { corporation(it) }
             setBody(
                 OrderBuy.OrderDataJson(
                     client.account!![0],
                     client.account!![1],
-                    data.stockCode,
+                    data.ticker,
                     data.orderType,
                     data.count,
                     data.price

@@ -68,7 +68,11 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
         override val errorCode: String? = null
     }
 
-    data class InquirePriceTodayMinuteData(val stockCode: String,/** Time style : HHMMSS */val startDate: String, val usePreviousData: Boolean,
+    data class InquirePriceTodayMinuteData(
+        val ticker: String,
+        /** Time style : HHMMSS */
+        val startDate: String,
+        val usePreviousData: Boolean,
                                            override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data, TradeContinuousData
 
     override suspend fun call(data: InquirePriceTodayMinuteData): InquirePriceTodayMinuteResponse {
@@ -77,7 +81,7 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
         val res = client.httpClient.get(url) {
             auth(client)
             tradeId("FHKST03010200")
-            stock(data.stockCode)
+            stock(data.ticker)
             data.corp?.let { corporation(it) }
 
             url {

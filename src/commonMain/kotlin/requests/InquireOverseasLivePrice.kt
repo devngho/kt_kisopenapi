@@ -29,7 +29,7 @@ class InquireOverseasLivePrice(override val client: KisOpenApi): LiveRequest<Inq
                     "body": {
                         "input": {
                             "tr_id":"HDFSCNT0",
-                            "tr_key":"D${data.market.code}${data.stockCode}"
+                            "tr_key":"D${data.market.code}${data.ticker}"
                         }
                     }
                 }
@@ -68,7 +68,11 @@ class InquireOverseasLivePrice(override val client: KisOpenApi): LiveRequest<Inq
         override val errorCode: String? = null
     }
 
-    data class InquireLivePriceData(val stockCode: String, val market: OverseasMarket, override var corp: CorporationRequest? = null): Data
+    data class InquireLivePriceData(
+        val ticker: String,
+        val market: OverseasMarket,
+        override var corp: CorporationRequest? = null
+    ) : Data
 
 
     override suspend fun register(data: InquireLivePriceData, init: ((LiveResponse) -> Unit)?, block: (InquireLivePriceResponse) -> Unit) {
@@ -84,7 +88,7 @@ class InquireOverseasLivePrice(override val client: KisOpenApi): LiveRequest<Inq
                             .apply {
                                 if (this[0] != '0' && this[0] != '1') {
                                     json.decodeFromString<LiveResponse>(this).run {
-                                        if (this.header?.tradeId == "HDFSCNT0" && this.header.tradeKey == data.stockCode && init != null) init(
+                                        if (this.header?.tradeId == "HDFSCNT0" && this.header.tradeKey == data.ticker && init != null) init(
                                             this
                                         )
                                     }
@@ -99,7 +103,7 @@ class InquireOverseasLivePrice(override val client: KisOpenApi): LiveRequest<Inq
                                         else return@collect
                                     }
                                     .run {
-                                        if (get(0) == "D${data.market.code}${data.stockCode}") this
+                                        if (get(0) == "D${data.market.code}${data.ticker}") this
                                         else return@collect
                                     }
                                     .run {
@@ -118,7 +122,7 @@ class InquireOverseasLivePrice(override val client: KisOpenApi): LiveRequest<Inq
                                                     this[9].toBigDecimal(),
                                                     this[10].toBigDecimal(),
                                                     this[11].toBigDecimal(),
-                                                    SignPrice.values().firstOrNull { it.value.toString() == this[12] },
+                                                    SignPrice.entries.firstOrNull { it.value.toString() == this[12] },
                                                     // 변화량이 음수인 경우에도 changeFromYesterday 값이 양수로 반환됨
                                                     // 편의성 위해 변동률 음수인 경우 changeFromYesterday 값도 음수로 변환함
                                                     if (this[14].startsWith("-")) this[13].toBigDecimal() * -1 else this[13].toBigDecimal(),
@@ -133,7 +137,7 @@ class InquireOverseasLivePrice(override val client: KisOpenApi): LiveRequest<Inq
                                                     this[22].toBigInteger(),
                                                     this[23].toBigInteger(),
                                                     this[24].toBigDecimal(),
-                                                    MarketStatus.values().firstOrNull { f -> f.code == this[24] }
+                                                    MarketStatus.entries.firstOrNull { f -> f.code == this[24] }
                                                 )
                                             )
                                         }catch (e: Exception) {e.printStackTrace()}

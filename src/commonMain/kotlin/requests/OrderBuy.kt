@@ -38,7 +38,8 @@ class OrderBuy(override val client: KisOpenApi):
         @SerialName("ORD_TMD") @Serializable(with = HHMMSSSerializer::class) val orderTime: Time?,
     )
 
-    data class OrderData(val stockCode: String, val orderType: OrderTypeCode, val count: BigInteger, val price: BigInteger = BigInteger(0),
+    data class OrderData(
+        val ticker: String, val orderType: OrderTypeCode, val count: BigInteger, val price: BigInteger = BigInteger(0),
                          override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data, TradeContinuousData
     @Serializable
     data class OrderDataJson(val CANO: String, val ACNT_PRDT_CD: String, val PDNO: String, val ORD_DVSN: OrderTypeCode, @Contextual val ORD_QTY: BigInteger, @Contextual val ORD_UNPR: BigInteger)
@@ -51,9 +52,18 @@ class OrderBuy(override val client: KisOpenApi):
         val res = client.httpClient.post(url) {
             auth(client)
             tradeId(if(client.isDemo) "VTTC0802U" else "TTTC0802U")
-            stock(data.stockCode)
+            stock(data.ticker)
             data.corp?.let { corporation(it) }
-            setBody(OrderDataJson(client.account!![0], client.account!![1], data.stockCode, data.orderType, data.count, data.price))
+            setBody(
+                OrderDataJson(
+                    client.account!![0],
+                    client.account!![1],
+                    data.ticker,
+                    data.orderType,
+                    data.count,
+                    data.price
+                )
+            )
 
             hashKey<OrderDataJson>(client)
         }

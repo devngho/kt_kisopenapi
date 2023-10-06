@@ -39,7 +39,7 @@ class InquireOverseasBalance(override val client: KisOpenApi):
 
     @Serializable
     data class InquireBalanceResponseOutput1 @OptIn(ExperimentalSerializationApi::class) constructor(
-        @SerialName("ovrs_pdno") override val productCode: String?,
+        @SerialName("ovrs_pdno") override val ticker: String?,
         @SerialName("ovrs_item_name") override val productName: String?,
         @SerialName("ovrs_cblc_qty") @Contextual override val count: BigInteger?,
         @SerialName("ord_psbl_qty") @Contextual override val countCanOrder: BigInteger?,

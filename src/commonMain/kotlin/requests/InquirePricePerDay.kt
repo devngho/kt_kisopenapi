@@ -81,7 +81,10 @@ class InquirePricePerDay(override val client: KisOpenApi):
         override val errorCode: String? = null
     }
 
-    data class InquirePricePerDayData(val stockCode: String, val period: PeriodDivisionCode = PeriodDivisionCode.Days30, val useOriginalPrice: Boolean = false,
+    data class InquirePricePerDayData(
+        val ticker: String,
+        val period: PeriodDivisionCode = PeriodDivisionCode.Days30,
+        val useOriginalPrice: Boolean = false,
                                       override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data, TradeContinuousData
 
     override suspend fun call(data: InquirePricePerDayData): InquirePricePerDayResponse {
@@ -90,7 +93,7 @@ class InquirePricePerDay(override val client: KisOpenApi):
         val res = client.httpClient.get(url) {
             auth(client)
             tradeId("FHKST01010400")
-            stock(data.stockCode)
+            stock(data.ticker)
             data.corp?.let { corporation(it) }
 
             url {

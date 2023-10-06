@@ -8,7 +8,9 @@ import kotlinx.serialization.SerialName
 
 interface StockOverseasPrice: StockOverseasPriceBase {
     @SerialName("zdiv") val decimalPoint: Int?
-    @SerialName("last") @Contextual
+
+    @SerialName("last")
+    @Contextual
     override val price: BigDecimal?
     @SerialName("sign") val sign: SignPrice?
     @SerialName("diff") @Contextual val changeFromYesterday: BigDecimal?

@@ -5,7 +5,8 @@ import io.github.devngho.kisopenapi.requests.util.ProductTypeCode
 import kotlinx.serialization.SerialName
 
 interface BaseInfo: Response {
-    @SerialName("pdno") val code: String?
+    @SerialName("pdno")
+    val ticker: String?
     @SerialName("prdt_type_cd") val type: ProductTypeCode?
     @SerialName("prdt_name") val name: String?
     @SerialName("prdt_name120") val name120: String?

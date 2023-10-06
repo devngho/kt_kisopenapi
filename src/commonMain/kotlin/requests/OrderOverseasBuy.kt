@@ -40,7 +40,12 @@ class OrderOverseasBuy(override val client: KisOpenApi):
         @SerialName("ORD_TMD") @Serializable(with = HHMMSSSerializer::class) val orderTime: Time?,
     )
 
-    data class OrderData(val stockCode: String, val market: OverseasMarket, val orderType: OrderTypeCode, val count: BigInteger, val price: BigDecimal = BigDecimal.fromInt(0),
+    data class OrderData(
+        val ticker: String,
+        val market: OverseasMarket,
+        val orderType: OrderTypeCode,
+        val count: BigInteger,
+        val price: BigDecimal = BigDecimal.fromInt(0),
                          override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data, TradeContinuousData
     @Serializable
     data class OrderDataJson(val CANO: String, val ACNT_PRDT_CD: String, val OVRS_EXCG_CD: String, val PDNO: String, val ORD_DVSN: String, @Contextual val ORD_QTY: BigInteger, @Contextual val OVRS_ORD_UNPR: BigDecimal, val ORD_SVR_DVSN_CD: String, val SLL_TYPE: String = "")
@@ -117,9 +122,20 @@ class OrderOverseasBuy(override val client: KisOpenApi):
         val res = client.httpClient.post(url) {
             auth(client)
             tradeId(tradeId)
-            stock(data.stockCode)
+            stock(data.ticker)
             data.corp?.let { corporation(it) }
-            setBody(OrderDataJson(client.account!![0], client.account!![1], data.market.fourChar, data.stockCode, orderType, data.count, data.price, "0"))
+            setBody(
+                OrderDataJson(
+                    client.account!![0],
+                    client.account!![1],
+                    data.market.fourChar,
+                    data.ticker,
+                    orderType,
+                    data.count,
+                    data.price,
+                    "0"
+                )
+            )
 
             hashKey<OrderDataJson>(client)
         }

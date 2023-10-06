@@ -1,11 +1,11 @@
 package io.github.devngho.kisopenapi.requests.response
 
+import com.ionspin.kotlin.bignum.decimal.BigDecimal
+import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.requests.Response
 import io.github.devngho.kisopenapi.requests.util.MarketWarnCode
 import io.github.devngho.kisopenapi.requests.util.StockState
 import io.github.devngho.kisopenapi.requests.util.YNSerializer
-import com.ionspin.kotlin.bignum.decimal.BigDecimal
-import com.ionspin.kotlin.bignum.integer.BigInteger
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -61,7 +61,9 @@ interface StockPriceFull: StockPrice, StockPriceForeigner, StockPriceChange, Res
     @SerialName("w52_lwpr_date") val lowPriceDateW52: String?
     @SerialName("whol_loan_rmnd_rate") @Contextual val totalLoanBalanceRate: BigDecimal?
     @SerialName("ssts_yn") @Serializable(with = YNSerializer::class) val shortSelling: Boolean?
-    @SerialName("stck_shrn_iscd") val stockShortCode: String?
+
+    @SerialName("stck_shrn_iscd")
+    val ticker: String?
     @SerialName("fcam_cnnm") val facePriceCurrencyName: String?
     @SerialName("cpfn_cnnm") val capitalFinanceCurrencyName: String?
     @SerialName("apprch_rate") @Contextual val approachRate: BigDecimal?

@@ -5,7 +5,7 @@ import io.github.devngho.kisopenapi.KisOpenApi
 
 interface IStockBase : Updatable{
     val client: KisOpenApi
-    val code: String
+    val ticker: String
 
     data class Name(
         var name: String? = null,

@@ -5,23 +5,24 @@ import io.github.devngho.kisopenapi.requests.InquirePrice;
 import io.github.devngho.kisopenapi.requests.response.BaseInfo;
 import io.github.devngho.kisopenapi.requests.response.CorporationRequest;
 import io.github.devngho.kisopenapi.requests.response.StockPrice;
-import org.testng.annotations.Test;
-import org.testng.reporters.Files;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 
 public class JavaTest {
     private final String testStock = "005930";
 
     private KisOpenApi getApi() {
         try {
-            String[] key = Files.readFile(new File("key.txt")).split("\n");
-            String token = Files.readFile(new File("token.txt")).trim();
-            String account = Files.readFile(new File("account.txt")).trim();
+            String[] key = Files.readString(new File("key.txt").toPath()).split("\n");
+            String token = Files.readString(new File("token.txt").toPath()).trim();
+            String account = Files.readString(new File("account.txt").toPath()).trim();
 
             return KisOpenApi.withToken(
-                    token, key[0], key[1], false, null, account, null, new CorporationRequest(), false);
+                    token, key[0].trim(), key[1].trim(), false, null, account, null, new CorporationRequest(), false);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -29,31 +30,24 @@ public class JavaTest {
     }
 
     @Test
-    public void loadStockLowJava() {
+    public void loadStockLowJava() throws ExecutionException, InterruptedException {
         KisOpenApi api = getApi();
         assert api != null;
 
-        try {
-            InquirePrice.InquirePriceResponse result = JavaUtil.callWithData(new InquirePrice(api), new InquirePrice.InquirePriceData(testStock, null, "")).get();
-            System.out.println(Objects.requireNonNull(Objects.requireNonNull(result.getOutput()).getPrice()).toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        InquirePrice.InquirePriceResponse result = JavaUtil.callWithData(new InquirePrice(api), new InquirePrice.InquirePriceData(testStock, null, "")).get();
+        System.out.println(String.valueOf(Objects.requireNonNull(Objects.requireNonNull(result.getOutput()).getPrice())));
     }
 
     @Test
-    public void loadStockJava() {
+    public void loadStockJava() throws ExecutionException, InterruptedException {
         KisOpenApi api = getApi();
         assert api != null;
 
-        try {
-            StockDomestic stock = new StockDomestic(api, testStock);
-            JavaUtil.updateByClass(stock, StockPrice.class).get();
-            JavaUtil.updateByClass(stock, BaseInfo.class).get();
-            System.out.println(Objects.requireNonNull(stock.getName().getName()));
-            System.out.println(Objects.requireNonNull(stock.price.getPrice()).toString());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+        StockDomestic stock = new StockDomestic(api, testStock);
+        JavaUtil.updateByClass(stock, StockPrice.class).get();
+        JavaUtil.updateByClass(stock, BaseInfo.class).get();
+        System.out.println(Objects.requireNonNull(stock.getName().getName()));
+        System.out.println(String.valueOf(Objects.requireNonNull(stock.price.getPrice())));
     }
 }

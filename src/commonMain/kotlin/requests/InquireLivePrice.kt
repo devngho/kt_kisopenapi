@@ -7,11 +7,17 @@ import com.ionspin.kotlin.bignum.integer.toBigInteger
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.response.CorporationRequest
 import io.github.devngho.kisopenapi.requests.response.LiveResponse
-import io.github.devngho.kisopenapi.requests.util.*
+import io.github.devngho.kisopenapi.requests.util.HourCode
+import io.github.devngho.kisopenapi.requests.util.SignPrice
+import io.github.devngho.kisopenapi.requests.util.YNSerializer
 import io.github.devngho.kisopenapi.requests.util.YNSerializer.YN
+import io.github.devngho.kisopenapi.requests.util.json
 import io.ktor.websocket.*
 import kotlinx.coroutines.launch
-import kotlinx.serialization.*
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
 
 class InquireLivePrice(override val client: KisOpenApi): LiveRequest<InquireLivePrice.InquireLivePriceData, InquireLivePrice.InquireLivePriceResponse> {
     private fun buildCallBody(data: InquireLivePriceData, trType: String) = """
@@ -32,7 +38,7 @@ class InquireLivePrice(override val client: KisOpenApi): LiveRequest<InquireLive
 
     @Serializable
     data class InquireLivePriceResponse(
-        @SerialName("mksc_shrn_iscd") val stockShortCode: String?  = null,
+        @SerialName("mksc_shrn_iscd") val ticker: String? = null,
         @SerialName("stck_cntg_hour") val stockConfirmTime: String?  = null,
         @SerialName("stck_prpr") @Contextual val price: BigInteger?  = null,
         @SerialName("prdy_vrss_sign") val signFromYesterday: SignPrice?  = null,
@@ -124,7 +130,7 @@ class InquireLivePrice(override val client: KisOpenApi): LiveRequest<InquireLive
                                                     this[0],
                                                     this[1],
                                                     this[2].toBigInteger(),
-                                                    SignPrice.values().find { f -> f.value.toString() == this[3] },
+                                                    SignPrice.entries.find { f -> f.value.toString() == this[3] },
                                                     this[4].toBigInteger(),
                                                     this[5].toBigDecimal(),
                                                     this[6].toBigDecimal(),
@@ -146,13 +152,13 @@ class InquireLivePrice(override val client: KisOpenApi): LiveRequest<InquireLive
                                                     this[22].toBigDecimal(),
                                                     this[23].toBigDecimal(),
                                                     this[24],
-                                                    SignPrice.values().find { f -> f.value.toString() == this[25] },
+                                                    SignPrice.entries.find { f -> f.value.toString() == this[25] },
                                                     this[26].toBigInteger(),
                                                     this[27],
-                                                    SignPrice.values().find { f -> f.value.toString() == this[28] },
+                                                    SignPrice.entries.find { f -> f.value.toString() == this[28] },
                                                     this[29].toBigInteger(),
                                                     this[30],
-                                                    SignPrice.values().find { f -> f.value.toString() == this[31] },
+                                                    SignPrice.entries.find { f -> f.value.toString() == this[31] },
                                                     this[32].toBigInteger(),
                                                     this[33],
                                                     this[34],
@@ -164,7 +170,7 @@ class InquireLivePrice(override val client: KisOpenApi): LiveRequest<InquireLive
                                                     this[40].toBigDecimal(),
                                                     this[41].toBigInteger(),
                                                     this[42].toBigDecimal(),
-                                                    HourCode.values().find { f -> f.num == this[43] },
+                                                    HourCode.entries.find { f -> f.num == this[43] },
                                                     this[44]
                                                 )
                                             )

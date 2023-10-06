@@ -1,10 +1,8 @@
 package io.github.devngho.kisopenapi.requests.util
 
 import io.github.devngho.kisopenapi.KisOpenApi
-import io.github.devngho.kisopenapi.requests.DataRequest
 import io.github.devngho.kisopenapi.requests.Response
 import io.github.devngho.kisopenapi.requests.response.CorporationRequest
-import io.github.devngho.kisopenapi.requests.response.TradeContinuousData
 import io.github.devngho.kisopenapi.requests.response.TradeContinuousResponse
 import io.github.devngho.kisopenapi.requests.response.TradeIdMsg
 import io.ktor.client.request.*
@@ -20,11 +18,11 @@ fun HttpRequestBuilder.auth(client: KisOpenApi) {
     }
 }
 
-fun HttpRequestBuilder.stock(stockCode: String) {
+fun HttpRequestBuilder.stock(ticker: String) {
     url {
         parameters.run {
             append("FID_COND_MRKT_DIV_CODE", "J")
-            append("FID_INPUT_ISCD", stockCode)
+            append("FID_INPUT_ISCD", ticker)
         }
     }
 }

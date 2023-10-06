@@ -84,7 +84,7 @@ class InquirePriceSeries(override val client: KisOpenApi):
     }
 
     data class InquirePriceSeriesData(
-        val stockCode: String,
+        val ticker: String,
         val period: PeriodDivisionCode = PeriodDivisionCode.Days,
         val useOriginalPrice: Boolean = false,
         val startDate: Date = Date(0, 0, 0),
@@ -97,7 +97,7 @@ class InquirePriceSeries(override val client: KisOpenApi):
         val res = client.httpClient.get(url) {
             auth(client)
             tradeId("FHKST03010100")
-            stock(data.stockCode)
+            stock(data.ticker)
             data.corp?.let { corporation(it) }
 
             url {

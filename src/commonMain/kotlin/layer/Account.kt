@@ -51,9 +51,9 @@ class AccountDomestic(val client: KisOpenApi) : IAccountDomestic {
             t.clear()
             t.addAll(
                 this.mapNotNull {
-                    if (it.productCode != null) {
+                    if (it.ticker != null) {
                         AccountStockDomestic(
-                            StockDomestic(client, it.productCode!!)
+                            StockDomestic(client, it.ticker!!)
                         ).apply {
                             this.buyPriceAverage = it.buyAveragePrice ?: this.buyPriceAverage
                             this.count = it.count ?: this.count
@@ -101,9 +101,9 @@ class AccountOverseas(val client: KisOpenApi, val exchange: OverseasMarket, val 
             t.clear()
             t.addAll(
                 this.mapNotNull {
-                    if (it.productCode != null) {
+                    if (it.ticker != null) {
                         AccountStockOverseas(
-                            StockOverseas(client, it.productCode!!, exchange)
+                            StockOverseas(client, it.ticker!!, exchange)
                         ).apply {
                             this.buyPriceAverage = it.buyAveragePrice ?: this.buyPriceAverage
                             this.count = it.count ?: this.count

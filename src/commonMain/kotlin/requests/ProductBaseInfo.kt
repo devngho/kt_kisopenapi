@@ -30,7 +30,7 @@ class ProductBaseInfo(override val client: KisOpenApi):
 
     @Serializable
     data class ProductBaseInfoResponseOutput(
-        @SerialName("pdno") override val code: String?,
+        @SerialName("pdno") override val ticker: String?,
         @SerialName("prdt_type_cd") override val type: ProductTypeCode?,
         @SerialName("prdt_name") override val name: String?,
         @SerialName("prdt_name120") override val name120: String?,

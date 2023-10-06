@@ -10,7 +10,7 @@ import kotlinx.coroutines.runBlocking
 import kotlin.reflect.KClass
 
 
-class StockDomestic(override val client: KisOpenApi, override val code: String) : IStockDomestic{
+class StockDomestic(override val client: KisOpenApi, override val ticker: String) : IStockDomestic {
     override lateinit var price: StockPriceBase
     override var name = IStockBase.Name()
     override lateinit var tradeVolume: StockTrade
@@ -30,12 +30,17 @@ class StockDomestic(override val client: KisOpenApi, override val code: String) 
             StockTradeFull::class.simpleName,
             StockTradeRate::class.simpleName,
             StockTradeAccumulate::class.simpleName -> {
-                (InquirePrice(client).call(InquirePrice.InquirePriceData(code)).output as? StockPriceFull)?.let {
+                (InquirePrice(client).call(InquirePrice.InquirePriceData(ticker)).output as? StockPriceFull)?.let {
                     updateBy(it)
                 }
             }
             BaseInfo::class.simpleName -> {
-                ProductBaseInfo(client).call(ProductBaseInfo.ProductBaseInfoData(code, ProductTypeCode.Stock)).output?.let {
+                ProductBaseInfo(client).call(
+                    ProductBaseInfo.ProductBaseInfoData(
+                        ticker,
+                        ProductTypeCode.Stock
+                    )
+                ).output?.let {
                     updateBy(it)
                 }
             }
@@ -63,14 +68,14 @@ class StockDomestic(override val client: KisOpenApi, override val code: String) 
     override suspend fun buy(count: BigInteger, type: OrderTypeCode, price: BigInteger): OrderBuy.OrderResponse {
         if (client.account == null) throw RequestError("Buy request need account.")
         else {
-            return OrderBuy(client).call(OrderBuy.OrderData(code, type, count, price))
+            return OrderBuy(client).call(OrderBuy.OrderData(ticker, type, count, price))
         }
     }
 
     override suspend fun sell(count: BigInteger, type: OrderTypeCode, price: BigInteger): OrderBuy.OrderResponse {
         if (client.account == null) throw RequestError("Sell request need account.")
         else {
-            return OrderSell(client).call(OrderBuy.OrderData(code, type, count, price))
+            return OrderSell(client).call(OrderBuy.OrderData(ticker, type, count, price))
         }
     }
 
@@ -78,10 +83,11 @@ class StockDomestic(override val client: KisOpenApi, override val code: String) 
         runBlocking {
             liveConfirmPrice.setIfNull {
                 InquireLivePrice(client).apply {
-                    (this@runBlocking).launch { register(InquireLivePrice.InquireLivePriceData(this@StockDomestic.code)) {
+                    (this@runBlocking).launch {
+                        register(InquireLivePrice.InquireLivePriceData(this@StockDomestic.ticker)) {
                         (object : Closeable {
                             override suspend fun close() {
-                                unregister(InquireLivePrice.InquireLivePriceData(this@StockDomestic.code))
+                                unregister(InquireLivePrice.InquireLivePriceData(this@StockDomestic.ticker))
                             }
                         }).block(it)
                     } }

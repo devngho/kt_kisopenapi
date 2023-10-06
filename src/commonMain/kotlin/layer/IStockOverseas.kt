@@ -13,7 +13,7 @@ import io.github.devngho.kisopenapi.requests.util.OverseasMarket
 
 interface IStockOverseas : IStockBase{
     override val client: KisOpenApi
-    override val code: String
+    override val ticker: String
     val market: OverseasMarket
 
     var price: StockOverseasPriceBase

@@ -90,14 +90,14 @@ class OrderOverseasSell(override val client: KisOpenApi):
             if (data.price.isZero() && data.orderType == OrderTypeCode.SelectPrice) throw RequestError("Price must be set when order type is SelectPrice.")
 
             tradeId(tradeId)
-            stock(data.stockCode)
+            stock(data.ticker)
             data.corp?.let { corporation(it) }
             setBody(
                 (OrderOverseasBuy.OrderDataJson(
                     client.account!![0],
                     client.account!![1],
                     data.market.fourChar,
-                    data.stockCode,
+                    data.ticker,
                     orderType,
                     data.count,
                     data.price,

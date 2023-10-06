@@ -9,10 +9,22 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
 @Serializable(with = YYYYMMDDSerializer::class)
-data class Date(val year: Int, val month: Int, val day: Int)
+data class Date(val year: Int, val month: Int, val day: Int) : Comparable<Date> {
+    override fun compareTo(other: Date): Int {
+        if (this.year != other.year) return this.year - other.year
+        if (this.month != other.month) return this.month - other.month
+        return this.day - other.day
+    }
+}
 
 @Serializable(with = HHMMSSSerializer::class)
-data class Time(val hour: Int, val minute: Int, val second: Int)
+data class Time(val hour: Int, val minute: Int, val second: Int) : Comparable<Time> {
+    override fun compareTo(other: Time): Int {
+        if (this.hour != other.hour) return this.hour - other.hour
+        if (this.minute != other.minute) return this.minute - other.minute
+        return this.second - other.second
+    }
+}
 
 /**
  * Serializa date to YYYYMMDD format

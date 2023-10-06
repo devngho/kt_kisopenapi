@@ -6,8 +6,10 @@ import io.github.devngho.kisopenapi.requests.util.RequestError
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+@Suppress("unused")
 class RevokeToken(override val client: KisOpenApi):
     DataRequest<RevokeToken.RevokeTokenData, RevokeToken.RevokeTokenResponse> {
     @Serializable
@@ -17,7 +19,11 @@ class RevokeToken(override val client: KisOpenApi):
     }
 
     @Serializable
-    data class RevokeTokenJson(val token: String, val appkey: String, val appsecret: String)
+    data class RevokeTokenJson(
+        val token: String,
+        @SerialName("appkey") val appKey: String,
+        @SerialName("appsecret") val appSecret: String
+    )
 
     data class RevokeTokenData(val token: String, override val corp: CorporationRequest? = null): Data
 

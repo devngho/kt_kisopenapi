@@ -50,7 +50,8 @@ stock.price;
 // 예시
 InquirePrice(api).call(InquirePrice.InquirePriceData(""))
 ```
-```kotlin
+
+```java
 // 예시
 JavaUtil.callWithData(new InquirePrice(api), new InquirePrice.InquirePriceData("", null, ""));
 ```
@@ -76,6 +77,7 @@ JavaUtil.callWithData(new InquirePrice(api), new InquirePrice.InquirePriceData("
       - [ ] ELW
       - [x] 기간별 시세
       - [x] 실시간 시세
+      - [x] 거래량순위
 - [ ] 국내선물옵션
 
 [//]: # (    - [ ] 주문)

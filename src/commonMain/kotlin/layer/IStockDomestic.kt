@@ -12,7 +12,7 @@ import io.github.devngho.kisopenapi.requests.util.OrderTypeCode
 
 interface IStockDomestic : IStockBase{
     override val client: KisOpenApi
-    override val code: String
+    override val ticker: String
 
     var price: StockPriceBase
     override var name: IStockBase.Name

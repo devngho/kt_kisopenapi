@@ -53,7 +53,12 @@ class InquireOverseasPrice(override val client: KisOpenApi):
         override val errorCode: String? = null
     }
 
-    data class InquirePriceData(val stockCode: String, val market: OverseasMarket, override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data, TradeContinuousData
+    data class InquirePriceData(
+        val ticker: String,
+        val market: OverseasMarket,
+        override var corp: CorporationRequest? = null,
+        override var tradeContinuous: String? = ""
+    ) : Data, TradeContinuousData
 
     override suspend fun call(data: InquirePriceData): InquirePriceResponse {
         if (data.corp == null) data.corp = client.corp
@@ -64,7 +69,7 @@ class InquireOverseasPrice(override val client: KisOpenApi):
                 parameters.run {
                     append("AUTH", "")
                     append("EXCD", data.market.code)
-                    append("SYMB", data.stockCode)
+                    append("SYMB", data.ticker)
                 }
             }
             tradeId("HHDFS00000300")

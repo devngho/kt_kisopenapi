@@ -7,7 +7,8 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 
 interface BalanceAccountStock: Response, StockPriceBase {
-    @SerialName("pdno") val productCode: String?
+    @SerialName("pdno")
+    val ticker: String?
     @SerialName("prdt_name") val productName: String?
     @SerialName("trad_dvsn_name") val buySellDivision: String?
     @SerialName("bfdy_buy_qty") @Contextual val buyCountYesterday: BigInteger?
