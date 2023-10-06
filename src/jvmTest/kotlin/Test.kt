@@ -1,3 +1,4 @@
+import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.*
 import io.github.devngho.kisopenapi.requests.util.*
@@ -297,6 +298,32 @@ class InquireTest : BehaviorSpec({
                     rank.name shouldBe info.nameShort
                     info.productRiskGrade shouldBe ""
                 }
+            }
+        }
+        `when`("InquireOverseasCondition 호출") {
+            val result = InquireOverseasCondition(api).call(
+                InquireOverseasCondition.ConditionData(
+                    OverseasMarket.AMEX,
+                    priceRange = BigDecimalRange(BigDecimal.fromDouble(0.1), BigDecimal.fromInt(200)),
+                )
+            )
+
+            then("성공한다") {
+                result.isOk shouldBe true
+            }
+            then("빈 리스트를 반환하지 않는다") {
+                result.output shouldNotBe null
+            }
+            then("가격을 반환한다") {
+                result.output!!.all { it.price != null } shouldBe true
+            }
+            then("가격 범위를 만족한다") {
+                result.output!!.all {
+                    it.price!! in BigDecimalRange(
+                        BigDecimal.fromInt(100),
+                        BigDecimal.fromInt(200)
+                    )
+                } shouldBe true
             }
         }
     }

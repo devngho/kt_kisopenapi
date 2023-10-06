@@ -4,7 +4,6 @@ import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.decimal.DecimalMode
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import com.ionspin.kotlin.bignum.serialization.kotlinx.bigdecimal.DecimalModeSerializer
-import com.ionspin.kotlin.bignum.serialization.kotlinx.biginteger.BigIntegerHumanReadableSerializer
 import io.ktor.client.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.websocket.*
@@ -17,7 +16,7 @@ import kotlinx.serialization.modules.SerializersModule
 val json = Json {
     explicitNulls = false
     serializersModule = SerializersModule {
-        contextual(BigInteger::class, BigIntegerHumanReadableSerializer)
+        contextual(BigInteger::class, BigIntegerPreciseSerializer)
         contextual(BigDecimal::class, BigDecimalPreciseSerializer)
         contextual(DecimalMode::class, DecimalModeSerializer)
     }

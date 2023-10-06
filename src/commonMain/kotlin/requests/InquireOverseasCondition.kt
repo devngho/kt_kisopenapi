@@ -3,7 +3,10 @@ package io.github.devngho.kisopenapi.requests
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.KisOpenApi
-import io.github.devngho.kisopenapi.requests.response.*
+import io.github.devngho.kisopenapi.requests.response.CorporationRequest
+import io.github.devngho.kisopenapi.requests.response.StockOverseasPrice
+import io.github.devngho.kisopenapi.requests.response.TradeContinuousResponse
+import io.github.devngho.kisopenapi.requests.response.TradeIdMsg
 import io.github.devngho.kisopenapi.requests.util.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -127,6 +130,7 @@ class InquireOverseasCondition(override val client: KisOpenApi): DataRequest<Inq
                 }
             }
         }
+
         return res.body<ConditionResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
