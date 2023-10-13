@@ -16,10 +16,11 @@ class GrantToken(override val client: KisOpenApi): NoDataRequest<GrantToken.Gran
     }
 
     @Serializable
+    @Suppress("SpellCheckingInspection")
     data class GrantTokenJson(@SerialName("grant_type") val grantType: String, @SerialName("appkey") val appKey: String, @SerialName("appsecret") val appSecret: String)
 
-    override suspend fun call(): GrantTokenResponse {
-        return client.httpClient.post(
+    override suspend fun call(): GrantTokenResponse = client.rateLimiter.rated {
+        client.httpClient.post(
             if (client.isDemo) "https://openapivts.koreainvestment.com:29443/oauth2/tokenP"
             else               "https://openapi.koreainvestment.com:9443/oauth2/tokenP"
         ) {

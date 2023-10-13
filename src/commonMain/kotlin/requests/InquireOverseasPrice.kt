@@ -33,6 +33,7 @@ class InquireOverseasPrice(override val client: KisOpenApi):
     }
 
     @Serializable
+    @Suppress("SpellCheckingInspection")
     data class InquirePriceResponseOutput(
         @SerialName("rsym") val liveLoadCode: String?,
         @SerialName("zdiv") override val decimalPoint: Int?,
@@ -60,7 +61,8 @@ class InquireOverseasPrice(override val client: KisOpenApi):
         override var tradeContinuous: String? = ""
     ) : Data, TradeContinuousData
 
-    override suspend fun call(data: InquirePriceData): InquirePriceResponse {
+    @Suppress("SpellCheckingInspection")
+    override suspend fun call(data: InquirePriceData): InquirePriceResponse = client.rateLimiter.rated {
         if (data.corp == null) data.corp = client.corp
 
         fun HttpRequestBuilder.inquirePrice() {
@@ -79,7 +81,8 @@ class InquireOverseasPrice(override val client: KisOpenApi):
         val res = client.httpClient.get(url) {
             inquirePrice()
         }
-        return res.body<InquirePriceResponse>().let {
+
+        res.body<InquirePriceResponse>().let {
             // 변화량이 음수인 경우에도 changeFromYesterday 값이 양수로 반환됨
             // 편의성 위해 변동률 음수인 경우 changeFromYesterday 값도 음수로 변환함
             if (it.output?.rateFromYesterday?.isNegative == true) it.copy(output = it.output!!.copy(changeFromYesterday = it.output!!.changeFromYesterday!! * -1))

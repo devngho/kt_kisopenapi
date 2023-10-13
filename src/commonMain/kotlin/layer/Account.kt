@@ -15,6 +15,9 @@ import io.github.devngho.kisopenapi.requests.util.InquireDivisionCode
 import io.github.devngho.kisopenapi.requests.util.OverseasMarket
 import kotlin.reflect.KClass
 
+/**
+ * 해외 계좌 정보를 불러오고 관리합니다.
+ */
 class AccountDomestic(val client: KisOpenApi) : IAccountDomestic {
     override var assetAmount: BigInteger? = null
     override var evalAmount: BigInteger? = null
@@ -68,6 +71,9 @@ class AccountDomestic(val client: KisOpenApi) : IAccountDomestic {
     }
 }
 
+/**
+ * 해외 계좌 정보를 불러오고 관리합니다.
+ */
 class AccountOverseas(val client: KisOpenApi, val exchange: OverseasMarket, val currency: Currency) : IAccountOverseas {
     override var assetAmount: BigDecimal? = null
     override var evalAmount: BigDecimal? = null

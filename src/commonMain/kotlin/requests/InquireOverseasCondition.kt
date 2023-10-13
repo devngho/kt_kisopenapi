@@ -35,6 +35,7 @@ class InquireOverseasCondition(override val client: KisOpenApi): DataRequest<Inq
     }
 
     @Serializable
+    @Suppress("SpellCheckingInspection")
     data class ConditionResponseOutput @OptIn(ExperimentalSerializationApi::class) constructor(
         @SerialName("symb") val code: String?,
         @SerialName("rsym") val liveLoadCode: String?,
@@ -75,8 +76,8 @@ class InquireOverseasCondition(override val client: KisOpenApi): DataRequest<Inq
         override var corp: CorporationRequest? = null,
     ): Data
 
-    @Suppress("duplicate")
-    override suspend fun call(data: ConditionData): ConditionResponse {
+    @Suppress("duplicate", "SpellCheckingInspection")
+    override suspend fun call(data: ConditionData): ConditionResponse = client.rateLimiter.rated {
         if (data.corp == null) data.corp = client.corp
 
         val res = client.httpClient.get(url) {
@@ -131,7 +132,7 @@ class InquireOverseasCondition(override val client: KisOpenApi): DataRequest<Inq
             }
         }
 
-        return res.body<ConditionResponse>().apply {
+        res.body<ConditionResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             processHeader(res)

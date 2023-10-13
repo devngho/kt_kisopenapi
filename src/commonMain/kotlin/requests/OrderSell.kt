@@ -12,7 +12,8 @@ class OrderSell(override val client: KisOpenApi):
     private val url = if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/domestic-stock/v1/trading/order-cash"
     else               "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/trading/order-cash"
 
-    override suspend fun call(data: OrderBuy.OrderData): OrderBuy.OrderResponse {
+    @Suppress("SpellCheckingInspection")
+    override suspend fun call(data: OrderBuy.OrderData): OrderBuy.OrderResponse = client.rateLimiter.rated {
         if (data.corp == null) data.corp = client.corp
 
         if (data.price.isZero() && data.orderType == OrderTypeCode.SelectPrice) throw RequestError("Price must be set when order type is SelectPrice.")
@@ -23,19 +24,15 @@ class OrderSell(override val client: KisOpenApi):
             stock(data.ticker)
             data.corp?.let { corporation(it) }
             setBody(
-                OrderBuy.OrderDataJson(
-                    client.account!![0],
-                    client.account!![1],
-                    data.ticker,
-                    data.orderType,
-                    data.count,
-                    data.price
-                )
+                data
+                    .let { if (it.accountNumber != null) it else it.copy(accountNumber = client.account!![0]) }
+                    .let { if (it.accountProductCode != null) it else it.copy(accountProductCode = client.account!![1]) }
             )
 
-            hashKey<OrderBuy.OrderDataJson>(client)
+            hashKey<OrderBuy.OrderData>(client)
         }
-        return res.body<OrderBuy.OrderResponse>().apply {
+
+        res.body<OrderBuy.OrderResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             processHeader(res)

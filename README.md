@@ -42,7 +42,7 @@ stock.useLiveConfirmPrice {
 ```java
 // Java에서도 사용할 수 있습니다.
 StockDomestic stock = new StockDomestic(api, "주식 종목 코드");
-JavaUtil.updateBy(stock, StockPrice.class);
+        JavaUtil.updateBy(stock,StockPrice.class).get();
 stock.price;
 ```
 ### 로우 레벨 API
@@ -63,7 +63,7 @@ JavaUtil.callWithData(new InquirePrice(api), new InquirePrice.InquirePriceData("
 - [ ] 국내주식
     - [ ] 주문
       - [x] 주문
-      - [ ] 정정
+      - [x] 정정/취소
       - [ ] 예약
       - [x] 잔고 조회
       - [ ] 퇴직연금

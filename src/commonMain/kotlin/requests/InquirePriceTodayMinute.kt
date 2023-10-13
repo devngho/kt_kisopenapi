@@ -35,6 +35,7 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
     }
 
     @Serializable
+    @Suppress("SpellCheckingInspection")
     data class InquirePriceTodayMinuteResponseOutput1(
         @SerialName("prdy_vrss") @Contextual override val changeFromYesterday: BigInteger?,
         @SerialName("prdy_vrss_sign") override val signFromYesterday: SignPrice?,
@@ -52,6 +53,7 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
     }
 
     @Serializable
+    @Suppress("SpellCheckingInspection")
     data class InquirePriceTodayMinuteResponseOutput2(
         @SerialName("stck_bsop_date") val bizDate: String?,
         @SerialName("stck_cntg_hour") val stockConfirmTime: String?,
@@ -75,7 +77,9 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
         val usePreviousData: Boolean,
                                            override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data, TradeContinuousData
 
-    override suspend fun call(data: InquirePriceTodayMinuteData): InquirePriceTodayMinuteResponse {
+    @Suppress("SpellCheckingInspection")
+    override suspend fun call(data: InquirePriceTodayMinuteData): InquirePriceTodayMinuteResponse =
+        client.rateLimiter.rated {
         if (data.corp == null) data.corp = client.corp
 
         val res = client.httpClient.get(url) {
@@ -92,7 +96,8 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
                 }
             }
         }
-        return res.body<InquirePriceTodayMinuteResponse>().apply {
+
+            res.body<InquirePriceTodayMinuteResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             processHeader(res)

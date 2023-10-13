@@ -1,13 +1,43 @@
 package io.github.devngho.kisopenapi.requests.util
 
+import com.ionspin.kotlin.bignum.decimal.BigDecimal
+import com.ionspin.kotlin.bignum.decimal.DecimalMode
+import com.ionspin.kotlin.bignum.integer.BigInteger
+import com.ionspin.kotlin.bignum.serialization.kotlinx.bigdecimal.DecimalModeSerializer
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.Response
 import io.github.devngho.kisopenapi.requests.response.CorporationRequest
 import io.github.devngho.kisopenapi.requests.response.TradeContinuousResponse
 import io.github.devngho.kisopenapi.requests.response.TradeIdMsg
+import io.ktor.client.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+
+@OptIn(ExperimentalSerializationApi::class)
+val json = Json {
+    explicitNulls = false
+    serializersModule = SerializersModule {
+        contextual(BigInteger::class, BigIntegerPreciseSerializer)
+        contextual(BigDecimal::class, BigDecimalPreciseSerializer)
+        contextual(DecimalMode::class, DecimalModeSerializer)
+    }
+    ignoreUnknownKeys = true
+    encodeDefaults = true
+}
+
+internal fun createHttpClient() = HttpClient {
+    install(ContentNegotiation) {
+        json(json)
+    }
+    install(WebSockets)
+}
 
 fun HttpRequestBuilder.auth(client: KisOpenApi) {
     contentType(ContentType.Application.Json)

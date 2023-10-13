@@ -37,6 +37,7 @@ class InquireBalance(override val client: KisOpenApi):
     }
 
     @Serializable
+    @Suppress("SpellCheckingInspection")
     data class InquireBalanceResponseOutput1(
         @SerialName("pdno") override val ticker: String?,
         @SerialName("prdt_name") override val productName: String?,
@@ -70,6 +71,7 @@ class InquireBalance(override val client: KisOpenApi):
     }
 
     @Serializable
+    @Suppress("SpellCheckingInspection")
     data class InquireBalanceResponseOutput2(
         @SerialName("dnca_tot_amt") @Contextual override val depositReceivedTotalAmount: BigInteger?,
         @SerialName("nxdy_excc_amt") @Contextual override val execAmountNextDay: BigInteger?,
@@ -116,10 +118,11 @@ class InquireBalance(override val client: KisOpenApi):
         val continuousAreaNK: String = ""
     ) : Data, TradeContinuousData
 
-    override suspend fun call(data: InquireBalanceData): InquireBalanceResponse {
+    override suspend fun call(data: InquireBalanceData): InquireBalanceResponse = client.rateLimiter.rated {
         if (data.corp == null) data.corp = client.corp
 
-        fun HttpRequestBuilder.InquireBalance() {
+        @Suppress("SpellCheckingInspection")
+        fun HttpRequestBuilder.inquireBalance() {
             auth(client)
             tradeId(if(client.isDemo) "VTTC8434R" else "TTTC8494R")
             data.corp?.let { corporation(it) }
@@ -143,9 +146,9 @@ class InquireBalance(override val client: KisOpenApi):
         }
 
         val res = client.httpClient.get(url) {
-            InquireBalance()
+            inquireBalance()
         }
-        return res.body<InquireBalanceResponse>().apply {
+        res.body<InquireBalanceResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             processHeader(res)

@@ -4,7 +4,6 @@ import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.HashKey.Companion.hashKey
 import io.github.devngho.kisopenapi.requests.response.setNext
 import io.github.devngho.kisopenapi.requests.util.*
-import io.github.devngho.kisopenapi.requests.util.OverseasMarket.Companion.fourChar
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 
@@ -13,7 +12,8 @@ class OrderOverseasSell(override val client: KisOpenApi):
     private val url = if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/overseas-stock/v1/trading/order"
     else               "https://openapi.koreainvestment.com:9443/uapi/overseas-stock/v1/trading/order"
 
-    override suspend fun call(data: OrderOverseasBuy.OrderData): OrderOverseasBuy.OrderResponse {
+    override suspend fun call(data: OrderOverseasBuy.OrderData): OrderOverseasBuy.OrderResponse =
+        client.rateLimiter.rated {
         if (data.corp == null) data.corp = client.corp
 
         val res = client.httpClient.post(url) {
@@ -81,7 +81,7 @@ class OrderOverseasSell(override val client: KisOpenApi):
                         when(data.orderType) {
                             OrderTypeCode.SelectPrice -> "00"
                             OrderTypeCode.HONGKONGSingleSelectPrice -> "50"
-                            else -> throw RequestError("Invalid order type. Only SelectPrice, HONGKONGSingleSelectPrice are allowed in HKEX.")
+                            else -> throw RequestError("Invalid order type. Only SelectPrice, HONGKONGSingleSelectPrice are allowed in Hong Kong Stock Exchange.")
                         }
                     }
                     else -> ""
@@ -93,22 +93,16 @@ class OrderOverseasSell(override val client: KisOpenApi):
             stock(data.ticker)
             data.corp?.let { corporation(it) }
             setBody(
-                (OrderOverseasBuy.OrderDataJson(
-                    client.account!![0],
-                    client.account!![1],
-                    data.market.fourChar,
-                    data.ticker,
-                    orderType,
-                    data.count,
-                    data.price,
-                    "0",
-                    "00"
-                ))
+                data
+                    .copy(sellType = "00", marketId = tradeId, orderTypeId = orderType)
+                    .let { if (it.accountNumber != null) it else it.copy(accountNumber = client.account!![0]) }
+                    .let { if (it.accountProductCode != null) it else it.copy(accountProductCode = client.account!![1]) }
             )
 
-            hashKey<OrderOverseasBuy.OrderDataJson>(client)
+            hashKey<OrderOverseasBuy.OrderData>(client)
         }
-        return res.body<OrderOverseasBuy.OrderResponse>().apply {
+
+            res.body<OrderOverseasBuy.OrderResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             processHeader(res)

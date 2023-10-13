@@ -13,11 +13,15 @@ import kotlinx.coroutines.runBlocking
 import kotlin.reflect.KClass
 
 
+/**
+ * 국내 주식 정보를 불러오고 관리합니다.
+ * @param client KisOpenApi
+ * @param ticker 종목 코드
+ */
 class StockOverseas(override val client: KisOpenApi, override val ticker: String, override val market: OverseasMarket) :
     IStockOverseas {
     override lateinit var price: StockOverseasPriceBase
     override var name = IStockBase.Name()
-    private var liveConfirmPrice: KMutex<InquireOverseasLivePrice?> = mutex(null)
 
     override suspend fun updateBy(res: KClass<out Response>){
         when(res.simpleName) {
@@ -84,10 +88,9 @@ class StockOverseas(override val client: KisOpenApi, override val ticker: String
 
     override suspend fun useLiveConfirmPrice(block: Closeable.(InquireOverseasLivePrice.InquireLivePriceResponse) -> Unit) {
         runBlocking {
-            liveConfirmPrice.setIfNull {
-                InquireOverseasLivePrice(client).apply {
-                    (this@runBlocking).launch {
-                        register(InquireOverseasLivePrice.InquireLivePriceData(this@StockOverseas.ticker, market)) {
+            InquireOverseasLivePrice(client).apply {
+                (this@runBlocking).launch {
+                    register(InquireOverseasLivePrice.InquireLivePriceData(this@StockOverseas.ticker, market)) {
                         (object : Closeable {
                             override suspend fun close() {
                                 unregister(
@@ -98,7 +101,7 @@ class StockOverseas(override val client: KisOpenApi, override val ticker: String
                                 )
                             }
                         }).block(it)
-                    } }
+                    }
                 }
             }
         }

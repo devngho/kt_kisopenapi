@@ -30,6 +30,7 @@ class InquireHoliday(override val client: KisOpenApi):
     }
 
     @Serializable
+    @Suppress("SpellCheckingInspection")
     data class InquireHolidayOutput(
         @Serializable(with = YYYYMMDDSerializer::class) @SerialName("bass_dt") override val baseDate: Date,
         @SerialName("wday_dvsn_cd") override val weekdayCode: WeekdayCode,
@@ -53,10 +54,10 @@ class InquireHoliday(override val client: KisOpenApi):
         val continuousAreaNK: String = "")
         : Data, TradeContinuousData
 
-    override suspend fun call(data: InquireHolidayData): InquireHolidayResponse {
+    override suspend fun call(data: InquireHolidayData): InquireHolidayResponse = client.rateLimiter.rated {
         if (data.corp == null) data.corp = client.corp
 
-        val res = client.httpClient.get(url) {
+        val res = @Suppress("SpellCheckingInspection") client.httpClient.get(url) {
             auth(client)
             tradeId(if (client.isDemo) throw DemoError("InquireHoliday cannot run with demo account.") else "CTCA0903R")
             data.corp?.let { corporation(it) }
@@ -69,7 +70,8 @@ class InquireHoliday(override val client: KisOpenApi):
                 }
             }
         }
-        return res.body<InquireHolidayResponse>().apply {
+
+        res.body<InquireHolidayResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             processHeader(res)

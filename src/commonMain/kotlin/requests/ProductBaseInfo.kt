@@ -29,6 +29,7 @@ class ProductBaseInfo(override val client: KisOpenApi):
     }
 
     @Serializable
+    @Suppress("SpellCheckingInspection")
     data class ProductBaseInfoResponseOutput(
         @SerialName("pdno") override val ticker: String?,
         @SerialName("prdt_type_cd") override val type: ProductTypeCode?,
@@ -59,7 +60,8 @@ class ProductBaseInfo(override val client: KisOpenApi):
                                    override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data,
         TradeContinuousData
 
-    override suspend fun call(data: ProductBaseInfoData): ProductBaseInfoResponse {
+    @Suppress("SpellCheckingInspection")
+    override suspend fun call(data: ProductBaseInfoData): ProductBaseInfoResponse = client.rateLimiter.rated {
         if (data.corp == null) data.corp = client.corp
 
         val res = client.httpClient.get(url) {
@@ -73,7 +75,8 @@ class ProductBaseInfo(override val client: KisOpenApi):
                 }
             }
         }
-        return res.body<ProductBaseInfoResponse>().apply {
+
+        res.body<ProductBaseInfoResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             processHeader(res)

@@ -11,10 +11,11 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-class OrderBuy(override val client: KisOpenApi):
-    DataRequest<OrderBuy.OrderData, OrderBuy.OrderResponse> {
-    private val url = if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/domestic-stock/v1/trading/order-cash"
-    else               "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/trading/order-cash"
+class OrderAmend(override val client: KisOpenApi) :
+    DataRequest<OrderAmend.OrderData, OrderAmend.OrderResponse> {
+    private val url =
+        if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/domestic-stock/v1/trading/order-rvsecncl"
+        else "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/trading/order-rvsecncl"
 
     @Serializable
     data class OrderResponse(
@@ -26,7 +27,7 @@ class OrderBuy(override val client: KisOpenApi):
         @SerialName("rt_cd") @Serializable(with = ResultCodeSerializer::class) override val isOk: Boolean?,
 
         var output: OrderResponseOutput?, override var next: (suspend () -> Response)?
-    ): Response, TradeContinuousResponse, TradeIdMsg {
+    ) : Response, TradeContinuousResponse, TradeIdMsg {
         override val errorDescription: String? = null
         override val errorCode: String? = null
     }
@@ -41,15 +42,20 @@ class OrderBuy(override val client: KisOpenApi):
 
     @Suppress("SpellCheckingInspection")
     data class OrderData(
-        @SerialName("PDNO") val ticker: String,
         @SerialName("ORD_DVSN") val orderType: OrderTypeCode,
         @SerialName("ORD_QTY") val count: BigInteger,
         @SerialName("ORD_UNPR") val price: BigInteger = BigInteger(0),
+        @SerialName("ORGN_ODNO") val orderNumber: String,
+        @SerialName("QTY_ALL_ORD_YN") @Serializable(with = YNSerializer::class) val orderAll: Boolean,
         @SerialName("CANO") val accountNumber: String? = null,
         @SerialName("ACNT_PRDT_CD") val accountProductCode: String? = null,
+        @SerialName("KRX_FWDG_ORD_ORGNO") val orderOffice: String? = null,
         override var corp: CorporationRequest? = null,
         override var tradeContinuous: String? = ""
-    ) : Data, TradeContinuousData
+    ) : Data, TradeContinuousData {
+        @SerialName("RVSE_CNCL_DVSN_CD")
+        val isAmendOrCancel = "01"
+    }
 
     @Suppress("SpellCheckingInspection")
     override suspend fun call(data: OrderData): OrderResponse = client.rateLimiter.rated {
@@ -59,8 +65,7 @@ class OrderBuy(override val client: KisOpenApi):
 
         val res = client.httpClient.post(url) {
             auth(client)
-            tradeId(if(client.isDemo) "VTTC0802U" else "TTTC0802U")
-            stock(data.ticker)
+            tradeId(if (client.isDemo) "VTTC0803U" else "TTTC0803U")
             data.corp?.let { corporation(it) }
             setBody(
                 data

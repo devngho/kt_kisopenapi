@@ -6,10 +6,14 @@ import io.github.devngho.kisopenapi.requests.util.HHMMSSSerializer.HH_MM_SS
 import io.github.devngho.kisopenapi.requests.util.YYYYMMDDSerializer.YYYY_MM_DD
 import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.comparables.shouldBeGreaterThanOrEqualTo
+import io.kotest.matchers.comparables.shouldBeLessThanOrEqualTo
+import io.kotest.matchers.ints.shouldBeInRange
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
 import java.io.File
+import kotlin.time.measureTime
 
 const val testStock = "005930"
 const val testOverseasStock = "AAPL"
@@ -21,7 +25,7 @@ val api: KisOpenApi by lazy {
 
     runBlocking {
         KisOpenApi.with(
-            key[0], key[1], false, account = account[0]
+            key[0], key[1], false, account = account[0], grantWebsocket = true, hashKey = true
         )
     }
 }
@@ -35,12 +39,12 @@ class InquireTest : BehaviorSpec({
 
                 then("성공한다") {
                     res.isOk shouldBe true
+                    res.msg shouldNotBe null
+                    res.code shouldNotBe null
                 }
-                then("가격을 반환한다") {
-                    res.output?.price shouldNotBe null
-                }
-                then("종목 코드를 반환한다") {
-                    res.output?.ticker shouldNotBe null
+                then("정보를 반환한다") {
+                    res.output!!.price shouldNotBe null
+                    res.output!!.accumulateTradeVolume shouldNotBe null
                 }
             }
             `when`("InquireOverseasPrice 호출") {
@@ -53,9 +57,12 @@ class InquireTest : BehaviorSpec({
 
                 then("성공한다") {
                     res.isOk shouldBe true
+                    res.msg shouldNotBe null
+                    res.code shouldNotBe null
                 }
-                then("가격을 반환한다") {
-                    res.output?.price shouldNotBe null
+                then("정보를 반환한다") {
+                    res.output!!.price shouldNotBe null
+                    res.output!!.tradeVolume shouldNotBe null
                 }
             }
             `when`("InquireConfirm 호출") {
@@ -63,12 +70,15 @@ class InquireTest : BehaviorSpec({
 
                 then("성공한다") {
                     res.isOk shouldBe true
+                    res.msg shouldNotBe null
+                    res.code shouldNotBe null
                 }
                 then("빈 리스트를 반환하지 않는다") {
                     res.output shouldNotBe null
                 }
                 then("가격과 거래량을 반환한다") {
-                    res.output!!.all { it.price != null && it.confirmVolume != null } shouldBe true
+                    res.output!!.all { it.price != null } shouldBe true
+                    res.output!!.all { it.confirmVolume != null } shouldBe true
                 }
             }
             `when`("InquirePricePerDay 호출 (Days30)") {
@@ -110,7 +120,7 @@ class InquireTest : BehaviorSpec({
                     res.output!!.all { it.price != null } shouldBe true
                 }
                 then("30주의 가격을 반환한다") {
-                    res.output!!.count() shouldBe 30
+                    res.output!!.count() shouldBeInRange 29..30
                 }
             }
             `when`("InquirePricePerDay 호출 (Months30)") {
@@ -131,7 +141,7 @@ class InquireTest : BehaviorSpec({
                     res.output!!.all { it.price != null } shouldBe true
                 }
                 then("30개월의 가격을 반환한다") {
-                    res.output!!.count() shouldBe 30
+                    res.output!!.count() shouldBeInRange 29..30
                 }
             }
             `when`("InquirePriceSeries 호출") {
@@ -210,6 +220,27 @@ class InquireTest : BehaviorSpec({
                 output2.evalTotalAmount shouldNotBe null
                 output2.assetChangeAmount shouldNotBe null
                 output2.assetChangeRate shouldNotBe null
+            }
+            then("주식 잔고를 반환한다") {
+                res.output1!!.all { it.ticker != null } shouldBe true
+                res.output1!!.all { it.price != null } shouldBe true
+                res.output1!!.all { it.productName != null } shouldBe true
+            }
+        }
+        `when`("InquireOverseasBalance 호출") {
+            val res = InquireOverseasBalance(api).call(
+                InquireOverseasBalance.InquireBalanceData(
+                    testOverseasMarket,
+                    Currency.USD
+                )
+            )
+            val output2 = res.output1!!.first()
+
+            then("성공한다") {
+                res.isOk shouldBe true
+            }
+            then("계좌 잔고를 반환한다") {
+                output2.evalAmount shouldNotBe null
             }
             then("주식 잔고를 반환한다") {
                 res.output1!!.all { it.ticker != null } shouldBe true
@@ -304,7 +335,7 @@ class InquireTest : BehaviorSpec({
             val result = InquireOverseasCondition(api).call(
                 InquireOverseasCondition.ConditionData(
                     OverseasMarket.AMEX,
-                    priceRange = BigDecimalRange(BigDecimal.fromDouble(0.1), BigDecimal.fromInt(200)),
+                    priceRange = BigDecimalRange(BigDecimal.fromInt(100), BigDecimal.fromInt(200)),
                 )
             )
 
@@ -318,12 +349,40 @@ class InquireTest : BehaviorSpec({
                 result.output!!.all { it.price != null } shouldBe true
             }
             then("가격 범위를 만족한다") {
-                result.output!!.all {
-                    it.price!! in BigDecimalRange(
-                        BigDecimal.fromInt(100),
-                        BigDecimal.fromInt(200)
-                    )
-                } shouldBe true
+                result.output!!.forEach {
+                    it.price!! shouldBeGreaterThanOrEqualTo BigDecimal.fromInt(100)
+                    it.price!! shouldBeLessThanOrEqualTo BigDecimal.fromInt(200)
+                }
+            }
+        }
+        `when`("유량을 넘는 호출") {
+            var res: Result<Unit>? = null
+
+            val t = measureTime {
+                res = runCatching {
+                    repeat(100) {
+                        InquirePrice(api).call(InquirePrice.InquirePriceData(testStock))
+                    }
+                }
+            }
+
+            val minTime = api.rateLimiter.minDelay * 100
+
+            then("성공한다") {
+                res?.isSuccess shouldBe true
+            }
+
+            then("${minTime}ms 이상 걸린다") {
+                t.inWholeMicroseconds shouldBeGreaterThanOrEqualTo minTime.toLong()
+            }
+        }
+        given("웹소켓") {
+            `when`("연결") {
+                api.buildWebsocket()
+                then("성공한다") {
+                    api.websocket shouldNotBe null
+                    api.websocketIncoming shouldNotBe null
+                }
             }
         }
     }

@@ -33,6 +33,7 @@ class InquirePrice(override val client: KisOpenApi):
     }
 
     @Serializable
+    @Suppress("SpellCheckingInspection")
     data class InquirePriceResponseOutput(
         @SerialName("iscd_stat_cls_code") override val stockState: StockState?,
         @SerialName("marg_rate") @Contextual override val marginRate: BigDecimal?,
@@ -118,7 +119,8 @@ class InquirePrice(override val client: KisOpenApi):
         override var tradeContinuous: String? = ""
     ) : Data, TradeContinuousData
 
-    override suspend fun call(data: InquirePriceData): InquirePriceResponse {
+    @Suppress("SpellCheckingInspection")
+    override suspend fun call(data: InquirePriceData): InquirePriceResponse = client.rateLimiter.rated {
         if (data.corp == null) data.corp = client.corp
 
         fun HttpRequestBuilder.inquirePrice() {
@@ -131,7 +133,8 @@ class InquirePrice(override val client: KisOpenApi):
         val res = client.httpClient.get(url) {
             inquirePrice()
         }
-        return res.body<InquirePriceResponse>().apply {
+
+        res.body<InquirePriceResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             processHeader(res)

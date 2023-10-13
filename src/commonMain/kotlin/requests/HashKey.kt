@@ -36,7 +36,8 @@ class HashKey(override val client: KisOpenApi): DataRequest<HashKey.HashKeyData,
     }
 
     companion object {
-        suspend inline fun <reified T> HttpRequestBuilder.hashKey(client: KisOpenApi) {
+        @Suppress("SpellCheckingInspection")
+        suspend inline fun <reified T> HttpRequestBuilder.hashKey(client: KisOpenApi) = client.rateLimiter.rated {
             if (client.useHashKey) {
                 val data = HashKeyData(json.encodeToString(this.body as T))
                 val hash = HashKey(client).call(data)

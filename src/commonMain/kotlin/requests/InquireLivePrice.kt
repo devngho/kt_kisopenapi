@@ -13,6 +13,7 @@ import io.github.devngho.kisopenapi.requests.util.YNSerializer
 import io.github.devngho.kisopenapi.requests.util.YNSerializer.YN
 import io.github.devngho.kisopenapi.requests.util.json
 import io.ktor.websocket.*
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
@@ -20,23 +21,26 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 
 class InquireLivePrice(override val client: KisOpenApi): LiveRequest<InquireLivePrice.InquireLivePriceData, InquireLivePrice.InquireLivePriceResponse> {
+    @Suppress("SpellCheckingInspection")
     private fun buildCallBody(data: InquireLivePriceData, trType: String) = """
                 {
                     "header": {
                         "approval_key":"${client.websocketToken}",
                         "custtype":"${data.corp!!.consumerType!!.num}",
-                        "tr_type":"$trType"
+                        "tr_type":"$trType",
+                        "content-type": "utf-8"
                     },
                     "body": {
                         "input": {
                             "tr_id":"H0STCNT0",
-                            "tr_key":"${data.stockCode}"
+                            "tr_key":"${data.tradeKey(client)}"
                         }
                     }
                 }
             """.trimIndent()
 
     @Serializable
+    @Suppress("SpellCheckingInspection")
     data class InquireLivePriceResponse(
         @SerialName("mksc_shrn_iscd") val ticker: String? = null,
         @SerialName("stck_cntg_hour") val stockConfirmTime: String?  = null,
@@ -89,93 +93,94 @@ class InquireLivePrice(override val client: KisOpenApi): LiveRequest<InquireLive
         override val errorCode: String? = null
     }
 
-    data class InquireLivePriceData(val stockCode: String, override var corp: CorporationRequest? = null): Data
+    data class InquireLivePriceData(val stockCode: String, override var corp: CorporationRequest? = null) : LiveData {
+        override fun tradeKey(client: KisOpenApi): String = stockCode
+    }
 
+    private lateinit var job: Job
+    private lateinit var subscribed: KisOpenApi.WebSocketSubscribed
 
+    @Suppress("Unchecked_cast", "SpellCheckingInspection")
     override suspend fun register(data: InquireLivePriceData, init: ((LiveResponse) -> Unit)?, block: (InquireLivePriceResponse) -> Unit) {
         if (data.corp == null) data.corp = client.corp
         if (client.websocket == null) client.buildWebsocket()
+        subscribed = KisOpenApi.WebSocketSubscribed(
+            this@InquireLivePrice, data, init,
+            block as (Response) -> Unit
+        )
 
-        client.websocket?.run {
-            send(buildCallBody(data, "1"))
-            launch {
+        client.websocket!!.run {
+            job = launch {
+                send(buildCallBody(data, "1"))
                 client.websocketIncoming?.collect {
-                    if (it is Frame.Text) {
-                        it.readText()
-                            .apply {
-                                if (this[0] != '0' && this[0] != '1') {
-                                    json.decodeFromString<LiveResponse>(this).run {
-                                        if (this.header?.tradeId == "H0STCNT0" && this.header.tradeKey == data.stockCode && init != null) init(
-                                            this
-                                        )
-                                    }
-
-                                    return@collect
-                                }
+                    if (it[0] != '0' && it[0] != '1') {
+                        json.decodeFromString<LiveResponse>(it).run {
+                            if (this.header?.tradeId == "H0STCNT0" && this.header.tradeKey == data.tradeKey(client) && init != null) {
+                                client.subscribe(subscribed)
+                                init(this)
                             }
-                            .run {
-                                split("|")
-                                    .run {
-                                        if (get(1) == "H0STCNT0") get(3).split("^")
-                                        else return@collect
-                                    }
-                                    .run {
-                                        if (get(0) == data.stockCode) this
-                                        else return@collect
-                                    }
-                                    .run {
-                                        try {
-                                            block(
-                                                InquireLivePriceResponse(
-                                                    this[0],
-                                                    this[1],
-                                                    this[2].toBigInteger(),
-                                                    SignPrice.entries.find { f -> f.value.toString() == this[3] },
-                                                    this[4].toBigInteger(),
-                                                    this[5].toBigDecimal(),
-                                                    this[6].toBigDecimal(),
-                                                    this[7].toBigInteger(),
-                                                    this[8].toBigInteger(),
-                                                    this[9].toBigInteger(),
-                                                    this[10].toBigInteger(),
-                                                    this[11].toBigInteger(),
-                                                    this[12].toBigInteger(),
-                                                    this[13].toBigInteger(),
-                                                    this[14].toBigInteger(),
-                                                    this[15].toBigInteger(),
-                                                    this[16].toBigInteger(),
-                                                    this[17].toBigInteger(),
-                                                    this[18].toBigDecimal(),
-                                                    this[19].toBigInteger(),
-                                                    this[20].toBigInteger(),
-                                                    this[21],
-                                                    this[22].toBigDecimal(),
-                                                    this[23].toBigDecimal(),
-                                                    this[24],
-                                                    SignPrice.entries.find { f -> f.value.toString() == this[25] },
-                                                    this[26].toBigInteger(),
-                                                    this[27],
-                                                    SignPrice.entries.find { f -> f.value.toString() == this[28] },
-                                                    this[29].toBigInteger(),
-                                                    this[30],
-                                                    SignPrice.entries.find { f -> f.value.toString() == this[31] },
-                                                    this[32].toBigInteger(),
-                                                    this[33],
-                                                    this[34],
-                                                    this[35].YN,
-                                                    this[36].toBigInteger(),
-                                                    this[37].toBigInteger(),
-                                                    this[38].toBigInteger(),
-                                                    this[39].toBigInteger(),
-                                                    this[40].toBigDecimal(),
-                                                    this[41].toBigInteger(),
-                                                    this[42].toBigDecimal(),
-                                                    HourCode.entries.find { f -> f.num == this[43] },
-                                                    this[44]
-                                                )
-                                            )
-                                        }catch (e: Exception) {e.printStackTrace()}
-                                    }
+                        }
+                    } else {
+                        it.split("|")
+                            .takeIf { v -> v[1] == "H0STCNT0" }
+                            ?.let { v -> v[3].split("^") }
+                            ?.takeIf { v -> v[0] == data.tradeKey(client) }
+                            ?.run {
+                                try {
+                                    block(
+                                        //<editor-fold desc="InquireLivePrice 생성">
+                                        InquireLivePriceResponse(
+                                            this[0],
+                                            this[1],
+                                            this[2].toBigInteger(),
+                                            SignPrice.entries.find { f -> f.value.toString() == this[3] },
+                                            this[4].toBigInteger(),
+                                            this[5].toBigDecimal(),
+                                            this[6].toBigDecimal(),
+                                            this[7].toBigInteger(),
+                                            this[8].toBigInteger(),
+                                            this[9].toBigInteger(),
+                                            this[10].toBigInteger(),
+                                            this[11].toBigInteger(),
+                                            this[12].toBigInteger(),
+                                            this[13].toBigInteger(),
+                                            this[14].toBigInteger(),
+                                            this[15].toBigInteger(),
+                                            this[16].toBigInteger(),
+                                            this[17].toBigInteger(),
+                                            this[18].toBigDecimal(),
+                                            this[19].toBigInteger(),
+                                            this[20].toBigInteger(),
+                                            this[21],
+                                            this[22].toBigDecimal(),
+                                            this[23].toBigDecimal(),
+                                            this[24],
+                                            SignPrice.entries.find { f -> f.value.toString() == this[25] },
+                                            this[26].toBigInteger(),
+                                            this[27],
+                                            SignPrice.entries.find { f -> f.value.toString() == this[28] },
+                                            this[29].toBigInteger(),
+                                            this[30],
+                                            SignPrice.entries.find { f -> f.value.toString() == this[31] },
+                                            this[32].toBigInteger(),
+                                            this[33],
+                                            this[34],
+                                            this[35].YN,
+                                            this[36].toBigInteger(),
+                                            this[37].toBigInteger(),
+                                            this[38].toBigInteger(),
+                                            this[39].toBigInteger(),
+                                            this[40].toBigDecimal(),
+                                            this[41].toBigInteger(),
+                                            this[42].toBigDecimal(),
+                                            HourCode.entries.find { f -> f.num == this[43] },
+                                            this[44]
+                                        )
+                                        //</editor-fold>
+                                    )
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
                             }
                     }
                 }
@@ -187,8 +192,10 @@ class InquireLivePrice(override val client: KisOpenApi): LiveRequest<InquireLive
         if (data.corp == null) data.corp = client.corp
         if (client.websocket == null) client.buildWebsocket()
 
-        client.websocket?.run {
+        if (client.unsubscribe(subscribed)) client.websocket?.run {
             send(buildCallBody(data, "2"))
         }
+
+        job.cancel()
     }
 }

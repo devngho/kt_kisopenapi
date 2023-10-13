@@ -5,25 +5,19 @@ import io.github.devngho.kisopenapi.requests.Data
 import io.github.devngho.kisopenapi.requests.DataRequest
 import io.github.devngho.kisopenapi.requests.NoDataRequest
 import io.github.devngho.kisopenapi.requests.Response
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.future
+import kotlinx.coroutines.runBlocking
 
 
 object JavaUtil {
     @JvmStatic
-    @OptIn(DelicateCoroutinesApi::class)
-    @JvmName("callWithoutData")
-    fun <T : Response> NoDataRequest<T>.call() = GlobalScope.future { call() }
+    fun <T : Response> callWithoutData(req: NoDataRequest<T>) = runBlocking { future { req.call() } }
 
     @JvmStatic
-    @OptIn(DelicateCoroutinesApi::class)
-    @JvmName("callWithData")
-    fun <T : Data, U : Response> DataRequest<T, U>.call(data: T) = GlobalScope.future { call(data) }
+    fun <T : Data, U : Response> callWithData(req: DataRequest<T, U>, data: T) =
+        runBlocking { future { req.call(data) } }
 
-    @OptIn(DelicateCoroutinesApi::class)
     @JvmStatic
-    @JvmName("updateByClass")
-    fun Updatable.updateBy(res: Class<out Response>) =
-        GlobalScope.future { this@updateBy.updateBy(res.kotlin) }
+    fun updateBy(updatable: Updatable, res: Class<out Response>) =
+        runBlocking { future { updatable.updateBy(res.kotlin) } }
 }

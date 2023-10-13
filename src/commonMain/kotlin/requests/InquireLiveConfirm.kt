@@ -11,10 +11,16 @@ import io.github.devngho.kisopenapi.requests.response.LiveResponse
 import io.github.devngho.kisopenapi.requests.util.*
 import io.github.devngho.kisopenapi.requests.util.YNSerializer.YN
 import io.ktor.websocket.*
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.serialization.*
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
 
 class InquireLiveConfirm(override val client: KisOpenApi): LiveRequest<InquireLiveConfirm.InquireLiveConfirmData, InquireLiveConfirm.InquireLiveConfirmResponse> {
+    private val tradeId = if (client.isDemo) "H0STCNI9" else "H0STCNI0"
+
     private fun buildCallBody(data: InquireLiveConfirmData, trType: String) = """
                 {
                     "header": {
@@ -24,8 +30,8 @@ class InquireLiveConfirm(override val client: KisOpenApi): LiveRequest<InquireLi
                     },
                     "body": {
                         "input": {
-                            "tr_id": "${if(client.isDemo) "H0STCNI9" else "H0STCNI0"}",
-                            "tr_key":"${client.htsId}"
+                            "tr_id": "$tradeId",
+                            "tr_key":"${data.tradeKey(client)}"
                         }
                     }
                 }
@@ -84,95 +90,106 @@ class InquireLiveConfirm(override val client: KisOpenApi): LiveRequest<InquireLi
         override val errorCode: String? = null
     }
 
-    data class InquireLiveConfirmData(override var corp: CorporationRequest? = null): Data
+    data class InquireLiveConfirmData(override var corp: CorporationRequest? = null) : LiveData {
+        override fun tradeKey(client: KisOpenApi): String {
+            return client.htsId!!
+        }
+    }
+
+    private lateinit var job: Job
+    private lateinit var subscribed: KisOpenApi.WebSocketSubscribed
 
     lateinit var iv: String
     lateinit var key: String
 
+    @Suppress("UNCHECKED_CAST")
     override suspend fun register(data: InquireLiveConfirmData, init: ((LiveResponse) -> Unit)?, block: (InquireLiveConfirmResponse) -> Unit) {
         if (data.corp == null) data.corp = client.corp
         if (client.websocket == null) client.buildWebsocket()
+        subscribed = KisOpenApi.WebSocketSubscribed(
+            this@InquireLiveConfirm, data, init,
+            block as (Response) -> Unit
+        )
 
         client.websocket?.run {
             send(buildCallBody(data, "1"))
-            launch {
+            job = launch {
                 client.websocketIncoming?.collect {
-                    if (it is Frame.Text) {
-                        it.readText()
-                            .apply { println(this) }
-                            .apply {
-                                if (this[0] != '0' && this[0] != '1') {
-                                    json.decodeFromString<LiveResponse>(this).run {
-                                        if (this.header?.tradeId == (if (client.isDemo) "H0STCNI9" else "H0STCNI0") && this.header.tradeKey == client.htsId && init != null) {
-                                            iv = this.output!!.iv!!
-                                            key = this.output.key!!
-                                            init(this)
-                                        }
-                                    }
-
-                                    return@collect
-                                }
+                    if (it[0] != '0' && it[0] != '1') {
+                        json.decodeFromString<LiveResponse>(it).run {
+                            if (this.header?.tradeId == (if (client.isDemo) "H0STCNI9" else "H0STCNI0") && this.header.tradeKey == client.htsId && init != null) {
+                                client.subscribe(subscribed)
+                                iv = this.output!!.iv!!
+                                key = this.output.key!!
+                                init(this)
                             }
-                            .run {
-                                split("|")
-                                    .run {
-                                        println(decodeAES(key, iv, Base64.decode(get(3))).decodeToString().split("^"))
-                                        if (get(1) != "H0STCNT0") decodeAES(key, iv, Base64.decode(get(3))).decodeToString().split("^")
-                                        else return@collect
-                                    }
-                                    .run {
-                                        if (get(0) == client.htsId) this
-                                        else return@collect
-                                    }
-                                    .run {
-                                        block(InquireLiveConfirmResponse(
-                                            this[0],
-                                            this[1],
-                                            this[2].toBigInteger(),
-                                            SignPrice.values().find { f -> f.value.toString() == this[3] },
-                                            this[4].toBigInteger(),
-                                            this[5].toBigDecimal(),
-                                            this[6].toBigDecimal(),
-                                            this[7].toBigInteger(),
-                                            this[8].toBigInteger(),
-                                            this[9].toBigInteger(),
-                                            this[10].toBigInteger(),
-                                            this[11].toBigInteger(),
-                                            this[12].toBigInteger(),
-                                            this[13].toBigInteger(),
-                                            this[14].toBigInteger(),
-                                            this[15].toBigInteger(),
-                                            this[16].toBigInteger(),
-                                            this[17].toBigInteger(),
-                                            this[18].toBigDecimal(),
-                                            this[19].toBigInteger(),
-                                            this[20].toBigInteger(),
-                                            this[21],
-                                            this[22].toBigDecimal(),
-                                            this[23].toBigDecimal(),
-                                            this[24],
-                                            SignPrice.values().find { f -> f.value.toString() == this[25] },
-                                            this[26].toBigInteger(),
-                                            this[27],
-                                            SignPrice.values().find { f -> f.value.toString() == this[28] },
-                                            this[29].toBigInteger(),
-                                            this[30],
-                                            SignPrice.values().find { f -> f.value.toString() == this[31] },
-                                            this[32].toBigInteger(),
-                                            this[33],
-                                            this[34],
-                                            this[35].YN,
-                                            this[36].toBigInteger(),
-                                            this[37].toBigInteger(),
-                                            this[38].toBigInteger(),
-                                            this[39].toBigInteger(),
-                                            this[40].toBigDecimal(),
-                                            this[41].toBigInteger(),
-                                            this[42].toBigInteger(),
-                                            HourCode.values().find { f -> f.num == this[43] },
-                                            this[44]
-                                        ))
-                                    }
+                        }
+                    } else {
+                        it.split("|")
+                            .takeIf { v -> v[1] == "tradeId" }
+                            ?.let { v ->
+                                decodeAES(
+                                    key,
+                                    iv,
+                                    Base64.decode(v[3])
+                                ).decodeToString().split("^")
+                            }
+                            ?.run {
+                                if (get(0) == client.htsId) this
+                                else return@collect
+                            }
+                            ?.run {
+                                block(
+                                    //<editor-fold desc="InquireLiveConfirmResponse">
+                                    InquireLiveConfirmResponse(
+                                        this[0],
+                                        this[1],
+                                        this[2].toBigInteger(),
+                                        SignPrice.entries.find { f -> f.value.toString() == this[3] },
+                                        this[4].toBigInteger(),
+                                        this[5].toBigDecimal(),
+                                        this[6].toBigDecimal(),
+                                        this[7].toBigInteger(),
+                                        this[8].toBigInteger(),
+                                        this[9].toBigInteger(),
+                                        this[10].toBigInteger(),
+                                        this[11].toBigInteger(),
+                                        this[12].toBigInteger(),
+                                        this[13].toBigInteger(),
+                                        this[14].toBigInteger(),
+                                        this[15].toBigInteger(),
+                                        this[16].toBigInteger(),
+                                        this[17].toBigInteger(),
+                                        this[18].toBigDecimal(),
+                                        this[19].toBigInteger(),
+                                        this[20].toBigInteger(),
+                                        this[21],
+                                        this[22].toBigDecimal(),
+                                        this[23].toBigDecimal(),
+                                        this[24],
+                                        SignPrice.entries.find { f -> f.value.toString() == this[25] },
+                                        this[26].toBigInteger(),
+                                        this[27],
+                                        SignPrice.entries.find { f -> f.value.toString() == this[28] },
+                                        this[29].toBigInteger(),
+                                        this[30],
+                                        SignPrice.entries.find { f -> f.value.toString() == this[31] },
+                                        this[32].toBigInteger(),
+                                        this[33],
+                                        this[34],
+                                        this[35].YN,
+                                        this[36].toBigInteger(),
+                                        this[37].toBigInteger(),
+                                        this[38].toBigInteger(),
+                                        this[39].toBigInteger(),
+                                        this[40].toBigDecimal(),
+                                        this[41].toBigInteger(),
+                                        this[42].toBigInteger(),
+                                        HourCode.entries.find { f -> f.num == this[43] },
+                                        this[44]
+                                    )
+                                    //</editor-fold>
+                                )
                             }
                     }
                 }
@@ -184,8 +201,10 @@ class InquireLiveConfirm(override val client: KisOpenApi): LiveRequest<InquireLi
         if (data.corp == null) data.corp = client.corp
         if (client.websocket == null) client.buildWebsocket()
 
-        client.websocket?.run {
+        if (client.unsubscribe(subscribed)) client.websocket?.run {
             send(buildCallBody(data, "2"))
         }
+
+        job.cancel()
     }
 }

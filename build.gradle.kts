@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.github.devngho"
-version = "0.1.36"
+version = "0.1.37"
 
 repositories {
     mavenCentral()
@@ -126,6 +126,8 @@ kotlin {
                 implementation("io.ktor:ktor-client-cio:$ktorVersion")
                 implementation("io.kotest:kotest-runner-junit5:5.7.2")
                 implementation("io.kotest:kotest-assertions-core:5.7.2")
+                implementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
+                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
                 implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.0")
             }
         }
@@ -139,10 +141,22 @@ kotlin {
 
 tasks {
     getByName("signKotlinMultiplatformPublication") {
-        dependsOn("publishJvmPublicationToSonatypeReleaseRepositoryRepository", "publishJvmPublicationToMavenLocal")
+        if (version.toString()
+                .endsWith("SNAPSHOT")
+        ) dependsOn("publishJvmPublicationToSonatypeSnapshotRepositoryRepository", "publishJvmPublicationToMavenLocal")
+        else dependsOn(
+            "publishJvmPublicationToSonatypeReleaseRepositoryRepository",
+            "publishJvmPublicationToMavenLocal"
+        )
     }
     getByName("signNativePublication") {
-        dependsOn(
+        if (version.toString().endsWith("SNAPSHOT")) dependsOn(
+            "publishJvmPublicationToSonatypeSnapshotRepositoryRepository",
+            "publishJvmPublicationToMavenLocal",
+            "publishKotlinMultiplatformPublicationToMavenLocal",
+            "publishKotlinMultiplatformPublicationToSonatypeSnapshotRepositoryRepository"
+        )
+        else dependsOn(
             "publishJvmPublicationToSonatypeReleaseRepositoryRepository",
             "publishJvmPublicationToMavenLocal",
             "publishKotlinMultiplatformPublicationToMavenLocal",

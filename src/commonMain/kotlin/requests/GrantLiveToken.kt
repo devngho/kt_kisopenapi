@@ -16,6 +16,7 @@ class GrantLiveToken(override val client: KisOpenApi): NoDataRequest<GrantLiveTo
     }
 
     @Serializable
+    @Suppress("SpellCheckingInspection")
     data class GrantTokenData(
         @SerialName("grant_type")
         val grantType: String,
@@ -25,8 +26,8 @@ class GrantLiveToken(override val client: KisOpenApi): NoDataRequest<GrantLiveTo
         val secretKey: String
     )
 
-    override suspend fun call(): GrantTokenResponse {
-        return client.httpClient.post(
+    override suspend fun call(): GrantTokenResponse = client.rateLimiter.rated {
+        client.httpClient.post(
             if (client.isDemo) "https://openapivts.koreainvestment.com:29443/oauth2/Approval"
             else               "https://openapi.koreainvestment.com:9443/oauth2/Approval"
         ) {

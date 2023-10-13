@@ -6,12 +6,12 @@ import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.HashKey.Companion.hashKey
 import io.github.devngho.kisopenapi.requests.response.*
 import io.github.devngho.kisopenapi.requests.util.*
-import io.github.devngho.kisopenapi.requests.util.OverseasMarket.Companion.fourChar
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 class OrderOverseasBuy(override val client: KisOpenApi):
     DataRequest<OrderOverseasBuy.OrderData, OrderOverseasBuy.OrderResponse> {
@@ -34,23 +34,31 @@ class OrderOverseasBuy(override val client: KisOpenApi):
     }
 
     @Serializable
+    @Suppress("SpellCheckingInspection")
     data class OrderResponseOutput(
         @SerialName("KRX_FWDG_ORD_ORGNO") val orderOffice: String?,
         @SerialName("ODNO") @Contextual val orderNumber: String?,
         @SerialName("ORD_TMD") @Serializable(with = HHMMSSSerializer::class) val orderTime: Time?,
     )
 
+    @Suppress("SpellCheckingInspection")
     data class OrderData(
-        val ticker: String,
-        val market: OverseasMarket,
-        val orderType: OrderTypeCode,
-        val count: BigInteger,
-        val price: BigDecimal = BigDecimal.fromInt(0),
-                         override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data, TradeContinuousData
-    @Serializable
-    data class OrderDataJson(val CANO: String, val ACNT_PRDT_CD: String, val OVRS_EXCG_CD: String, val PDNO: String, val ORD_DVSN: String, @Contextual val ORD_QTY: BigInteger, @Contextual val OVRS_ORD_UNPR: BigDecimal, val ORD_SVR_DVSN_CD: String, val SLL_TYPE: String = "")
+        @SerialName("PDNO") val ticker: String,
+        @Transient val market: OverseasMarket,
+        @Transient val orderType: OrderTypeCode,
+        @SerialName("ORD_QTY") val count: BigInteger,
+        @SerialName("ORD_UNPR") val price: BigDecimal = BigDecimal.fromInt(0),
+        @SerialName("CANO") val accountNumber: String? = null,
+        @SerialName("ACNT_PRDT_CD") val accountProductCode: String? = null,
+        @SerialName("ORD_SVR_DVSN_CD") val orderServerDivisionCode: String = "0",
+        @SerialName("SLL_TYPE") val sellType: String = "",
+        @SerialName("OVRS_EXCG_CD") val marketId: String = "",
+        @SerialName("ORD_DVSN") val orderTypeId: String = "",
+        override var corp: CorporationRequest? = null,
+        override var tradeContinuous: String? = ""
+    ) : Data, TradeContinuousData
 
-    override suspend fun call(data: OrderData): OrderResponse {
+    override suspend fun call(data: OrderData): OrderResponse = client.rateLimiter.rated {
         if (data.corp == null) data.corp = client.corp
 
         val tradeId =
@@ -111,7 +119,7 @@ class OrderOverseasBuy(override val client: KisOpenApi):
                 OverseasMarket.HKS -> {
                     when(data.orderType) {
                         OrderTypeCode.SelectPrice -> "00"
-                        else -> throw RequestError("Invalid order type. Only SelectPrice are allowed in HKEX.")
+                        else -> throw RequestError("Invalid order type. Only SelectPrice are allowed in Hong Kong Stock Exchange.")
                     }
                 }
                 else -> ""
@@ -125,21 +133,16 @@ class OrderOverseasBuy(override val client: KisOpenApi):
             stock(data.ticker)
             data.corp?.let { corporation(it) }
             setBody(
-                OrderDataJson(
-                    client.account!![0],
-                    client.account!![1],
-                    data.market.fourChar,
-                    data.ticker,
-                    orderType,
-                    data.count,
-                    data.price,
-                    "0"
-                )
+                data
+                    .copy(marketId = tradeId, orderTypeId = orderType)
+                    .let { if (it.accountNumber != null) it else it.copy(accountNumber = client.account!![0]) }
+                    .let { if (it.accountProductCode != null) it else it.copy(accountProductCode = client.account!![1]) }
             )
 
-            hashKey<OrderDataJson>(client)
+            hashKey<OrderData>(client)
         }
-        return res.body<OrderResponse>().apply {
+
+        res.body<OrderResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             processHeader(res)

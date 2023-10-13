@@ -12,6 +12,7 @@ import io.github.devngho.kisopenapi.requests.util.*
 import io.github.devngho.kisopenapi.requests.util.HHMMSSSerializer.HH_MM_SS
 import io.github.devngho.kisopenapi.requests.util.YYYYMMDDSerializer.YYYY_MM_DD
 import io.ktor.websocket.*
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
@@ -19,23 +20,26 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 
 class InquireOverseasLivePrice(override val client: KisOpenApi): LiveRequest<InquireOverseasLivePrice.InquireLivePriceData, InquireOverseasLivePrice.InquireLivePriceResponse> {
+    @Suppress("SpellCheckingInspection")
     private fun buildCallBody(data: InquireLivePriceData, trType: String) = """
                 {
                     "header": {
                         "approval_key":"${client.websocketToken}",
                         "custtype":"${data.corp!!.consumerType!!.num}",
-                        "tr_type":"$trType"
+                        "tr_type":"$trType",
+                        "content-type": "utf-8"
                     },
                     "body": {
                         "input": {
                             "tr_id":"HDFSCNT0",
-                            "tr_key":"D${data.market.code}${data.ticker}"
+                            "tr_key":"${data.tradeKey(client)}"
                         }
                     }
                 }
             """.trimIndent()
 
     @Serializable
+    @Suppress("SpellCheckingInspection")
     data class InquireLivePriceResponse(
         @SerialName("RSYM") val liveLoadCode: String?,
         @SerialName("SYMB") val stockCode: String?,
@@ -72,76 +76,82 @@ class InquireOverseasLivePrice(override val client: KisOpenApi): LiveRequest<Inq
         val ticker: String,
         val market: OverseasMarket,
         override var corp: CorporationRequest? = null
-    ) : Data
+    ) : LiveData {
+        override fun tradeKey(client: KisOpenApi): String = "D${market.code}$ticker"
+    }
 
+    private lateinit var job: Job
+    private lateinit var subscribed: KisOpenApi.WebSocketSubscribed
 
+    @Suppress("SpellCheckingInspection", "unchecked_cast")
     override suspend fun register(data: InquireLivePriceData, init: ((LiveResponse) -> Unit)?, block: (InquireLivePriceResponse) -> Unit) {
         if (data.corp == null) data.corp = client.corp
         if (client.websocket == null) client.buildWebsocket()
+        subscribed = KisOpenApi.WebSocketSubscribed(
+            this@InquireOverseasLivePrice, data, init,
+            block as (Response) -> Unit
+        )
 
-        client.websocket?.run {
-            send(buildCallBody(data, "1"))
-            launch {
+        client.websocket!!.run {
+            job = launch {
+                send(buildCallBody(data, "1"))
+
                 client.websocketIncoming?.collect {
-                    if (it is Frame.Text) {
-                        it.readText()
-                            .apply {
-                                if (this[0] != '0' && this[0] != '1') {
-                                    json.decodeFromString<LiveResponse>(this).run {
-                                        if (this.header?.tradeId == "HDFSCNT0" && this.header.tradeKey == data.ticker && init != null) init(
-                                            this
-                                        )
-                                    }
-
-                                    return@collect
-                                }
+                    if (it[0] != '0' && it[0] != '1') {
+                        json.decodeFromString<LiveResponse>(it).run {
+                            if (
+                                this.header?.tradeId == "HDFSCNT0" &&
+                                this.header.tradeKey == data.tradeKey(client)
+                                && init != null
+                            ) {
+                                client.subscribe(subscribed)
+                                init(this)
                             }
-                            .run {
-                                split("|")
-                                    .run {
-                                        if (get(1) == "HDFSCNT0") get(3).split("^")
-                                        else return@collect
-                                    }
-                                    .run {
-                                        if (get(0) == "D${data.market.code}${data.ticker}") this
-                                        else return@collect
-                                    }
-                                    .run {
-                                        try {
-                                            block(
-                                                InquireLivePriceResponse(
-                                                    this[0],
-                                                    this[1],
-                                                    this[2].toInt(),
-                                                    this[3].YYYY_MM_DD,
-                                                    this[4].YYYY_MM_DD,
-                                                    this[5].HH_MM_SS,
-                                                    this[6].YYYY_MM_DD,
-                                                    this[7].HH_MM_SS,
-                                                    this[8].toBigDecimal(),
-                                                    this[9].toBigDecimal(),
-                                                    this[10].toBigDecimal(),
-                                                    this[11].toBigDecimal(),
-                                                    SignPrice.entries.firstOrNull { it.value.toString() == this[12] },
-                                                    // 변화량이 음수인 경우에도 changeFromYesterday 값이 양수로 반환됨
-                                                    // 편의성 위해 변동률 음수인 경우 changeFromYesterday 값도 음수로 변환함
-                                                    if (this[14].startsWith("-")) this[13].toBigDecimal() * -1 else this[13].toBigDecimal(),
-                                                    this[14].toBigDecimal(),
-                                                    this[15].toBigDecimal(),
-                                                    this[16].toBigDecimal(),
-                                                    this[17].toBigInteger(),
-                                                    this[18].toBigInteger(),
-                                                    this[19].toBigInteger(),
-                                                    this[20].toBigInteger(),
-                                                    this[21].toBigDecimal(),
-                                                    this[22].toBigInteger(),
-                                                    this[23].toBigInteger(),
-                                                    this[24].toBigDecimal(),
-                                                    MarketStatus.entries.firstOrNull { f -> f.code == this[24] }
-                                                )
-                                            )
-                                        }catch (e: Exception) {e.printStackTrace()}
-                                    }
+                        }
+                    } else {
+                        it.split("|")
+                            .takeIf { v -> v[1] == "HDFSCNT0" }
+                            ?.let { v -> v[3].split("^") }
+                            ?.takeIf { v -> v[0] == data.tradeKey(client) }
+                            ?.run {
+                                try {
+                                    block(
+                                        //<editor-fold desc="InquireLivePriceResponse 생성">
+                                        InquireLivePriceResponse(
+                                            this[0],
+                                            this[1],
+                                            this[2].toInt(),
+                                            this[3].YYYY_MM_DD,
+                                            this[4].YYYY_MM_DD,
+                                            this[5].HH_MM_SS,
+                                            this[6].YYYY_MM_DD,
+                                            this[7].HH_MM_SS,
+                                            this[8].toBigDecimal(),
+                                            this[9].toBigDecimal(),
+                                            this[10].toBigDecimal(),
+                                            this[11].toBigDecimal(),
+                                            SignPrice.entries.firstOrNull { it.value.toString() == this[12] },
+                                            // 변화량이 음수인 경우에도 changeFromYesterday 값이 양수로 반환됨
+                                            // 편의성 위해 변동률 음수인 경우 changeFromYesterday 값도 음수로 변환함
+                                            if (this[14].startsWith("-")) this[13].toBigDecimal() * -1 else this[13].toBigDecimal(),
+                                            this[14].toBigDecimal(),
+                                            this[15].toBigDecimal(),
+                                            this[16].toBigDecimal(),
+                                            this[17].toBigInteger(),
+                                            this[18].toBigInteger(),
+                                            this[19].toBigInteger(),
+                                            this[20].toBigInteger(),
+                                            this[21].toBigDecimal(),
+                                            this[22].toBigInteger(),
+                                            this[23].toBigInteger(),
+                                            this[24].toBigDecimal(),
+                                            MarketStatus.entries.firstOrNull { f -> f.code == this[24] }
+                                        )
+                                        //</editor-fold>
+                                    )
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
                             }
                     }
                 }
@@ -153,8 +163,10 @@ class InquireOverseasLivePrice(override val client: KisOpenApi): LiveRequest<Inq
         if (data.corp == null) data.corp = client.corp
         if (client.websocket == null) client.buildWebsocket()
 
-        client.websocket?.run {
+        if (client.unsubscribe(subscribed)) client.websocket?.run {
             send(buildCallBody(data, "2"))
         }
+
+        job.cancel()
     }
 }

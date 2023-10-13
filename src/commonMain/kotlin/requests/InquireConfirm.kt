@@ -32,6 +32,7 @@ class InquireConfirm(override val client: KisOpenApi):
     }
 
     @Serializable
+    @Suppress("SpellCheckingInspection")
     data class InquireConfirmResponseOutput(
         @SerialName("stck_cntg_hour") val stockConfirmHour: Int?,
         @SerialName("stck_prpr") @Contextual override val price: BigInteger?,
@@ -42,9 +43,15 @@ class InquireConfirm(override val client: KisOpenApi):
         @SerialName("prdy_ctrt") @Contextual override val rateFromYesterday: BigDecimal?,
     ): StockPriceBase, StockPriceChange
 
-    data class InquireConfirmData(val stockCode: String,/** 기본적으로 KisOpenApi의 corp 값을 불러옵니다. */override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data, TradeContinuousData
+    data class InquireConfirmData(
+        val stockCode: String,
+        /** 기본적으로 KisOpenApi corp 값을 불러옵니다. */
+        override var corp: CorporationRequest? = null,
+        override var tradeContinuous: String? = ""
+    ) : Data, TradeContinuousData
 
-    override suspend fun call(data: InquireConfirmData): InquireConfirmResponse {
+    @Suppress("SpellCheckingInspection")
+    override suspend fun call(data: InquireConfirmData): InquireConfirmResponse = client.rateLimiter.rated {
         if (data.corp == null) data.corp = client.corp
 
         val res = client.httpClient.get(url) {
@@ -53,7 +60,7 @@ class InquireConfirm(override val client: KisOpenApi):
             stock(data.stockCode)
             data.corp?.let { corporation(it) }
         }
-        return res.body<InquireConfirmResponse>().apply {
+        res.body<InquireConfirmResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             processHeader(res)

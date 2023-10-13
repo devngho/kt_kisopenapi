@@ -4,17 +4,24 @@ import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.*
 import io.github.devngho.kisopenapi.requests.response.*
-import io.github.devngho.kisopenapi.requests.util.*
+import io.github.devngho.kisopenapi.requests.util.Closeable
+import io.github.devngho.kisopenapi.requests.util.OrderTypeCode
+import io.github.devngho.kisopenapi.requests.util.ProductTypeCode
+import io.github.devngho.kisopenapi.requests.util.RequestError
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.reflect.KClass
 
 
+/**
+ * 국내 주식 정보를 불러오고 관리합니다.
+ * @param client KisOpenApi
+ * @param ticker 종목 코드
+ */
 class StockDomestic(override val client: KisOpenApi, override val ticker: String) : IStockDomestic {
     override lateinit var price: StockPriceBase
     override var name = IStockBase.Name()
     override lateinit var tradeVolume: StockTrade
-    private var liveConfirmPrice: KMutex<InquireLivePrice?> = mutex(null)
 
     override suspend fun updateBy(res: KClass<out Response>){
         when(res.simpleName) {
@@ -81,17 +88,15 @@ class StockDomestic(override val client: KisOpenApi, override val ticker: String
 
     override suspend fun useLiveConfirmPrice(block: Closeable.(InquireLivePrice.InquireLivePriceResponse) -> Unit) {
         runBlocking {
-            liveConfirmPrice.setIfNull {
-                InquireLivePrice(client).apply {
-                    (this@runBlocking).launch {
-                        register(InquireLivePrice.InquireLivePriceData(this@StockDomestic.ticker)) {
+            InquireLivePrice(client).apply {
+                (this@runBlocking).launch {
+                    register(InquireLivePrice.InquireLivePriceData(this@StockDomestic.ticker)) {
                         (object : Closeable {
                             override suspend fun close() {
                                 unregister(InquireLivePrice.InquireLivePriceData(this@StockDomestic.ticker))
                             }
                         }).block(it)
                     } }
-                }
             }
         }
     }

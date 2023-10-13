@@ -38,6 +38,7 @@ class InquireOverseasBalance(override val client: KisOpenApi):
     }
 
     @Serializable
+    @Suppress("SpellCheckingInspection")
     data class InquireBalanceResponseOutput1 @OptIn(ExperimentalSerializationApi::class) constructor(
         @SerialName("ovrs_pdno") override val ticker: String?,
         @SerialName("ovrs_item_name") override val productName: String?,
@@ -58,6 +59,7 @@ class InquireOverseasBalance(override val client: KisOpenApi):
     }
 
     @Serializable
+    @Suppress("SpellCheckingInspection")
     data class InquireBalanceResponseOutput2(
         @SerialName("frcr_pchs_amt1") @Contextual val buyAmountByForeignCurrency: BigDecimal?,
         @SerialName("ovrs_rlzt_pfls_amt") @Contextual val realizedProfitLossAmount: BigDecimal?,
@@ -82,7 +84,8 @@ class InquireOverseasBalance(override val client: KisOpenApi):
         val continuousAreaNK: String = ""
     ) : Data, TradeContinuousData
 
-    override suspend fun call(data: InquireBalanceData): InquireBalanceResponse {
+    @Suppress("SpellCheckingInspection")
+    override suspend fun call(data: InquireBalanceData): InquireBalanceResponse = client.rateLimiter.rated {
         if (data.corp == null) data.corp = client.corp
 
         fun HttpRequestBuilder.inquireOverseasBalance() {
@@ -105,16 +108,16 @@ class InquireOverseasBalance(override val client: KisOpenApi):
         val res = client.httpClient.get(url) {
             inquireOverseasBalance()
         }
-        return res.body<InquireBalanceResponse>().apply {
+
+        res.body<InquireBalanceResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             processHeader(res)
 
-            if (this.tradeContinuous == "F" || this.tradeContinuous == "M") {
-                this.next = {
-                    call(data.copy(tradeContinuous = "N", continuousAreaFK = this.continuousAreaFK!!, continuousAreaNK = this.continuousAreaNK!!))
-                }
-            }
+            setNext(
+                data.copy(continuousAreaFK = this.continuousAreaFK!!, continuousAreaNK = this.continuousAreaNK!!),
+                this
+            )
         }
     }
 }

@@ -29,6 +29,7 @@ class InquireTradeVolumeRank(override val client: KisOpenApi) :
     }
 
     @Serializable
+    @Suppress("SpellCheckingInspection")
     data class InquireTradeVolumeRankOutput(
         @SerialName("mksc_shrn_iscd") val ticker: String?,
         @SerialName("data_rank") val rank: Int?,
@@ -93,7 +94,9 @@ class InquireTradeVolumeRank(override val client: KisOpenApi) :
         override var corp: CorporationRequest? = null
     ) : Data
 
-    override suspend fun call(data: InquireTradeVolumeRankData): InquireTradeVolumeRankResponse {
+    @Suppress("SpellCheckingInspection")
+    override suspend fun call(data: InquireTradeVolumeRankData): InquireTradeVolumeRankResponse =
+        client.rateLimiter.rated {
         if (data.corp == null) data.corp = client.corp
 
         val res = client.httpClient.get(url) {
@@ -138,7 +141,7 @@ class InquireTradeVolumeRank(override val client: KisOpenApi) :
             }
         }
 
-        return res.body<InquireTradeVolumeRankResponse>().apply {
+            res.body<InquireTradeVolumeRankResponse>().apply {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
 
             processHeader(res)

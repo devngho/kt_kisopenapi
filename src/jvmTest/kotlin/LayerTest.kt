@@ -11,6 +11,9 @@ import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlinx.coroutines.withTimeout
+import java.util.concurrent.CountDownLatch
+import kotlin.reflect.full.declaredMembers
 
 @OptIn(ExperimentalKotest::class)
 class LayerTest : BehaviorSpec({
@@ -28,6 +31,14 @@ class LayerTest : BehaviorSpec({
                 then("종목 가격을 가져올 수 있다") {
                     stock.price.price shouldNotBe null
                 }
+                xthen("실시간 가격을 가져올 수 있다") {
+                    val latch = CountDownLatch(1)
+                    stock.useLiveConfirmPrice {
+                        latch.countDown()
+                        it.price shouldNotBe null
+                    }
+                    latch.await()
+                }
             }
 
             `when`("StockOverseas 업데이트") {
@@ -42,6 +53,18 @@ class LayerTest : BehaviorSpec({
                 then("종목 가격을 가져올 수 있다") {
                     stock.price.price shouldNotBe null
                 }
+                xthen("실시간 가격을 가져올 수 있다") {
+                    var isDone = false
+                    withTimeout(1000) {
+                        val latch = CountDownLatch(1)
+                        stock.useLiveConfirmPrice {
+                            latch.countDown()
+                            it.price shouldNotBe null
+                        }
+                        latch.await()
+                        isDone = true
+                    }
+                    isDone shouldBe true
             }
         }
 
@@ -53,6 +76,14 @@ class LayerTest : BehaviorSpec({
             then("계좌 잔액을 가져올 수 있다") {
                 accountLayer.assetAmount shouldNotBe null
             }
+            then("계좌 주식을 가져올 수 있다") {
+                accountLayer.accountStocks shouldNotBe null
+                accountLayer.accountStocks.forEach {
+                    it::class.declaredMembers.forEach { f ->
+                        f.call() shouldNotBe null
+                    }
+                }
+            }
         }
 
         `when`("AccountOverseas 업데이트") {
@@ -60,9 +91,10 @@ class LayerTest : BehaviorSpec({
 
             accountLayer.updateBy(BalanceAccount::class)
 
-            then("계좌 잔액을 가져올 수 있다") {
-                accountLayer.assetAmount shouldNotBe null
+            then("보유한 주식을 가져올 수 있다") {
+                accountLayer.accountStocks shouldNotBe null
             }
+        }
         }
     }
 })
