@@ -11,7 +11,10 @@ import kotlinx.serialization.Serializable
 class GrantLiveToken(override val client: KisOpenApi): NoDataRequest<GrantLiveToken.GrantTokenResponse> {
     @Serializable
     data class GrantTokenResponse(@SerialName("approval_key") val approvalKey: String): Response {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 

@@ -68,7 +68,10 @@ class InquireOverseasLivePrice(override val client: KisOpenApi): LiveRequest<Inq
         @SerialName("STRN") @Contextual val confirmStrength: BigDecimal?,
         @SerialName("MTYP") val marketStatus: MarketStatus?,
     ): Response, StockOverseasPrice {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 

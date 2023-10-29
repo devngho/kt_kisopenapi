@@ -134,3 +134,5 @@ JavaUtil.callWithData(new InquirePrice(api), new InquirePrice.InquirePriceData("
 ### Other
 - [korge/krypto](https://github.com/korlibs/korge/tree/main/krypto) : WebSocket AES 처리를 위한 라이브러리 - [MIT License](https://github.com/korlibs/korge/blob/main/krypto/LICENSE)
 - [ionspin/kotlin-multiplatform-bignum](http://github.com/ionspin/kotlin-multiplatform-bignum/) : 큰 수 처리를 위한 라이브러리 - [Apache License Version 2.0](https://github.com/ionspin/kotlin-multiplatform-bignum/blob/main/LICENSE)
+- [kotest](https://github.com/kotest/kotest) : 테스트를 위한
+  라이브러리 - [Apache License Version 2.0](https://github.com/kotest/kotest/blob/master/LICENSE)

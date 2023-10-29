@@ -14,7 +14,10 @@ class RevokeToken(override val client: KisOpenApi):
     DataRequest<RevokeToken.RevokeTokenData, RevokeToken.RevokeTokenResponse> {
     @Serializable
     data class RevokeTokenResponse(val code: Int?, val message: String?): Response {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 

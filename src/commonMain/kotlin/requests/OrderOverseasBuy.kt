@@ -29,7 +29,10 @@ class OrderOverseasBuy(override val client: KisOpenApi):
 
         var output: OrderResponseOutput?, override var next: (suspend () -> Response)?
     ): Response, TradeContinuousResponse, TradeIdMsg {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 

@@ -14,7 +14,10 @@ import kotlinx.serialization.encodeToString
 class HashKey(override val client: KisOpenApi): DataRequest<HashKey.HashKeyData, HashKey.HashKeyResponse> {
     @Serializable
     data class HashKeyResponse(@SerialName("HASH") val hash: String): Response {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 

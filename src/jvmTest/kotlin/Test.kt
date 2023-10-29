@@ -20,13 +20,26 @@ const val testOverseasStock = "AAPL"
 val testOverseasMarket = OverseasMarket.NASDAQ
 
 val api: KisOpenApi by lazy {
-    val key = File("key.txt").readLines()
-    val account = File("account.txt").readLines()
-
     runBlocking {
-        KisOpenApi.with(
-            key[0], key[1], false, account = account[0], grantWebsocket = true, hashKey = true
-        )
+        val key = File("key.txt").readLines()
+        val account = File("account.txt").readLines()
+        val token = File("token.txt").readLines()
+
+        try {
+            KisOpenApi.withToken(
+                token[0], key[0], key[1], false, account = account[0], websocketToken = token[1], hashKey = true
+            ).apply { InquirePrice(this).call(InquirePrice.InquirePriceData(testStock)) }
+        } catch (_: Exception) {
+            KisOpenApi.withToken(
+                "", key[0], key[1], false, account = account[0], websocketToken = "", hashKey = true
+            ).apply {
+                val newToken = GrantToken(this).call()
+                val newWebsocketToken = GrantLiveToken(this).call()
+                this.oauthToken = newToken.accessToken!!
+                this.websocketToken = newWebsocketToken.approvalKey
+                File("token.txt").writeText("${newToken.accessToken}\n${newWebsocketToken.approvalKey}")
+            }
+        }
     }
 }
 

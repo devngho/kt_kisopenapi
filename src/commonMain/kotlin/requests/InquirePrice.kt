@@ -28,7 +28,10 @@ class InquirePrice(override val client: KisOpenApi):
         var output: InquirePriceResponseOutput?, override var next: (suspend () -> Response)?,
         override var tradeContinuous: String?
     ): Response, TradeContinuousResponse, TradeIdMsg {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 
@@ -109,7 +112,10 @@ class InquirePrice(override val client: KisOpenApi):
         @SerialName("stck_sdpr") @Contextual override val criteriaPrice: BigInteger?,
         @SerialName("acml_tr_pbmn") @Contextual override val accumulateTradePrice: BigInteger?
     ): StockPriceFull, StockTradeFull {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 

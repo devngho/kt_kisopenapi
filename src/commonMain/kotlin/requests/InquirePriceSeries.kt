@@ -55,7 +55,10 @@ class InquirePriceSeries(override val client: KisOpenApi):
 
         var output1: InquirePrice.InquirePriceResponseOutput?, var output2: List<InquirePriceSeriesResponseOutput2>?, override var next: (suspend () -> Response)?
     ): Response, TradeContinuousResponse, TradeIdMsg {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 
@@ -80,7 +83,10 @@ class InquirePriceSeries(override val client: KisOpenApi):
         @SerialName("mod_yn") @Serializable(with = YNSerializer::class) val isModified: Boolean?,
         @SerialName("revl_issu_reas") val reasonForRevision: String?,
     ): StockPriceHighMax {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 

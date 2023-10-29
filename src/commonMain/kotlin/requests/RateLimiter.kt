@@ -19,7 +19,7 @@ class RateLimiter(ratePerSecond: Int) {
     val minDelay = 1000 / ratePerSecond
 
     /**
-     * 마지막 요청 시간, 나노초 단위
+     * 마지막 요청 시간
      */
     private var lastRequestTime: TimeSource.Monotonic.ValueTimeMark? = null
     private val lastRequestTimeMutex = Mutex()
@@ -34,7 +34,7 @@ class RateLimiter(ratePerSecond: Int) {
         lastRequestTimeMutex.withLock {
             if (lastRequestTime == null) {
                 lastRequestTime = nano()
-                block()
+                return block()
             }
 
             val diff = lastRequestTime!!.elapsedNow().inWholeMilliseconds

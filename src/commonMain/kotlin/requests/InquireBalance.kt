@@ -32,7 +32,10 @@ class InquireBalance(override val client: KisOpenApi):
         override var next: (suspend () -> Response)?,
         @SerialName("tr_cont") override var tradeContinuous: String?
     ): Response, TradeContinuousResponse, TradeIdMsg {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 
@@ -66,7 +69,10 @@ class InquireBalance(override val client: KisOpenApi):
         @SerialName("sbst_pric") @Contextual override val substitutePrice: BigInteger?,
         @SerialName("stck_loan_unpr") @Contextual override val stockLoanPrice: BigInteger?,
     ): BalanceAccountStock {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 
@@ -102,7 +108,10 @@ class InquireBalance(override val client: KisOpenApi):
         @SerialName("rlzt_evlu_pfls") @Contextual override val realEvalProfitLoss: BigInteger?,
         @SerialName("rlzt_evlu_pfls_erng_rt") @Contextual override val realEvalProfitLossRate: BigDecimal?,
     ): BalanceAccount {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 

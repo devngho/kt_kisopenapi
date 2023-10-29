@@ -85,8 +85,11 @@ class InquireLiveConfirm(override val client: KisOpenApi): LiveRequest<InquireLi
         @SerialName("hour_cls_code") val hourCode: HourCode?  = null,
         @SerialName("mrkt_trtm_cls_code") val marketTerminatedCode: String?  = null,
         @SerialName("vi_stnd_prc") @Contextual val viActivatePrice: BigInteger?  = null,
-        ): Response {
+    ) : Response {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 

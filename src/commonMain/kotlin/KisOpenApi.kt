@@ -251,7 +251,7 @@ class KisOpenApi internal constructor(
                 rateLimiter ?: RateLimiter.defaultRate(isDemo)
             )
                 .apply {
-                    oauthToken = GrantToken(this).call().accessToken
+                    oauthToken = GrantToken(this).call().accessToken!!
                     if(grantWebsocket) this.websocketToken = GrantLiveToken(this).call().approvalKey
                 }
     }

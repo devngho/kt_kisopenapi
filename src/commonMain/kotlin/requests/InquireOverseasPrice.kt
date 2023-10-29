@@ -28,7 +28,10 @@ class InquireOverseasPrice(override val client: KisOpenApi):
         var output: InquirePriceResponseOutput?, override var next: (suspend () -> Response)?,
         override var tradeContinuous: String?
     ): Response, TradeContinuousResponse, TradeIdMsg {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 
@@ -50,7 +53,10 @@ class InquireOverseasPrice(override val client: KisOpenApi):
          */
         @SerialName("ordy") @Contextual val canBuy: String?,
     ): StockOverseasPrice {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 

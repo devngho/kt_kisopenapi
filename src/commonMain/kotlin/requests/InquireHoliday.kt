@@ -25,7 +25,10 @@ class InquireHoliday(override val client: KisOpenApi):
         override var next: (suspend () -> Response)?,
         override var tradeContinuous: String?
     ): Response, TradeContinuousResponse, Msg {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 
@@ -39,7 +42,10 @@ class InquireHoliday(override val client: KisOpenApi):
         @SerialName("opnd_yn") @Serializable(with = YNSerializer::class) override val isMarketOpen: Boolean,
         @SerialName("sttl_day_yn") @Serializable(with = YNSerializer::class) override val isPayDay: Boolean,
     ): Holiday, Response {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 

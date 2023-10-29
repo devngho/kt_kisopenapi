@@ -10,8 +10,14 @@ import kotlinx.serialization.Serializable
 
 class GrantToken(override val client: KisOpenApi): NoDataRequest<GrantToken.GrantTokenResponse> {
     @Serializable
-    data class GrantTokenResponse(@SerialName("access_token") val accessToken: String, @SerialName("expires_in") val expiresIn: Int): Response {
+    data class GrantTokenResponse(
+        @SerialName("access_token") val accessToken: String?,
+        @SerialName("expires_in") val expiresIn: Int?
+    ) : Response {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 
@@ -20,13 +26,14 @@ class GrantToken(override val client: KisOpenApi): NoDataRequest<GrantToken.Gran
     data class GrantTokenJson(@SerialName("grant_type") val grantType: String, @SerialName("appkey") val appKey: String, @SerialName("appsecret") val appSecret: String)
 
     override suspend fun call(): GrantTokenResponse = client.rateLimiter.rated {
-        client.httpClient.post(
+        val res = client.httpClient.post(
             if (client.isDemo) "https://openapivts.koreainvestment.com:29443/oauth2/tokenP"
             else               "https://openapi.koreainvestment.com:9443/oauth2/tokenP"
         ) {
             contentType(ContentType.Application.Json)
             setBody(GrantTokenJson("client_credentials", client.appKey, client.appSecret))
-        }.body<GrantTokenResponse>().run {
+        }
+        res.body<GrantTokenResponse>().run {
             if (this.errorCode != null) throw RequestError(this.errorDescription)
             this
         }

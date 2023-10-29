@@ -1,13 +1,16 @@
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
 plugins {
     kotlin("multiplatform") version "1.9.0"
     kotlin("plugin.serialization") version "1.9.0"
     id("org.jetbrains.dokka") version "1.9.0"
+    id("io.kotest.multiplatform") version "5.7.2"
     `maven-publish`
     signing
 }
 
 group = "io.github.devngho"
-version = "0.1.37"
+version = "0.1.38"
 
 repositories {
     mavenCentral()
@@ -80,10 +83,6 @@ kotlin {
         compilations.all {
             kotlinOptions.jvmTarget = "19"
         }
-        withJava()
-        tasks.withType<Test>().configureEach {
-            useJUnitPlatform()
-        }
     }
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
@@ -99,6 +98,7 @@ kotlin {
     sourceSets {
         val ktorVersion = "2.1.3"
         val coroutineVersion = "1.7.3"
+        val kotestVersion = "5.7.2"
 
         val commonMain by getting {
             dependencies {
@@ -113,6 +113,14 @@ kotlin {
                 implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:0.3.7")
             }
         }
+        val commonTest by getting {
+            dependencies {
+                implementation("io.kotest:kotest-framework-engine:$kotestVersion")
+                implementation("io.kotest:kotest-assertions-core:$kotestVersion")
+                implementation(kotlin("test-common"))
+                implementation(kotlin("test-annotations-common"))
+            }
+        }
         val jvmMain by getting {
             dependencies {
                 implementation(kotlin("stdlib"))
@@ -122,13 +130,8 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(kotlin("reflect"))
-                implementation(kotlin("test"))
                 implementation("io.ktor:ktor-client-cio:$ktorVersion")
-                implementation("io.kotest:kotest-runner-junit5:5.7.2")
-                implementation("io.kotest:kotest-assertions-core:5.7.2")
-                implementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
-                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
-                implementation("org.apache.logging.log4j:log4j-slf4j-impl:2.17.0")
+                implementation("io.kotest:kotest-runner-junit5:$kotestVersion")
             }
         }
         val nativeMain by getting {
@@ -162,5 +165,17 @@ tasks {
             "publishKotlinMultiplatformPublicationToMavenLocal",
             "publishKotlinMultiplatformPublicationToSonatypeReleaseRepositoryRepository"
         )
+    }
+    named<Test>("jvmTest") {
+        useJUnitPlatform()
+        filter {
+            isFailOnNoMatchingTests = false
+        }
+        testLogging {
+            showExceptions = true
+            showStandardStreams = true
+            events = TestLogEvent.values().toSet()
+            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        }
     }
 }

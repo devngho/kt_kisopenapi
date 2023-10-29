@@ -30,7 +30,10 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
         var output1: InquirePriceTodayMinuteResponseOutput1?,
         var output2: List<InquirePriceTodayMinuteResponseOutput2>?, override var next: (suspend () -> Response)?
     ): Response, TradeContinuousResponse, TradeIdMsg {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 
@@ -48,7 +51,10 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
         @SerialName("prdy_vrss_vol_rate") @Contextual override val rateTradeVolumeFromYesterday: BigDecimal?,
         @SerialName("stck_prpr") @Contextual override val price: BigInteger?
     ): StockPriceBase, StockTrade, StockPriceForeigner, StockPriceChange {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 
@@ -65,8 +71,11 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
         @SerialName("stck_hgpr") @Contextual override val highPrice: BigInteger?,
         @SerialName("stck_lwpr") @Contextual override val lowPrice: BigInteger?,
         @SerialName("cntg_vol") @Contextual val confirmVolume: BigInteger?
-        ): StockPriceHighMax, StockTradeAccumulate {
+    ) : StockPriceHighMax, StockTradeAccumulate {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 
@@ -75,7 +84,8 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
         /** Time style : HHMMSS */
         val startDate: String,
         val usePreviousData: Boolean,
-                                           override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data, TradeContinuousData
+        override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""
+    ) : Data, TradeContinuousData
 
     @Suppress("SpellCheckingInspection")
     override suspend fun call(data: InquirePriceTodayMinuteData): InquirePriceTodayMinuteResponse =

@@ -24,7 +24,10 @@ class InquireTradeVolumeRank(override val client: KisOpenApi) :
 
         var output: List<InquireTradeVolumeRankOutput>?
     ) : Response, Msg {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 
@@ -50,7 +53,10 @@ class InquireTradeVolumeRank(override val client: KisOpenApi) :
         @SerialName("tr_pbmn_tnrt") @Contextual val tradePriceTurningRate: BigDecimal?,
         @SerialName("nday_tr_pbmn_tnrt") @Contextual val tradePriceTurningRateNDay: BigDecimal?,
     ) : StockPriceChange, StockPriceBase, StockTradeFull, Response {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 

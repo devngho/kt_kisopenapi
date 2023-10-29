@@ -53,7 +53,10 @@ class InquirePricePerDay(override val client: KisOpenApi):
 
         var output: List<InquirePricePerDayResponseOutput>?, override var next: (suspend () -> Response)?
     ): Response, TradeContinuousResponse, TradeIdMsg {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 
@@ -78,7 +81,10 @@ class InquirePricePerDay(override val client: KisOpenApi):
         @SerialName("frgn_ntby_qty") @Contextual override val foreignerNetBuyCount: BigInteger?,
         @SerialName("prdy_vrss_vol_rate") @Contextual override val rateTradeVolumeFromYesterday: BigDecimal?
     ): StockPriceHighMax, StockTrade, StockPriceChange, StockPriceForeigner {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 

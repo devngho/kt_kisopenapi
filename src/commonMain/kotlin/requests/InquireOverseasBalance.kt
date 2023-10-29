@@ -33,7 +33,10 @@ class InquireOverseasBalance(override val client: KisOpenApi):
         override var next: (suspend () -> Response)?,
         @SerialName("tr_cont") override var tradeContinuous: String?
     ): Response, TradeContinuousResponse, TradeIdMsg {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 
@@ -54,7 +57,10 @@ class InquireOverseasBalance(override val client: KisOpenApi):
         @SerialName("loan_type_cd") @Serializable(with = LoanType.LoanTypeSerializer::class) override val loanType: LoanType?,
         @SerialName("expd_dt") override val expireDate: String?,
     ): BalanceAccountStockOverseas {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 
@@ -71,7 +77,10 @@ class InquireOverseasBalance(override val client: KisOpenApi):
         @SerialName("ovrs_rlzt_pfls_amt2") @Contextual val realizedProfitLossAmount2: BigDecimal?,
         @SerialName("frcr_buy_amt_smtl2") @Contextual val buyAmountTotalByForeignCurrency2: BigDecimal?,
     ): Response {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 

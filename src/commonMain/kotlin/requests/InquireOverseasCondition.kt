@@ -30,7 +30,10 @@ class InquireOverseasCondition(override val client: KisOpenApi): DataRequest<Inq
 
         @SerialName("output2") var output: List<ConditionResponseOutput>?, override var next: (suspend () -> Response)?
     ): Response, TradeContinuousResponse, TradeIdMsg {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 
@@ -59,7 +62,10 @@ class InquireOverseasCondition(override val client: KisOpenApi): DataRequest<Inq
         @SerialName("e_ordyn") @Contextual val canBuy: String?,
         @SerialName("rank") val rank: Int?,
     ): StockOverseasPrice {
+        @SerialName("error_description")
         override val errorDescription: String? = null
+
+        @SerialName("error_code")
         override val errorCode: String? = null
     }
 
