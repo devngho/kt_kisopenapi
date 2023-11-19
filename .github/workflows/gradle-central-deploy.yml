@@ -18,6 +18,11 @@ jobs:
           staging_profile_id: ${{ secrets.SONATYPE_PROFILE_ID }}
           base_url: https://s01.oss.sonatype.org/service/local/
           description: ${{ github.repository }}/${{ github.workflow }}#${{ github.run_number }}
+      - name: Logging results
+        run: |
+          echo $OUT
+        env:
+          OUT: ${{ steps.create.outputs }}
   publish:
     permissions:
       contents: write
