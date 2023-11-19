@@ -86,6 +86,43 @@ class StockDomestic(override val client: KisOpenApi, override val ticker: String
         }
     }
 
+    override suspend fun amend(
+        order: OrderBuy.OrderResponse,
+        count: BigInteger,
+        type: OrderTypeCode,
+        price: BigInteger,
+        orderAll: Boolean
+    ): OrderAmend.OrderResponse {
+        if (client.account == null) throw RequestError("Amend request need account.")
+        else {
+            return OrderAmend(client).call(
+                OrderAmend.OrderData(
+                    type, count, price,
+                    order.output?.orderNumber ?: throw RequestError("Amend request need order number."), orderAll
+                )
+            )
+        }
+    }
+
+    override suspend fun cancel(
+        order: OrderBuy.OrderResponse,
+        count: BigInteger,
+        type: OrderTypeCode,
+        orderAll: Boolean
+    ): OrderCancel.OrderResponse {
+        if (client.account == null) throw RequestError("Cancel request need account.")
+        else {
+            return OrderCancel(client).call(
+                OrderCancel.OrderData(
+                    type,
+                    count,
+                    order.output?.orderNumber ?: throw RequestError("Cancel request need order number."),
+                    orderAll
+                )
+            )
+        }
+    }
+
     override suspend fun useLiveConfirmPrice(block: Closeable.(InquireLivePrice.InquireLivePriceResponse) -> Unit) {
         runBlocking {
             InquireLivePrice(client).apply {

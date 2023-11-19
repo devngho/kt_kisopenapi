@@ -105,8 +105,8 @@ class InquireBalance(override val client: KisOpenApi):
         @SerialName("asst_icdc_erng_rt") @Contextual override val assetChangeRate: BigDecimal?,
         @SerialName("rlzt_pfls") @Contextual override val realizedProfitLoss: BigInteger?,
         @SerialName("rlzt_erng_rt") @Contextual override val realizedProfitLossRate: BigDecimal?,
-        @SerialName("rlzt_evlu_pfls") @Contextual override val realEvalProfitLoss: BigInteger?,
-        @SerialName("rlzt_evlu_pfls_erng_rt") @Contextual override val realEvalProfitLossRate: BigDecimal?,
+        @SerialName("real_evlu_pfls") @Contextual override val realEvalProfitLoss: BigInteger?,
+        @SerialName("real_evlu_pfls_erng_rt") @Contextual override val realEvalProfitLossRate: BigDecimal?,
     ): BalanceAccount {
         @SerialName("error_description")
         override val errorDescription: String? = null

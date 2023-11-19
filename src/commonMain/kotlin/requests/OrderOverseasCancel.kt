@@ -1,5 +1,6 @@
 package io.github.devngho.kisopenapi.requests
 
+import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.HashKey.Companion.hashKey
@@ -10,11 +11,12 @@ import io.ktor.client.request.*
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
-class OrderCancel(override val client: KisOpenApi) :
-    DataRequest<OrderCancel.OrderData, OrderCancel.OrderResponse> {
+class OrderOverseasCancel(override val client: KisOpenApi) :
+    DataRequest<OrderOverseasCancel.OrderData, OrderOverseasCancel.OrderResponse> {
     private val url =
-        if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/domestic-stock/v1/trading/order-rvsecncl"
+        if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/overseas-stock/v1/trading/order-rvsecncl"
         else "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/trading/order-rvsecncl"
 
     @Serializable
@@ -45,35 +47,65 @@ class OrderCancel(override val client: KisOpenApi) :
 
     @Suppress("SpellCheckingInspection")
     data class OrderData(
-        @SerialName("ORD_DVSN") val orderType: OrderTypeCode,
-        /** 전부 취소하려면 0으로 입력하세요.
-         * 일부를 취소하려면 취소하려는 수량을 입력하세요.
-         */
+        @SerialName("PDNO") override val ticker: String,
+        @Transient val market: OverseasMarket,
         @SerialName("ORD_QTY") val count: BigInteger,
         @SerialName("ORGN_ODNO") val orderNumber: String,
-        @SerialName("QTY_ALL_ORD_YN") @Serializable(with = YNSerializer::class) val orderAll: Boolean,
         @SerialName("CANO") val accountNumber: String? = null,
         @SerialName("ACNT_PRDT_CD") val accountProductCode: String? = null,
+        @SerialName("KRX_FWDG_ORD_ORGNO") val orderOffice: String? = null,
         override var corp: CorporationRequest? = null,
         override var tradeContinuous: String? = ""
-    ) : Data, TradeContinuousData {
+    ) : Data, TradeContinuousData, Ticker {
         @SerialName("RVSE_CNCL_DVSN_CD")
-        val isAmendOrCancel = "02"
+        val isAmendOrCancel = "01"
         @SerialName("ORD_UNPR")
-        val price: BigInteger = BigInteger(0)
-        @SerialName("KRX_FWDG_ORD_ORGNO")
-        val orderOffice: String = ""
+        val price: BigDecimal = BigDecimal.fromInt(0)
     }
 
-    @Suppress("SpellCheckingInspection")
     override suspend fun call(data: OrderData): OrderResponse = client.rateLimiter.rated {
         if (data.corp == null) data.corp = client.corp
 
-        if (data.price.isZero() && data.orderType == OrderTypeCode.SelectPrice) throw RequestError("Price must be set when order type is SelectPrice.")
+        val tradeId =
+            (if (client.isDemo) "VTT" else "TTT") +
+                    (when (data.market) {
+                        OverseasMarket.NASDAQ,
+                        OverseasMarket.NAS,
+                        OverseasMarket.NASDAQ_DAY,
+                        OverseasMarket.BAQ,
+                        OverseasMarket.NEWYORK,
+                        OverseasMarket.NYS,
+                        OverseasMarket.NEWYORK_DAY,
+                        OverseasMarket.BAY,
+                        OverseasMarket.AMEX,
+                        OverseasMarket.AMS,
+                        OverseasMarket.AMEX_DAY,
+                        OverseasMarket.BAA -> "T1004U" // USA
+                        OverseasMarket.TOYKO,
+                        OverseasMarket.TSE -> "S0309U"
+
+                        OverseasMarket.SHANGHAI,
+                        OverseasMarket.SHANGHAI_INDEX,
+                        OverseasMarket.SHS,
+                        OverseasMarket.SHI -> "S0302U"
+
+                        OverseasMarket.HONGKONG,
+                        OverseasMarket.HKS -> "S1003U"
+
+                        OverseasMarket.SHENZHEN,
+                        OverseasMarket.SHENZHEN_INDEX,
+                        OverseasMarket.SZI,
+                        OverseasMarket.SZS -> "S0306U"
+
+                        OverseasMarket.HANOI,
+                        OverseasMarket.HOCHIMINH,
+                        OverseasMarket.HNX,
+                        OverseasMarket.HSX -> "S0312U"
+                    })
 
         val res = client.httpClient.post(url) {
             auth(client)
-            tradeId(if (client.isDemo) "VTTC0803U" else "TTTC0803U")
+            tradeId(tradeId)
             data.corp?.let { corporation(it) }
             setBody(
                 data

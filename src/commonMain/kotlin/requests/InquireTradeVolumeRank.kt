@@ -34,7 +34,7 @@ class InquireTradeVolumeRank(override val client: KisOpenApi) :
     @Serializable
     @Suppress("SpellCheckingInspection")
     data class InquireTradeVolumeRankOutput(
-        @SerialName("mksc_shrn_iscd") val ticker: String?,
+        @SerialName("mksc_shrn_iscd") override val ticker: String?,
         @SerialName("data_rank") val rank: Int?,
         @SerialName("hts_kor_isnm") val name: String?,
         @SerialName("stck_prpr") @Contextual override val price: BigInteger?,
@@ -52,7 +52,7 @@ class InquireTradeVolumeRank(override val client: KisOpenApi) :
         @SerialName("avrg_tr_pbmn") @Contextual val averageTradePrice: BigInteger?,
         @SerialName("tr_pbmn_tnrt") @Contextual val tradePriceTurningRate: BigDecimal?,
         @SerialName("nday_tr_pbmn_tnrt") @Contextual val tradePriceTurningRateNDay: BigDecimal?,
-    ) : StockPriceChange, StockPriceBase, StockTradeFull, Response {
+    ) : StockPriceChange, StockPriceBase, StockTradeFull, Response, Ticker {
         @SerialName("error_description")
         override val errorDescription: String? = null
 

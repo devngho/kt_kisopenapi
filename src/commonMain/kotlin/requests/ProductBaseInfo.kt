@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
 class ProductBaseInfo(override val client: KisOpenApi):
     DataRequest<ProductBaseInfo.ProductBaseInfoData, ProductBaseInfo.ProductBaseInfoResponse> {
     private val url = if (client.isDemo) throw DemoError("ProductBaseInfo couldn't supports demo.")
-    else                                 "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/search-info"
+    else "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/search-info"
 
     @Serializable
     data class ProductBaseInfoResponse(
@@ -23,7 +23,7 @@ class ProductBaseInfo(override val client: KisOpenApi):
         @SerialName("rt_cd") @Serializable(with = ResultCodeSerializer::class) override val isOk: Boolean?,
 
         var output: ProductBaseInfoResponseOutput?, override var next: (suspend () -> Response)?
-    ): Response, TradeContinuousResponse, TradeIdMsg {
+    ) : Response, TradeContinuousResponse, TradeIdMsg {
         @SerialName("error_description")
         override val errorDescription: String? = null
 
@@ -54,14 +54,18 @@ class ProductBaseInfo(override val client: KisOpenApi):
         @SerialName("ivst_prdt_type_cd") override val productInvestmentType: String?,
         @SerialName("ivst_prdt_type_cd_name") override val productInvestmentTypeName: String?,
         @SerialName("frst_erlm_date") override val firstRegisterDate: String?,
-    ): BaseInfo {
+    ) : BaseInfo {
         override val errorDescription: String? = null
         override val errorCode: String? = null
     }
 
-    data class ProductBaseInfoData(val code: String, val type: ProductTypeCode,
-                                   override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data,
-        TradeContinuousData
+    data class ProductBaseInfoData(
+        /** 조회할 상품 번호 */
+        override val ticker: String,
+        /** 조회할 상품 종류 */
+        val type: ProductTypeCode,
+        override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""
+    ) : Data, TradeContinuousData, Ticker
 
     @Suppress("SpellCheckingInspection")
     override suspend fun call(data: ProductBaseInfoData): ProductBaseInfoResponse = client.rateLimiter.rated {
@@ -73,7 +77,7 @@ class ProductBaseInfo(override val client: KisOpenApi):
             data.corp?.let { corporation(it) }
             url {
                 parameters.run {
-                    set("PDNO", data.code)
+                    set("PDNO", data.ticker)
                     set("PRDT_TYPE_CD", data.type.num)
                 }
             }

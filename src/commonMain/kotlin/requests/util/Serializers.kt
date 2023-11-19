@@ -76,11 +76,10 @@ object YYYYMMDDSerializer : KSerializer<Date> {
         return deserializeDate(decoder.decodeString())
     }
 
-    @Suppress("unused")
-    val Date.YYYY_MM_DD
+    val Date.YYYYMMDD
         get() = serializeDate(this)
 
-    val String.YYYY_MM_DD
+    val String.YYYYMMDD
         get() = deserializeDate(this)
 }
 
@@ -107,10 +106,10 @@ object HHMMSSSerializer : KSerializer<Time> {
     }
 
     @Suppress("unused")
-    val Time.HH_MM_SS
+    val Time.HHMMSS
         get() = serializeTime(this)
 
-    val String.HH_MM_SS
+    val String.HHMMSS
         get() = deserializeTime(this)
 }
 

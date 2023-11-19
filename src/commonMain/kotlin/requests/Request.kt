@@ -28,13 +28,15 @@ sealed interface Request<T: Response> {
 sealed interface LiveRequest<T : LiveData, U : Response> : Request<U> {
     /**
      * 실시간 요청을 등록합니다.
-     * @param init 요청이 등록되었을 때의 콜백입니다.
-     * @param block 실시간 값이 수신되었을 때의 콜백입니다.
+     * @param data 등록할 요청의 데이터
+     * @param init 요청이 등록되었을 때의 콜백.
+     * @param block 실시간 값이 수신되었을 때의 콜백
      */
     suspend fun register(data: T, init: ((LiveResponse) -> Unit)? = null, block: (U) -> Unit)
 
     /**
      * 실시간 요청 등록을 해제합니다.
+     * @param data 등록 해제할 요청의 데이터입니다.
      */
     suspend fun unregister(data: T)
 }
@@ -42,7 +44,8 @@ sealed interface LiveRequest<T : LiveData, U : Response> : Request<U> {
 sealed interface NoDataRequest<T : Response>: Request<T>{
     @Throws(SerializationException::class, CancellationException::class, RequestError::class)
     /**
-     * 데이터를 담지 않은 요청을 전달합니다.
+     * 데이터를 담지 않고 API를 호출한 후 결과를 반환합니다.
+     * @return API 호출 결과
      * @throws SerializationException 올바르지 않은 데이터가 반환되었을 경우
      * @throws RequestError 요청에 에러가 발생했거나 올바르지 않은 데이터를 전달했을 경우
      * @see GrantToken
@@ -54,7 +57,8 @@ sealed interface NoDataRequest<T : Response>: Request<T>{
 sealed interface DataRequest<T: Data, U: Response>: Request<U> {
     @Throws(SerializationException::class, CancellationException::class, RequestError::class)
     /**
-     * 데이터를 담은 요청을 전달합니다.
+     * 데이터를 담고 API를 호출한 후 결과를 반환합니다.
+     * @return API 호출 결과
      * @throws SerializationException 올바르지 않은 데이터를 전달하거나 반환했을 경우
      * @throws RequestError 요청에 에러가 발생했거나 올바르지 않은 데이터를 전달했을 경우
      * @see InquirePrice

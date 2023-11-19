@@ -1,8 +1,8 @@
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
-    kotlin("multiplatform") version "1.9.0"
-    kotlin("plugin.serialization") version "1.9.0"
+    kotlin("multiplatform") version "1.9.20"
+    kotlin("plugin.serialization") version "1.9.20"
     id("org.jetbrains.dokka") version "1.9.0"
     id("io.kotest.multiplatform") version "5.7.2"
     `maven-publish`
@@ -10,7 +10,7 @@ plugins {
 }
 
 group = "io.github.devngho"
-version = "0.1.40"
+version = "0.1.41"
 
 repositories {
     mavenCentral()
@@ -84,61 +84,53 @@ kotlin {
             kotlinOptions.jvmTarget = "19"
         }
     }
+
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
 
     when {
-        hostOs == "Mac OS X" -> macosX64("native")
-        hostOs == "Linux" -> linuxX64("native")
-        isMingwX64 -> mingwX64("native")
+        hostOs == "Mac OS X" -> macosX64()
+        hostOs == "Linux" -> linuxX64()
+        isMingwX64 -> mingwX64()
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
-
     
     sourceSets {
         val ktorVersion = "2.1.3"
         val coroutineVersion = "1.7.3"
         val kotestVersion = "5.7.2"
 
-        val commonMain by getting {
-            dependencies {
-                implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-                implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-                implementation("com.soywiz.korlibs.krypto:krypto:4.0.0-alpha-1")
+        commonMain.dependencies {
+            implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+            implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+            implementation("com.soywiz.korlibs.krypto:krypto:4.0.0-alpha-1")
 
-                implementation("io.ktor:ktor-client-core:$ktorVersion")
-                implementation("io.ktor:ktor-client-websockets:$ktorVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
-                implementation("com.ionspin.kotlin:bignum:0.3.7")
-                implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:0.3.7")
-            }
+            implementation("io.ktor:ktor-client-core:$ktorVersion")
+            implementation("io.ktor:ktor-client-websockets:$ktorVersion")
+            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
+            implementation("com.ionspin.kotlin:bignum:0.3.7")
+            implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:0.3.7")
         }
-        val commonTest by getting {
-            dependencies {
-                implementation("io.kotest:kotest-framework-engine:$kotestVersion")
-                implementation("io.kotest:kotest-assertions-core:$kotestVersion")
-                implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
-            }
+        commonTest.dependencies {
+            implementation("io.kotest:kotest-framework-engine:$kotestVersion")
+            implementation("io.kotest:kotest-assertions-core:$kotestVersion")
+            implementation(kotlin("test-common"))
+            implementation(kotlin("test-annotations-common"))
         }
-        val jvmMain by getting {
-            dependencies {
-                implementation(kotlin("stdlib"))
-                implementation("io.ktor:ktor-client-cio:$ktorVersion")
-            }
+        jvmMain.dependencies {
+            implementation(kotlin("stdlib"))
+            implementation("io.ktor:ktor-client-cio:$ktorVersion")
         }
-        val jvmTest by getting {
-            dependencies {
-                implementation(kotlin("reflect"))
-                implementation("io.ktor:ktor-client-cio:$ktorVersion")
-                implementation("io.kotest:kotest-runner-junit5:$kotestVersion")
-            }
+        jvmTest.dependencies {
+            implementation(kotlin("reflect"))
+            implementation("io.ktor:ktor-client-cio:$ktorVersion")
+            implementation("io.kotest:kotest-runner-junit5:$kotestVersion")
         }
-        val nativeMain by getting {
-            dependencies {
-                implementation("io.ktor:ktor-client-curl:$ktorVersion")
-            }
+        nativeMain.dependencies {
+            implementation("io.ktor:ktor-client-curl:$ktorVersion")
         }
+
+        applyDefaultHierarchyTemplate()
     }
 }
 
@@ -152,19 +144,30 @@ tasks {
             "publishJvmPublicationToMavenLocal"
         )
     }
-    getByName("signNativePublication") {
-        if (version.toString().endsWith("SNAPSHOT")) dependsOn(
-            "publishJvmPublicationToSonatypeSnapshotRepositoryRepository",
-            "publishJvmPublicationToMavenLocal",
-            "publishKotlinMultiplatformPublicationToMavenLocal",
-            "publishKotlinMultiplatformPublicationToSonatypeSnapshotRepositoryRepository"
-        )
-        else dependsOn(
-            "publishJvmPublicationToSonatypeReleaseRepositoryRepository",
-            "publishJvmPublicationToMavenLocal",
-            "publishKotlinMultiplatformPublicationToMavenLocal",
-            "publishKotlinMultiplatformPublicationToSonatypeReleaseRepositoryRepository"
-        )
+
+    val hostOs = System.getProperty("os.name")
+    val isMingwX64 = hostOs.startsWith("Windows")
+    val nativeTargets = mutableListOf<String>()
+
+    if (hostOs == "MAac OS X") nativeTargets.add("MacOSX64")
+    if (hostOs == "Linux") nativeTargets.add("LinuxX64")
+    if (isMingwX64) nativeTargets.add("MingwX64")
+
+    nativeTargets.forEach { target ->
+        getByName("sign${target}Publication") {
+            if (version.toString().endsWith("SNAPSHOT")) dependsOn(
+                "publishJvmPublicationToSonatypeSnapshotRepositoryRepository",
+                "publishJvmPublicationToMavenLocal",
+                "publishKotlinMultiplatformPublicationToMavenLocal",
+                "publishKotlinMultiplatformPublicationToSonatypeSnapshotRepositoryRepository"
+            )
+            else dependsOn(
+                "publishJvmPublicationToSonatypeReleaseRepositoryRepository",
+                "publishJvmPublicationToMavenLocal",
+                "publishKotlinMultiplatformPublicationToMavenLocal",
+                "publishKotlinMultiplatformPublicationToSonatypeReleaseRepositoryRepository"
+            )
+        }
     }
     named<Test>("jvmTest") {
         useJUnitPlatform()

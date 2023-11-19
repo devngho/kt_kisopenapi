@@ -46,18 +46,22 @@ class OrderAmend(override val client: KisOpenApi) :
     @Suppress("SpellCheckingInspection")
     data class OrderData(
         @SerialName("ORD_DVSN") val orderType: OrderTypeCode,
+        /** 전부 정정하려면 원 주문 수량을 입력하세요.
+         * 일부를 정정하려면 정정하려는 수량을 입력하세요.
+         */
         @SerialName("ORD_QTY") val count: BigInteger,
         @SerialName("ORD_UNPR") val price: BigInteger = BigInteger(0),
         @SerialName("ORGN_ODNO") val orderNumber: String,
         @SerialName("QTY_ALL_ORD_YN") @Serializable(with = YNSerializer::class) val orderAll: Boolean,
         @SerialName("CANO") val accountNumber: String? = null,
         @SerialName("ACNT_PRDT_CD") val accountProductCode: String? = null,
-        @SerialName("KRX_FWDG_ORD_ORGNO") val orderOffice: String? = null,
         override var corp: CorporationRequest? = null,
         override var tradeContinuous: String? = ""
     ) : Data, TradeContinuousData {
         @SerialName("RVSE_CNCL_DVSN_CD")
         val isAmendOrCancel = "01"
+        @SerialName("KRX_FWDG_ORD_ORGNO")
+        val orderOffice: String = ""
     }
 
     @Suppress("SpellCheckingInspection")

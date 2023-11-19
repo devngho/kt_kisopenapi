@@ -89,10 +89,11 @@ class InquirePricePerDay(override val client: KisOpenApi):
     }
 
     data class InquirePricePerDayData(
-        val ticker: String,
+        override val ticker: String,
         val period: PeriodDivisionCode = PeriodDivisionCode.Days30,
         val useOriginalPrice: Boolean = false,
-                                      override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data, TradeContinuousData
+        override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""
+    ) : Data, TradeContinuousData, Ticker
 
     @Suppress("SpellCheckingInspection")
     override suspend fun call(data: InquirePricePerDayData): InquirePricePerDayResponse = client.rateLimiter.rated {

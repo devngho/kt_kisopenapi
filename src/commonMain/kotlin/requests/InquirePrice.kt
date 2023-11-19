@@ -47,7 +47,7 @@ class InquirePrice(override val client: KisOpenApi):
         @SerialName("oprc_rang_cont_yn") @Serializable(with = YNSerializer::class) override val marketPriceRangeExtended: Boolean?,
         @SerialName("clpr_rang_cont_yn") @Serializable(with = YNSerializer::class) override val endPriceRangeExtended: Boolean?,
         @SerialName("crdt_able_yn") @Serializable(with = YNSerializer::class) override val creditAble: Boolean?,
-        @SerialName("clw_pblc_yn") @Serializable(with = YNSerializer::class) override val hasElw: Boolean?,
+        @SerialName("elw_pblc_yn") @Serializable(with = YNSerializer::class) override val hasElw: Boolean?,
         @SerialName("stck_prpr") @Contextual override val price: BigInteger?,
         @SerialName("prdy_vrss") @Contextual override val changeFromYesterday: BigInteger?,
         @SerialName("prdy_vrss_sign") override val signFromYesterday: SignPrice?,
@@ -74,7 +74,7 @@ class InquirePrice(override val client: KisOpenApi):
         @SerialName("rstc_wdth_prc") @Contextual override val restrictedWidthPrice: BigInteger?,
         @SerialName("stck_fcam") @Contextual override val facePrice: BigInteger?,
         @SerialName("stck_sspr") @Contextual override val substitutePrice: BigInteger?,
-        @SerialName("rstc_wdth_pc") @Contextual override val askingPrice: BigInteger?,
+        @SerialName("aspr_unit") @Contextual override val askingPriceUnit: BigInteger?,
         @SerialName("hts_deal_qty_unit_val") @Contextual override val htsSellCountUnit: BigInteger?,
         @SerialName("lstn_stcn") @Contextual override val listedStockCount: BigInteger?,
         @SerialName("hts_avls") @Contextual override val htsMarketCap: BigInteger?,
@@ -85,17 +85,23 @@ class InquirePrice(override val client: KisOpenApi):
         @SerialName("eps") @Contextual override val eps: BigDecimal?,
         @SerialName("bps") @Contextual override val bps: BigDecimal?,
         @SerialName("d250_hgpr") @Contextual override val highPriceD250: BigInteger?,
-        @SerialName("d250_hgpr_date") override val highPriceDateD250: String?,
+        @Serializable(with = YYYYMMDDSerializer::class) @SerialName("d250_hgpr_date") override val highPriceDateD250: Date?,
+        @SerialName("d250_hgpr_vrss_prpr_rate") @Contextual override val highPriceRateD250: BigDecimal?,
         @SerialName("d250_lwpr") @Contextual override val lowPriceD250: BigInteger?,
-        @SerialName("d250_lwpr_date") override val lowPriceDateD250: String?,
+        @Serializable(with = YYYYMMDDSerializer::class) @SerialName("d250_lwpr_date") override val lowPriceDateD250: Date?,
+        @SerialName("d250_lwpr_vrss_prpr_rate") @Contextual override val lowPriceRateD250: BigDecimal?,
         @SerialName("stck_dryy_hgpr") @Contextual override val highPriceInYear: BigInteger?,
-        @SerialName("dryy_hgpr_date") override val highPriceDateInYear: String?,
+        @Serializable(with = YYYYMMDDSerializer::class) @SerialName("dryy_hgpr_date") override val highPriceDateInYear: Date?,
+        @SerialName("dryy_hgpr_vrss_prpr_rate") @Contextual override val highPriceRateInYear: BigDecimal?,
         @SerialName("stck_dryy_lwpr") @Contextual override val lowPriceInYear: BigInteger?,
-        @SerialName("dryy_lwpr_date") override val lowPriceDateInYear: String?,
+        @Serializable(with = YYYYMMDDSerializer::class) @SerialName("dryy_lwpr_date") override val lowPriceDateInYear: Date?,
+        @SerialName("dryy_lwpr_vrss_prpr_rate") @Contextual override val lowPriceRateInYear: BigDecimal?,
         @SerialName("w52_hgpr") @Contextual override val highPriceW52: BigInteger?,
-        @SerialName("w52_hgpr_date") @Contextual override val highPriceDateW52: BigInteger?,
+        @Serializable(with = YYYYMMDDSerializer::class) @SerialName("w52_hgpr_date") @Contextual override val highPriceDateW52: Date?,
+        @SerialName("w52_hgpr_vrss_prpr_ctrt") @Contextual override val highPriceRateW52: BigDecimal?,
         @SerialName("w52_lwpr") @Contextual override val lowPriceW52: BigInteger?,
-        @SerialName("w52_lwpr_date") override val lowPriceDateW52: String?,
+        @Serializable(with = YYYYMMDDSerializer::class) @SerialName("w52_lwpr_date") override val lowPriceDateW52: Date?,
+        @SerialName("w52_lwpr_vrss_prpr_ctrt") @Contextual override val lowPriceRateW52: BigDecimal?,
         @SerialName("whol_loan_rmnd_rate") @Contextual override val totalLoanBalanceRate: BigDecimal?,
         @SerialName("ssts_yn") @Serializable(with = YNSerializer::class) override val shortSelling: Boolean?,
         @SerialName("stck_shrn_iscd") override val ticker: String?,
@@ -110,7 +116,8 @@ class InquirePrice(override val client: KisOpenApi):
         @SerialName("mrkt_warn_cls_code") override val marketWarnCode: MarketWarnCode?,
         @SerialName("short_over_yn") @Serializable(with = YNSerializer::class) override val shortOver: Boolean?,
         @SerialName("stck_sdpr") @Contextual override val criteriaPrice: BigInteger?,
-        @SerialName("acml_tr_pbmn") @Contextual override val accumulateTradePrice: BigInteger?
+        @SerialName("acml_tr_pbmn") @Contextual override val accumulateTradePrice: BigInteger?,
+        @SerialName("sltr_yn") @Serializable(with = YNSerializer::class) override val settlement: Boolean?
     ): StockPriceFull, StockTradeFull {
         @SerialName("error_description")
         override val errorDescription: String? = null
@@ -120,10 +127,10 @@ class InquirePrice(override val client: KisOpenApi):
     }
 
     data class InquirePriceData(
-        val ticker: String,
+        override val ticker: String,
         override var corp: CorporationRequest? = null,
         override var tradeContinuous: String? = ""
-    ) : Data, TradeContinuousData
+    ) : Data, TradeContinuousData, Ticker
 
     @Suppress("SpellCheckingInspection")
     override suspend fun call(data: InquirePriceData): InquirePriceResponse = client.rateLimiter.rated {

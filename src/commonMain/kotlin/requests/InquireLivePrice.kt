@@ -7,6 +7,7 @@ import com.ionspin.kotlin.bignum.integer.toBigInteger
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.response.CorporationRequest
 import io.github.devngho.kisopenapi.requests.response.LiveResponse
+import io.github.devngho.kisopenapi.requests.response.Ticker
 import io.github.devngho.kisopenapi.requests.util.HourCode
 import io.github.devngho.kisopenapi.requests.util.SignPrice
 import io.github.devngho.kisopenapi.requests.util.YNSerializer
@@ -96,8 +97,9 @@ class InquireLivePrice(override val client: KisOpenApi): LiveRequest<InquireLive
         override val errorCode: String? = null
     }
 
-    data class InquireLivePriceData(val stockCode: String, override var corp: CorporationRequest? = null) : LiveData {
-        override fun tradeKey(client: KisOpenApi): String = stockCode
+    data class InquireLivePriceData(override val ticker: String, override var corp: CorporationRequest? = null) :
+        LiveData, Ticker {
+        override fun tradeKey(client: KisOpenApi): String = ticker
     }
 
     private lateinit var job: Job

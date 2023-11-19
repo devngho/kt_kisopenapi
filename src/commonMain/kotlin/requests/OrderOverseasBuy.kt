@@ -46,7 +46,7 @@ class OrderOverseasBuy(override val client: KisOpenApi):
 
     @Suppress("SpellCheckingInspection")
     data class OrderData(
-        @SerialName("PDNO") val ticker: String,
+        @SerialName("PDNO") override val ticker: String,
         @Transient val market: OverseasMarket,
         @Transient val orderType: OrderTypeCode,
         @SerialName("ORD_QTY") val count: BigInteger,
@@ -59,7 +59,7 @@ class OrderOverseasBuy(override val client: KisOpenApi):
         @SerialName("ORD_DVSN") val orderTypeId: String = "",
         override var corp: CorporationRequest? = null,
         override var tradeContinuous: String? = ""
-    ) : Data, TradeContinuousData
+    ) : Data, TradeContinuousData, Ticker
 
     override suspend fun call(data: OrderData): OrderResponse = client.rateLimiter.rated {
         if (data.corp == null) data.corp = client.corp

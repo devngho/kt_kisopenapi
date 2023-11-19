@@ -3,10 +3,7 @@ package io.github.devngho.kisopenapi.requests
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.KisOpenApi
-import io.github.devngho.kisopenapi.requests.response.CorporationRequest
-import io.github.devngho.kisopenapi.requests.response.StockOverseasPrice
-import io.github.devngho.kisopenapi.requests.response.TradeContinuousResponse
-import io.github.devngho.kisopenapi.requests.response.TradeIdMsg
+import io.github.devngho.kisopenapi.requests.response.*
 import io.github.devngho.kisopenapi.requests.util.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -40,28 +37,42 @@ class InquireOverseasCondition(override val client: KisOpenApi): DataRequest<Inq
     @Serializable
     @Suppress("SpellCheckingInspection")
     data class ConditionResponseOutput @OptIn(ExperimentalSerializationApi::class) constructor(
-        @SerialName("symb") val code: String?,
+        @SerialName("symb") override val ticker: String?,
+        /** 실시간 조회 심볼 */
         @SerialName("rsym") val liveLoadCode: String?,
+        /** 해외 거래소 */
         @SerialName("excd") @Serializable(with = OverseasMarket.OverseasMarketSerializer::class) val exchange: OverseasMarket?,
         @SerialName("zdiv") override val decimalPoint: Int? = null,
+        /** 전일 종가 */
         @SerialName("base") @Contextual val priceYesterday: BigDecimal?,
+        /** 전일 거래량 */
         @SerialName("pvol") @Contextual val tradeVolumeYesterday: BigInteger?,
         @SerialName("last") @Contextual override val price: BigDecimal?,
-        @SerialName("plow") @Contextual val priceLow: BigDecimal?,
-        @SerialName("phigh") @Contextual val priceHigh: BigDecimal?,
-        @SerialName("popen") @Contextual val priceMarket: BigDecimal?,
+        /** 저가 */
+        @SerialName("plow") @Contextual val minPrice: BigDecimal?,
+        /** 고가 */
+        @SerialName("phigh") @Contextual val maxPrice: BigDecimal?,
+        /** 시가 */
+        @SerialName("popen") @Contextual val openingPrice: BigDecimal?,
+        /** 부호 */
         @SerialName("sign") override val sign: SignPrice?,
         @SerialName("diff") @Contextual override val changeFromYesterday: BigDecimal?,
         @SerialName("rate") @Contextual override val rateFromYesterday: BigDecimal?,
         @SerialName("tvol") @Contextual override val tradeVolume: BigInteger?,
         @SerialName("avol") @Contextual override val tradePriceVolume: BigDecimal?,
+        /** 발행 주식 */
         @SerialName("shar") @Contextual val share: BigInteger?,
+        /** 시가총액 */
         @SerialName("valx") @Contextual val marketCap: BigDecimal?,
+        /** 종목명(한글) */
         @SerialName("name") val name: String?,
+        /** 종목명(영문) */
         @SerialName("enmae") val nameEnglish: String?,
+        /** 거래 가능 여부 */
         @SerialName("e_ordyn") @Contextual val canBuy: String?,
+        /** 순위 */
         @SerialName("rank") val rank: Int?,
-    ): StockOverseasPrice {
+    ) : StockOverseasPrice, Ticker {
         @SerialName("error_description")
         override val errorDescription: String? = null
 

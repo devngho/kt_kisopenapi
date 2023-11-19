@@ -2,8 +2,8 @@ import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.*
 import io.github.devngho.kisopenapi.requests.util.*
-import io.github.devngho.kisopenapi.requests.util.HHMMSSSerializer.HH_MM_SS
-import io.github.devngho.kisopenapi.requests.util.YYYYMMDDSerializer.YYYY_MM_DD
+import io.github.devngho.kisopenapi.requests.util.HHMMSSSerializer.HHMMSS
+import io.github.devngho.kisopenapi.requests.util.YYYYMMDDSerializer.YYYYMMDD
 import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.comparables.shouldBeGreaterThanOrEqualTo
@@ -28,7 +28,11 @@ val api: KisOpenApi by lazy {
         try {
             KisOpenApi.withToken(
                 token[0], key[0], key[1], false, account = account[0], websocketToken = token[1], hashKey = true
-            ).apply { InquirePrice(this).call(InquirePrice.InquirePriceData(testStock)) }
+            ).apply {
+                if (InquirePrice(this).call(InquirePrice.InquirePriceData(testStock))
+                        .msg == "기간이 만료된 token 입니다."
+                ) throw Exception()
+            }
         } catch (_: Exception) {
             KisOpenApi.withToken(
                 "", key[0], key[1], false, account = account[0], websocketToken = "", hashKey = true
@@ -180,17 +184,17 @@ class InquireTest : BehaviorSpec({
                 then("2023년 1월 1일부터 3월 31일까지의 가격을 반환한다") {
                     res.output2!!.count() shouldBe 62
 
-                    res.output2!!.all { it.bizDate!!.YYYY_MM_DD.let { it.year == 2023 && (1..3).contains(it.month) } } shouldBe true
+                    res.output2!!.all { it.bizDate!!.YYYYMMDD.let { it.year == 2023 && (1..3).contains(it.month) } } shouldBe true
                 }
                 then("역순으로 정렬되어 있다") {
-                    res.output2!!.sortedBy { it.bizDate!!.YYYY_MM_DD } shouldBe res.output2!!.reversed()
+                    res.output2!!.sortedBy { it.bizDate!!.YYYYMMDD } shouldBe res.output2!!.reversed()
                 }
             }
             `when`("InquireTodayMinute 호출") {
                 val res = InquirePriceTodayMinute(api).call(
                     InquirePriceTodayMinute.InquirePriceTodayMinuteData(
                         testStock,
-                        "083000",
+                        "083000".HHMMSS,
                         true
                     )
                 )
@@ -205,8 +209,8 @@ class InquireTest : BehaviorSpec({
                     res.output2!!.all { it.price != null } shouldBe true
                 }
                 then("30분 동안의 가격을 반환한다") {
-                    val first = res.output2!!.minBy { it.stockConfirmTime!!.HH_MM_SS }.stockConfirmTime!!.HH_MM_SS
-                    val last = res.output2!!.maxBy { it.stockConfirmTime!!.HH_MM_SS }.stockConfirmTime!!.HH_MM_SS
+                    val first = res.output2!!.minBy { it.stockConfirmTime!!.HHMMSS }.stockConfirmTime!!.HHMMSS
+                    val last = res.output2!!.maxBy { it.stockConfirmTime!!.HHMMSS }.stockConfirmTime!!.HHMMSS
 
                     val minuteDifference = (last.hour - first.hour) * 60 + (last.minute - first.minute)
                     minuteDifference shouldBe 29
@@ -262,7 +266,7 @@ class InquireTest : BehaviorSpec({
             }
         }
         `when`("InquireHoliday 호출") {
-            val res = InquireHoliday(api).call(InquireHoliday.InquireHolidayData("20230101"))
+            val res = InquireHoliday(api).call(InquireHoliday.InquireHolidayData("20230101".YYYYMMDD))
 
             then("성공한다") {
                 res.isOk shouldBe true
@@ -358,8 +362,9 @@ class InquireTest : BehaviorSpec({
             then("빈 리스트를 반환하지 않는다") {
                 result.output shouldNotBe null
             }
-            then("가격을 반환한다") {
+            then("정보를 반환한다") {
                 result.output!!.all { it.price != null } shouldBe true
+                result.output!!.all { it.rank != null } shouldBe true
             }
             then("가격 범위를 만족한다") {
                 result.output!!.forEach {

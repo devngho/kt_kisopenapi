@@ -61,11 +61,11 @@ class InquireOverseasPrice(override val client: KisOpenApi):
     }
 
     data class InquirePriceData(
-        val ticker: String,
+        override val ticker: String,
         val market: OverseasMarket,
         override var corp: CorporationRequest? = null,
         override var tradeContinuous: String? = ""
-    ) : Data, TradeContinuousData
+    ) : Data, TradeContinuousData, Ticker
 
     @Suppress("SpellCheckingInspection")
     override suspend fun call(data: InquirePriceData): InquirePriceResponse = client.rateLimiter.rated {

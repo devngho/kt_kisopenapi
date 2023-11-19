@@ -8,9 +8,10 @@ import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.response.CorporationRequest
 import io.github.devngho.kisopenapi.requests.response.LiveResponse
 import io.github.devngho.kisopenapi.requests.response.StockOverseasPrice
+import io.github.devngho.kisopenapi.requests.response.Ticker
 import io.github.devngho.kisopenapi.requests.util.*
-import io.github.devngho.kisopenapi.requests.util.HHMMSSSerializer.HH_MM_SS
-import io.github.devngho.kisopenapi.requests.util.YYYYMMDDSerializer.YYYY_MM_DD
+import io.github.devngho.kisopenapi.requests.util.HHMMSSSerializer.HHMMSS
+import io.github.devngho.kisopenapi.requests.util.YYYYMMDDSerializer.YYYYMMDD
 import io.ktor.websocket.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -42,7 +43,7 @@ class InquireOverseasLivePrice(override val client: KisOpenApi): LiveRequest<Inq
     @Suppress("SpellCheckingInspection")
     data class InquireLivePriceResponse(
         @SerialName("RSYM") val liveLoadCode: String?,
-        @SerialName("SYMB") val stockCode: String?,
+        @SerialName("SYMB") override val ticker: String?,
         @SerialName("ZDIV") override val decimalPoint: Int?,
         @SerialName("TYMD") val localMarketDate: Date?,
         @SerialName("XYMD") val localDate: Date?,
@@ -67,7 +68,7 @@ class InquireOverseasLivePrice(override val client: KisOpenApi): LiveRequest<Inq
         @SerialName("ASVL") @Contextual val sellConfirmVolume: BigInteger?,
         @SerialName("STRN") @Contextual val confirmStrength: BigDecimal?,
         @SerialName("MTYP") val marketStatus: MarketStatus?,
-    ): Response, StockOverseasPrice {
+    ) : Response, StockOverseasPrice, Ticker {
         @SerialName("error_description")
         override val errorDescription: String? = null
 
@@ -76,10 +77,10 @@ class InquireOverseasLivePrice(override val client: KisOpenApi): LiveRequest<Inq
     }
 
     data class InquireLivePriceData(
-        val ticker: String,
+        override val ticker: String,
         val market: OverseasMarket,
         override var corp: CorporationRequest? = null
-    ) : LiveData {
+    ) : LiveData, Ticker {
         override fun tradeKey(client: KisOpenApi): String = "D${market.code}$ticker"
     }
 
@@ -124,11 +125,11 @@ class InquireOverseasLivePrice(override val client: KisOpenApi): LiveRequest<Inq
                                             this[0],
                                             this[1],
                                             this[2].toInt(),
-                                            this[3].YYYY_MM_DD,
-                                            this[4].YYYY_MM_DD,
-                                            this[5].HH_MM_SS,
-                                            this[6].YYYY_MM_DD,
-                                            this[7].HH_MM_SS,
+                                            this[3].YYYYMMDD,
+                                            this[4].YYYYMMDD,
+                                            this[5].HHMMSS,
+                                            this[6].YYYYMMDD,
+                                            this[7].HHMMSS,
                                             this[8].toBigDecimal(),
                                             this[9].toBigDecimal(),
                                             this[10].toBigDecimal(),

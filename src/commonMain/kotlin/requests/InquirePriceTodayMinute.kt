@@ -5,6 +5,7 @@ import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.response.*
 import io.github.devngho.kisopenapi.requests.util.*
+import io.github.devngho.kisopenapi.requests.util.HHMMSSSerializer.HHMMSS
 import io.github.devngho.kisopenapi.requests.util.YNSerializer.YN
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -80,12 +81,11 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
     }
 
     data class InquirePriceTodayMinuteData(
-        val ticker: String,
-        /** Time style : HHMMSS */
-        val startDate: String,
+        override val ticker: String,
+        val startDate: Time,
         val usePreviousData: Boolean,
         override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""
-    ) : Data, TradeContinuousData
+    ) : Data, TradeContinuousData, Ticker
 
     @Suppress("SpellCheckingInspection")
     override suspend fun call(data: InquirePriceTodayMinuteData): InquirePriceTodayMinuteResponse =
@@ -101,7 +101,7 @@ class InquirePriceTodayMinute(override val client: KisOpenApi):
             url {
                 parameters.run {
                     set("FID_ETC_CLS_CODE", "")
-                    set("FID_INPUT_HOUR_1", data.startDate)
+                    set("FID_INPUT_HOUR_1", data.startDate.HHMMSS)
                     set("FID_PW_DATA_INCU_YN", data.usePreviousData.YN)
                 }
             }

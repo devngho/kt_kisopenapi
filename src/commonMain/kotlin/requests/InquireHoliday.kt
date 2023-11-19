@@ -3,6 +3,7 @@ package io.github.devngho.kisopenapi.requests
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.response.*
 import io.github.devngho.kisopenapi.requests.util.*
+import io.github.devngho.kisopenapi.requests.util.YYYYMMDDSerializer.YYYYMMDD
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import kotlinx.serialization.SerialName
@@ -50,10 +51,7 @@ class InquireHoliday(override val client: KisOpenApi):
     }
 
     data class InquireHolidayData(
-        /**
-         * date style : YYYYMMDD
-         */
-        val baseDate: String,
+        val baseDate: Date,
         override var corp: CorporationRequest? = null,
         override var tradeContinuous: String? = "",
         val continuousAreaFK: String = "",
@@ -70,7 +68,7 @@ class InquireHoliday(override val client: KisOpenApi):
 
             url {
                 parameters.run {
-                    set("BASS_DT", data.baseDate)
+                    set("BASS_DT", data.baseDate.YYYYMMDD)
                     set("CTX_AREA_NK", data.continuousAreaNK)
                     set("CTX_AREA_FK", data.continuousAreaFK)
                 }

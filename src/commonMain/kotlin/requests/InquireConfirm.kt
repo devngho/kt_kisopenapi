@@ -47,11 +47,11 @@ class InquireConfirm(override val client: KisOpenApi):
     ): StockPriceBase, StockPriceChange
 
     data class InquireConfirmData(
-        val stockCode: String,
+        override val ticker: String,
         /** 기본적으로 KisOpenApi corp 값을 불러옵니다. */
         override var corp: CorporationRequest? = null,
         override var tradeContinuous: String? = ""
-    ) : Data, TradeContinuousData
+    ) : Data, TradeContinuousData, Ticker
 
     @Suppress("SpellCheckingInspection")
     override suspend fun call(data: InquireConfirmData): InquireConfirmResponse = client.rateLimiter.rated {
@@ -60,7 +60,7 @@ class InquireConfirm(override val client: KisOpenApi):
         val res = client.httpClient.get(url) {
             auth(client)
             tradeId("FHKST01010300")
-            stock(data.stockCode)
+            stock(data.ticker)
             data.corp?.let { corporation(it) }
         }
         res.body<InquireConfirmResponse>().apply {

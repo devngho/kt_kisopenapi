@@ -5,7 +5,7 @@ import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.KisOpenApi
 import io.github.devngho.kisopenapi.requests.response.*
 import io.github.devngho.kisopenapi.requests.util.*
-import io.github.devngho.kisopenapi.requests.util.YYYYMMDDSerializer.YYYY_MM_DD
+import io.github.devngho.kisopenapi.requests.util.YYYYMMDDSerializer.YYYYMMDD
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import kotlinx.serialization.*
@@ -91,12 +91,13 @@ class InquirePriceSeries(override val client: KisOpenApi):
     }
 
     data class InquirePriceSeriesData(
-        val ticker: String,
+        override val ticker: String,
         val period: PeriodDivisionCode = PeriodDivisionCode.Days,
         val useOriginalPrice: Boolean = false,
         val startDate: Date = Date(0, 0, 0),
         val endDate: Date = Date(0, 0, 0),
-        override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""): Data, TradeContinuousData
+        override var corp: CorporationRequest? = null, override var tradeContinuous: String? = ""
+    ) : Data, TradeContinuousData, Ticker
 
     @Suppress("SpellCheckingInspection")
     override suspend fun call(data: InquirePriceSeriesData): InquirePriceSeriesResponse = client.rateLimiter.rated {
@@ -111,8 +112,8 @@ class InquirePriceSeries(override val client: KisOpenApi):
             url {
                 parameters.run {
                     append("FID_PERIOD_DIV_CODE", data.period.num)
-                    append("FID_INPUT_DATE_1", data.startDate.YYYY_MM_DD)
-                    append("FID_INPUT_DATE_2", data.endDate.YYYY_MM_DD)
+                    append("FID_INPUT_DATE_1", data.startDate.YYYYMMDD)
+                    append("FID_INPUT_DATE_2", data.endDate.YYYYMMDD)
                     append("FID_ORG_ADJ_PRC", if (data.useOriginalPrice) "1" else "0")
                 }
             }

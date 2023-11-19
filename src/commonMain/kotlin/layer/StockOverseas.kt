@@ -86,6 +86,44 @@ class StockOverseas(override val client: KisOpenApi, override val ticker: String
         }
     }
 
+    override suspend fun amend(
+        order: OrderOverseasBuy.OrderResponse,
+        count: BigInteger,
+        type: OrderTypeCode,
+        price: BigDecimal
+    ): OrderOverseasAmend.OrderResponse {
+        if (client.account == null) throw RequestError("Amend request need account.")
+        else {
+            return OrderOverseasAmend(client).call(
+                OrderOverseasAmend.OrderData(
+                    ticker,
+                    market,
+                    count,
+                    price,
+                    order.output?.orderNumber ?: throw RequestError("Amend request need order number.")
+                )
+            )
+        }
+    }
+
+    override suspend fun cancel(
+        order: OrderOverseasBuy.OrderResponse,
+        count: BigInteger,
+        type: OrderTypeCode
+    ): OrderOverseasCancel.OrderResponse {
+        if (client.account == null) throw RequestError("Cancel request need account.")
+        else {
+            return OrderOverseasCancel(client).call(
+                OrderOverseasCancel.OrderData(
+                    ticker,
+                    market,
+                    count,
+                    order.output?.orderNumber ?: throw RequestError("Cancel request need order number.")
+                )
+            )
+        }
+    }
+
     override suspend fun useLiveConfirmPrice(block: Closeable.(InquireOverseasLivePrice.InquireLivePriceResponse) -> Unit) {
         runBlocking {
             InquireOverseasLivePrice(client).apply {
