@@ -31,12 +31,12 @@ jobs:
       - name: Publish package
         uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
         with:
-          arguments: publish
+          arguments: publish "-DORG_GRADLE_PROJECT_sonatypeReleaseRepositoryPassword=$ORG_GRADLE_PROJECT_sonatypeReleaseRepositoryPassword" "-DORG_GRADLE_PROJECT_sonatypeReleaseRepositoryUsername=$ORG_GRADLE_PROJECT_sonatypeReleaseRepositoryUsername" "-Dgradle.publish.key=$gradle_publish_key" "-Dgradle.publish.secret=$gradle_publish_secret" "-Dsigning.keyId=$signing_keyId" "-Dsigning.secretKeyRingFile=$signing_secretKeyRingFile"
         env:
           ORG_GRADLE_PROJECT_sonatypeReleaseRepositoryPassword: ${{ secrets.OSSRH_PASSWORD }}
           ORG_GRADLE_PROJECT_sonatypeReleaseRepositoryUsername: ${{ secrets.OSSRH_USERNAME }}
-          gradle.publish.key: ${{ secrets.GRADLE_PUBLISH_KEY }}
-          gradle.publish.secret: ${{ secrets.GRADLE_PUBLISH_SECRET }}
-          signing.keyId: ${{ secrets.SIGNING_KEY_ID }}
-          signing.password: ${{ secrets.SIGNING_PASSWORD }}
-          signing.secretKeyRingFile: "./private.gpg"
+          gradle_publish_key: ${{ secrets.GRADLE_PUBLISH_KEY }}
+          gradle_publish_secret: ${{ secrets.GRADLE_PUBLISH_SECRET }}
+          signing_keyId: ${{ secrets.SIGNING_KEY_ID }}
+          signing_password: ${{ secrets.SIGNING_PASSWORD }}
+          signing_secretKeyRingFile: "./private.gpg"
