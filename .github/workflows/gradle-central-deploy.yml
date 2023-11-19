@@ -24,6 +24,9 @@ jobs:
         with:
           gpg_private_key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.MAVEN_GPG_PASSWORD }}
+      - name: Copy GPG Key ring
+        run: |
+          cp /home/runner/.gnupg/trustdb.gpg ./trustdb.gpg
       - name: Make gradlew executable
         if: matrix.platform != 'windows-latest'
         run: chmod +x ./gradlew
@@ -32,7 +35,7 @@ jobs:
       - name: Publish package
         shell: bash
         run: |
-          ./gradlew publish -PORG_GRADLE_PROJECT_sonatypeReleaseRepositoryPassword=$ORG_GRADLE_PROJECT_sonatypeReleaseRepositoryPassword -PORG_GRADLE_PROJECT_sonatypeReleaseRepositoryUsername=$ORG_GRADLE_PROJECT_sonatypeReleaseRepositoryUsername -Pgradle.publish.key=$gradle_publish_key -Pgradle.publish.secret=$gradle_publish_secret -Psigning.keyId=$signing_keyId -Psigning.password=$signing_password -Psigning.secretKeyRingFile=~/.gnupg/trustdb.gpg
+          ./gradlew publish -PORG_GRADLE_PROJECT_sonatypeReleaseRepositoryPassword=$ORG_GRADLE_PROJECT_sonatypeReleaseRepositoryPassword -PORG_GRADLE_PROJECT_sonatypeReleaseRepositoryUsername=$ORG_GRADLE_PROJECT_sonatypeReleaseRepositoryUsername -Pgradle.publish.key=$gradle_publish_key -Pgradle.publish.secret=$gradle_publish_secret -Psigning.keyId=$signing_keyId -Psigning.password=$signing_password -Psigning.secretKeyRingFile=./trustdb.gpg
         env:
           ORG_GRADLE_PROJECT_sonatypeReleaseRepositoryPassword: ${{ secrets.OSSRH_PASSWORD }}
           ORG_GRADLE_PROJECT_sonatypeReleaseRepositoryUsername: ${{ secrets.OSSRH_USERNAME }}
