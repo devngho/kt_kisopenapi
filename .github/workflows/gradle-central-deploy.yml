@@ -8,7 +8,7 @@ jobs:
     name: Create staging repository
     runs-on: ubuntu-latest
     outputs:
-      repository_id: ${{ steps.create.outputs.repository_id }}
+      repository_id: ${{ steps.mask.outputs.repository_id }}
     steps:
       - id: create
         uses: nexus-actions/create-nexus-staging-repo@main
@@ -19,9 +19,11 @@ jobs:
           base_url: https://s01.oss.sonatype.org/service/local/
           description: ${{ github.repository }}/${{ github.workflow }}#${{ github.run_number }}
       - name: Mask values
+        id: mask
         shell: bash
         run: |
           echo "::add-mask::${{ steps.create.outputs.repository_id }}"
+          echo "repository_id=${{ steps.create.outputs.repository_id }}" >> "$GITHUB_OUTPUT"
   publish:
     permissions:
       contents: write
