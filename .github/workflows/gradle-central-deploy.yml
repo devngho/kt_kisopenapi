@@ -11,12 +11,13 @@ jobs:
       repository_id: ${{ steps.create.outputs.repository_id }}
     steps:
       - id: create
-        uses: nexus-actions/create-nexus-staging-repo@v1.1
+        uses: nexus-actions/create-nexus-staging-repo@main
         with:
           username: ${{ secrets.OSSRH_USERNAME }}
           password: ${{ secrets.OSSRH_PASSWORD }}
           staging_profile_id: ${{ secrets.SONATYPE_PROFILE_ID }}
           base_url: https://s01.oss.sonatype.org/service/local/
+          description: ${{ github.repository }}/${{ github.workflow }}#${{ github.run_number }}
   publish:
     permissions:
       contents: write
@@ -49,6 +50,11 @@ jobs:
         run: chmod +x ./gradlew
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@ccb4328a959376b642e027874838f60f8e596de3
+      - name: Logging staging repo
+        run: |
+          echo $SONATYPE_REPOSITORY_ID
+        env:
+          SONATYPE_REPOSITORY_ID: ${{ needs.create-staging-repository.outputs.repository-id }}
       - name: Publish package
         shell: bash
         run: |
