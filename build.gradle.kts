@@ -1,16 +1,18 @@
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
     kotlin("multiplatform") version "1.9.20"
     kotlin("plugin.serialization") version "1.9.20"
     id("org.jetbrains.dokka") version "1.9.0"
     id("io.kotest.multiplatform") version "5.7.2"
+    id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
     `maven-publish`
     signing
 }
 
 group = "io.github.devngho"
-version = "0.1.41"
+version = "0.1.42"
 
 repositories {
     mavenCentral()
@@ -24,22 +26,37 @@ val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
     from(dokkaHtml.outputDirectory)
 }
 
-kotlin {
+kotlin @ExperimentalWasmDsl {
     publishing {
         signing {
             sign(publishing.publications)
         }
 
         repositories {
-            if (version.toString().endsWith("SNAPSHOT")) {
-                maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") {
-                    name = "sonatypeSnapshotRepository"
-                    credentials(PasswordCredentials::class)
+            val id: String =
+                if (project.hasProperty("repoUsername")) project.property("repoUsername") as String
+                else System.getenv("repoUsername")
+            val pw: String =
+                if (project.hasProperty("repoPassword")) project.property("repoPassword") as String
+                else System.getenv("repoPassword")
+            if (!version.toString().endsWith("SNAPSHOT")) {
+                val repositoryId =
+                    System.getenv("SONATYPE_REPOSITORY_ID")
+
+                maven("https://s01.oss.sonatype.org/service/local/staging/deployByRepositoryId/${repositoryId}/") {
+                    name = "Sonatype"
+                    credentials {
+                        username = id
+                        password = pw
+                    }
                 }
             } else {
-                maven("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                    name = "sonatypeReleaseRepository"
-                    credentials(PasswordCredentials::class)
+                maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") {
+                    name = "Sonatype"
+                    credentials {
+                        username = id
+                        password = pw
+                    }
                 }
             }
         }
@@ -136,36 +153,24 @@ kotlin {
 
 tasks {
     getByName("signKotlinMultiplatformPublication") {
-        if (version.toString()
-                .endsWith("SNAPSHOT")
-        ) dependsOn("publishJvmPublicationToSonatypeSnapshotRepositoryRepository", "publishJvmPublicationToMavenLocal")
-        else dependsOn(
-            "publishJvmPublicationToSonatypeReleaseRepositoryRepository",
-            "publishJvmPublicationToMavenLocal"
-        )
+        dependsOn("publishJvmPublicationToSonatypeRepository", "publishJvmPublicationToMavenLocal")
     }
 
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
     val nativeTargets = mutableListOf<String>()
 
-    if (hostOs == "MAac OS X") nativeTargets.add("MacOSX64")
+    if (hostOs == "MAac OS X") nativeTargets.add("MacosX64")
     if (hostOs == "Linux") nativeTargets.add("LinuxX64")
     if (isMingwX64) nativeTargets.add("MingwX64")
 
     nativeTargets.forEach { target ->
         getByName("sign${target}Publication") {
-            if (version.toString().endsWith("SNAPSHOT")) dependsOn(
-                "publishJvmPublicationToSonatypeSnapshotRepositoryRepository",
+            dependsOn(
+                "publishJvmPublicationToSonatypeRepository",
                 "publishJvmPublicationToMavenLocal",
                 "publishKotlinMultiplatformPublicationToMavenLocal",
-                "publishKotlinMultiplatformPublicationToSonatypeSnapshotRepositoryRepository"
-            )
-            else dependsOn(
-                "publishJvmPublicationToSonatypeReleaseRepositoryRepository",
-                "publishJvmPublicationToMavenLocal",
-                "publishKotlinMultiplatformPublicationToMavenLocal",
-                "publishKotlinMultiplatformPublicationToSonatypeReleaseRepositoryRepository"
+                "publishKotlinMultiplatformPublicationToSonatypeRepository"
             )
         }
     }
