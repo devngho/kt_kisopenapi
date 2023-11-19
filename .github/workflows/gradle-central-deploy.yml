@@ -24,6 +24,8 @@ jobs:
         with:
           gpg_private_key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.MAVEN_GPG_PASSWORD }}
+      - name: Import GPG key
+        run: gpg --export-secret-keys 400D9A4806FCE1AA > ./keyring.gpg
       - name: Make gradlew executable
         if: matrix.platform != 'windows-latest'
         run: chmod +x ./gradlew
@@ -32,7 +34,7 @@ jobs:
       - name: Publish package
         uses: gradle/gradle-build-action@749f47bda3e44aa060e82d7b3ef7e40d953bd629
         with:
-          arguments: publish -PORG_GRADLE_PROJECT_sonatypeReleaseRepositoryPassword=$ORG_GRADLE_PROJECT_sonatypeReleaseRepositoryPassword -PORG_GRADLE_PROJECT_sonatypeReleaseRepositoryUsername=$ORG_GRADLE_PROJECT_sonatypeReleaseRepositoryUsername -Pgradle.publish.key=$gradle_publish_key -Pgradle.publish.secret=$gradle_publish_secret -Psigning.keyId=$signing_keyId -Psigning.password=$signing_password -Psigning.secretKeyRingFile=~/.gnupg/secring.gpg
+          arguments: publish -PORG_GRADLE_PROJECT_sonatypeReleaseRepositoryPassword=$ORG_GRADLE_PROJECT_sonatypeReleaseRepositoryPassword -PORG_GRADLE_PROJECT_sonatypeReleaseRepositoryUsername=$ORG_GRADLE_PROJECT_sonatypeReleaseRepositoryUsername -Pgradle.publish.key=$gradle_publish_key -Pgradle.publish.secret=$gradle_publish_secret -Psigning.keyId=$signing_keyId -Psigning.password=$signing_password -Psigning.secretKeyRingFile=./keyring.gpg
         env:
           ORG_GRADLE_PROJECT_sonatypeReleaseRepositoryPassword: ${{ secrets.OSSRH_PASSWORD }}
           ORG_GRADLE_PROJECT_sonatypeReleaseRepositoryUsername: ${{ secrets.OSSRH_USERNAME }}
