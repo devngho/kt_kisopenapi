@@ -22,7 +22,7 @@ jobs:
         run: |
           echo $OUT
         env:
-          OUT: ${{ steps.create.outputs }}
+          OUT: ${{ steps.create.outputs.repository_id }}
   publish:
     permissions:
       contents: write
