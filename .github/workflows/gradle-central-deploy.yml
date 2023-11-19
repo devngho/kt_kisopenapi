@@ -22,8 +22,8 @@ jobs:
         id: mask
         shell: bash
         run: |
-          echo "::add-mask::${{ steps.create.outputs.repository_id }}"
-          echo "repository_id=${{ steps.create.outputs.repository_id }}" >> "$GITHUB_OUTPUT"
+          TOKEN_BASE64=`echo -n ${{ steps.create.outputs.repository_id }} | base64 -w 0`
+          echo -n "repository_id=$TOKEN_BASE64" >> $GITHUB_OUTPUT
   publish:
     permissions:
       contents: write
@@ -61,6 +61,12 @@ jobs:
           echo $SONATYPE_REPOSITORY_ID
         env:
           SONATYPE_REPOSITORY_ID: ${{ needs.create_staging_repository.outputs.repository_id }}
+      - id: decode
+        name: Decode Base64
+        shell: bash
+        run: |
+          repository_id=`echo -n ${{needs.create_staging_repository.outputs.repository_id}} | base64 --decode`
+          echo "repository_id=$repository_id" >> $GITHUB_OUTPUT
       - name: Publish package
         shell: bash
         run: |
@@ -72,4 +78,4 @@ jobs:
           gradle_publish_secret: ${{ secrets.GRADLE_PUBLISH_SECRET }}
           signing_keyId: ${{ secrets.SIGNING_KEY_ID }}
           signing_password: ${{ secrets.SIGNING_PASSWORD }}
-          SONATYPE_REPOSITORY_ID: ${{ needs.create_staging_repository.outputs.repository_id }}
+          SONATYPE_REPOSITORY_ID: ${{ steps.decode.outputs.repository_id }}
