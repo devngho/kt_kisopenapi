@@ -160,7 +160,7 @@ tasks {
     val isMingwX64 = hostOs.startsWith("Windows")
     val nativeTargets = mutableListOf<String>()
 
-    if (hostOs == "MAac OS X") nativeTargets.add("MacosX64")
+    if (hostOs == "Mac OS X") nativeTargets.add("MacosX64")
     if (hostOs == "Linux") nativeTargets.add("LinuxX64")
     if (isMingwX64) nativeTargets.add("MingwX64")
 
