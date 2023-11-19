@@ -24,7 +24,7 @@ jobs:
       matrix:
         platform: [ macos-latest, ubuntu-latest, windows-latest ]
     runs-on: ${{ matrix.platform }}
-    needs: create_staging_repository
+    needs: create-staging-repository
     steps:
       - uses: actions/checkout@v4
       - name: Set up Java
@@ -59,4 +59,4 @@ jobs:
           gradle_publish_secret: ${{ secrets.GRADLE_PUBLISH_SECRET }}
           signing_keyId: ${{ secrets.SIGNING_KEY_ID }}
           signing_password: ${{ secrets.SIGNING_PASSWORD }}
-          SONATYPE_REPOSITORY_ID: ${{ needs.create_staging_repository.outputs.repository-id }}
+          SONATYPE_REPOSITORY_ID: ${{ needs.create-staging-repository.outputs.repository-id }}
