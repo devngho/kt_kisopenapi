@@ -8,7 +8,7 @@ jobs:
     name: Create staging repository
     runs-on: ubuntu-latest
     outputs:
-      repository_id: ${{ steps.secret_handle.outputs.handle }}
+      repository_id: ${{ steps.create.outputs.repository_id }}
     steps:
       - id: create
         uses: nexus-actions/create-nexus-staging-repo@main
@@ -18,17 +18,9 @@ jobs:
           staging_profile_id: ${{ secrets.SONATYPE_PROFILE_ID }}
           base_url: https://s01.oss.sonatype.org/service/local/
           description: ${{ github.repository }}/${{ github.workflow }}#${{ github.run_number }}
-      - uses: some/secret-store@v1
-        with:
-          credentials: ${{ secrets.SECRET_STORE_CREDENTIALS }}
-          instance: ${{ secrets.SECRET_STORE_INSTANCE }}
-      - id: secret_handle
-        shell: bash
+      - name: Mask values
         run: |
-          GENERATED_SECRET = "${{ steps.create.outputs.repository_id }}"
-          echo "::add-mask::$GENERATED_SECRET"
-          SECRET_HANDLE=$(secret-store store-secret "$GENERATED_SECRET")
-          echo "handle=$SECRET_HANDLE" >> "$GITHUB_OUTPUT"
+          echo "::add-mask::${{ steps.create.outputs.repository_id }}"
   publish:
     permissions:
       contents: write
@@ -61,17 +53,11 @@ jobs:
         run: chmod +x ./gradlew
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@ccb4328a959376b642e027874838f60f8e596de3
-      - uses: some/secret-store@v1
-        with:
-          credentials: ${{ secrets.SECRET_STORE_CREDENTIALS }}
-          instance: ${{ secrets.SECRET_STORE_INSTANCE }}
-      - id: get_repo
-        name: Get staging repo
-        shell: bash
+      - name: Logging staging repo
         run: |
-          SECRET_HANDLE="${{ needs.create_staging_repository.outputs.repository_id }}"
-          RETRIEVED_SECRET=$(secret-store retrieve-secret "$SECRET_HANDLE")
-          echo "id=$RETRIEVED_SECRET" >> "$GITHUB_OUTPUT"
+          echo $SONATYPE_REPOSITORY_ID
+        env:
+          SONATYPE_REPOSITORY_ID: ${{ needs.create_staging_repository.outputs.repository_id }}
       - name: Publish package
         shell: bash
         run: |
@@ -83,4 +69,4 @@ jobs:
           gradle_publish_secret: ${{ secrets.GRADLE_PUBLISH_SECRET }}
           signing_keyId: ${{ secrets.SIGNING_KEY_ID }}
           signing_password: ${{ secrets.SIGNING_PASSWORD }}
-          SONATYPE_REPOSITORY_ID: ${{ steps.get_repo.outputs.id }}
+          SONATYPE_REPOSITORY_ID: ${{ needs.create_staging_repository.outputs.repository_id }}
