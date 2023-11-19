@@ -25,7 +25,7 @@ jobs:
           gpg_private_key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.MAVEN_GPG_PASSWORD }}
       - name: Import GPG key
-        run: gpg --batch --passphrase ${passphrase} --export-secret-keys 400D9A4806FCE1AA > ./keyring.gpg
+        run: gpg --batch --pinentry-mode loopback --passphrase $passphrase --export-secret-keys 400D9A4806FCE1AA > ./keyring.gpg
         env:
           passphrase: ${{ secrets.MAVEN_GPG_PASSWORD }}
       - name: Make gradlew executable
