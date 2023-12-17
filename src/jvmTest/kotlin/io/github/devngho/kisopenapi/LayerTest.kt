@@ -1,0 +1,174 @@
+package io.github.devngho.kisopenapi
+
+import com.ionspin.kotlin.bignum.decimal.toBigDecimal
+import io.github.devngho.kisopenapi.layer.*
+import io.github.devngho.kisopenapi.layer.Updatable.Companion.update
+import io.github.devngho.kisopenapi.requests.domestic.inquire.InquireTradeVolumeRank
+import io.github.devngho.kisopenapi.requests.response.balance.domestic.BalanceAccount
+import io.github.devngho.kisopenapi.requests.response.balance.overseas.BalanceAccountOverseas
+import io.github.devngho.kisopenapi.requests.response.stock.BaseInfo
+import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPrice
+import io.github.devngho.kisopenapi.requests.response.stock.price.overseas.StockOverseasPrice
+import io.github.devngho.kisopenapi.requests.util.Currency
+import io.github.devngho.kisopenapi.requests.util.Date
+import io.kotest.core.spec.style.BehaviorSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+
+class LayerTest : BehaviorSpec({
+    given("API 토큰, 종목 코드") {
+        `when`("StockDomestic 업데이트") {
+            val stock = api.stockDomestic(testStock)
+
+            stock.update<StockPrice>()
+            stock.update<BaseInfo>()
+
+            then("종목 이름을 가져올 수 있다") {
+                stock.name.nameShort shouldBe "삼성전자"
+            }
+            then("종목 가격을 가져올 수 있다") {
+                stock.price.price shouldNotBe null
+            }
+            xthen("실시간 가격을 가져올 수 있다") {
+                val latch = Channel<Unit>()
+                stock.useLiveConfirmPrice {
+                    runBlocking {
+                        latch.send(Unit)
+                        it.price shouldNotBe null
+                    }
+                }
+                latch.receive()
+            }
+        }
+        `when`("StockOverseas 업데이트") {
+            val stock = api.stockOverseas(testOverseasStock, testOverseasMarket)
+
+            stock.update<StockOverseasPrice>()
+            stock.update<BaseInfo>()
+
+            then("종목 이름을 가져올 수 있다") {
+                stock.name.name shouldBe "애플"
+            }
+            then("종목 가격을 가져올 수 있다") {
+                stock.price.price shouldNotBe null
+            }
+            xthen("실시간 가격을 가져올 수 있다") {
+                var isDone = false
+                withTimeout(1000) {
+                    val latch = Channel<Unit>()
+                    stock.useLiveConfirmPrice {
+                        runBlocking {
+                            latch.send(Unit)
+                            it.price shouldNotBe null
+                        }
+                    }
+                    latch.receive()
+                    isDone = true
+                }
+                isDone shouldBe true
+            }
+        }
+
+        `when`("AccountDomestic 업데이트") {
+            val account = api.accountDomestic()
+
+            account.update<BalanceAccount>()
+
+            then("계좌 잔액을 가져올 수 있다") {
+                account.assetAmount shouldNotBe null
+            }
+            then("계좌 주식을 가져올 수 있다") {
+                account.accountStocks shouldNotBe null
+                account.accountStocks.forEach {
+                    it.name shouldNotBe null
+                    it.count shouldNotBe null
+                }
+            }
+        }
+
+        `when`("AccountOverseas 업데이트") {
+            val account = api.accountOverseas(testOverseasMarket, Currency.USD)
+
+            account.update<BalanceAccountOverseas>()
+
+            then("보유한 주식을 가져올 수 있다") {
+                account.accountStocks shouldNotBe null
+            }
+        }
+
+        `when`("MarkerDomestic 종목 거래량 순위") {
+            val market = api.krx()
+            val res = market.getRank(InquireTradeVolumeRank.BelongClassifier.TradeVolume)
+
+            then("가져올 수 있다") {
+                res.isOk shouldBe true
+                res.getOrThrow() shouldNotBe null
+            }
+        }
+
+        `when`("MarkerDomestic 휴일 정보") {
+            val market = api.krx()
+            val resSingle = market.isHoliday(Date(2023, 12, 18))
+            val resRange = market.getHolidays(Date(2023, 1, 1), Date(2023, 12, 31))
+            val resRange2 = market.getHolidays(Date(2023, 1, 1)..Date(2023, 12, 31))
+
+            then("단일 정보를 가져올 수 있다") {
+                resSingle.isOk shouldBe true
+                resSingle.getOrThrow() shouldNotBe null
+            }
+            then("2023년 12월 18일은 개장일이다") {
+                resSingle.getOrThrow() shouldBe true
+            }
+
+            then("범위 정보를 가져올 수 있다") {
+                resRange.isOk shouldBe true
+                resRange.getOrThrow() shouldNotBe null
+            }
+
+            then("범위의 모든 날짜가 비어있지 않다") {
+                resRange.getOrThrow().keys.distinct().size shouldBe resRange.getOrThrow().size
+            }
+
+            then("모든 날짜가 고유하다") {
+                resRange.getOrThrow().keys.distinct().size shouldBe resRange.getOrThrow().size
+            }
+
+            then("2023년 1월 1일은 휴장일이다") {
+                resRange.getOrThrow().entries.first { it.key == Date(2023, 1, 1) }.value shouldBe false
+            }
+
+            then("2023년 12월 31일은 휴장일이다") {
+                resRange.getOrThrow().entries.first { it.key == Date(2023, 12, 31) }.value shouldBe false
+            }
+
+            then("두 범위 조회 결과가 같다") {
+                resRange.getOrThrow() shouldBe resRange2.getOrThrow()
+            }
+        }
+
+        `when`("MarkerOverseas") {
+            val market = api.marketOverseas(testOverseasMarket)
+
+            then("종목을 검색할 수 있다 - 1") {
+                val res = market.search {
+                    priceRange = 100.toBigDecimal()..200.toBigDecimal()
+                }
+
+                res.isOk shouldBe true
+                res.getOrThrow() shouldNotBe null
+            }
+
+            then("종목을 검색할 수 있다 -2") {
+                val res = market.search(Market.StockSearchQuery.stockSearchQuery {
+                    priceRange = 100.toBigDecimal()..200.toBigDecimal()
+                })
+
+                res.isOk shouldBe true
+                res.getOrThrow() shouldNotBe null
+            }
+        }
+    }
+})

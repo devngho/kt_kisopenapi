@@ -34,5 +34,5 @@ object JavaUtil {
      */
     @JvmStatic
     fun updateBy(updatable: Updatable, res: Class<out Response>) =
-        runBlocking { future { updatable.updateBy(res.kotlin) } }
+        runBlocking { future { updatable.update(res.kotlin) } }
 }

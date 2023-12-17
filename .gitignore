@@ -2,5 +2,6 @@
 /account.txt
 /token.txt
 /key.txt
+/id.txt
 .gradle
 build

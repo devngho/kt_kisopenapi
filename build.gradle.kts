@@ -1,5 +1,4 @@
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 
 plugins {
     kotlin("multiplatform") version "1.9.20"
@@ -12,7 +11,7 @@ plugins {
 }
 
 group = "io.github.devngho"
-version = "0.1.42"
+version = "0.2.0"
 
 repositories {
     mavenCentral()
@@ -26,7 +25,7 @@ val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
     from(dokkaHtml.outputDirectory)
 }
 
-kotlin @ExperimentalWasmDsl {
+kotlin {
     publishing {
         signing {
             sign(publishing.publications)
@@ -96,12 +95,6 @@ kotlin @ExperimentalWasmDsl {
         }
     }
 
-    jvm {
-        compilations.all {
-            kotlinOptions.jvmTarget = "19"
-        }
-    }
-
     val hostOs = System.getProperty("os.name")
     val isMingwX64 = hostOs.startsWith("Windows")
 
@@ -111,11 +104,13 @@ kotlin @ExperimentalWasmDsl {
         isMingwX64 -> mingwX64()
         else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
     }
+
+    jvm()
     
     sourceSets {
-        val ktorVersion = "2.1.3"
+        val ktorVersion = "2.3.7"
         val coroutineVersion = "1.7.3"
-        val kotestVersion = "5.7.2"
+        val kotestVersion = "5.8.0"
 
         commonMain.dependencies {
             implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
@@ -125,6 +120,7 @@ kotlin @ExperimentalWasmDsl {
             implementation("io.ktor:ktor-client-core:$ktorVersion")
             implementation("io.ktor:ktor-client-websockets:$ktorVersion")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
             implementation("com.ionspin.kotlin:bignum:0.3.7")
             implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:0.3.7")
         }
@@ -133,15 +129,17 @@ kotlin @ExperimentalWasmDsl {
             implementation("io.kotest:kotest-assertions-core:$kotestVersion")
             implementation(kotlin("test-common"))
             implementation(kotlin("test-annotations-common"))
+            implementation(kotlin("reflect"))
         }
         jvmMain.dependencies {
             implementation(kotlin("stdlib"))
             implementation("io.ktor:ktor-client-cio:$ktorVersion")
         }
         jvmTest.dependencies {
-            implementation(kotlin("reflect"))
             implementation("io.ktor:ktor-client-cio:$ktorVersion")
             implementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+            implementation("org.slf4j:slf4j-simple:2.0.9")
+            implementation("io.mockk:mockk:1.13.8")
         }
         nativeMain.dependencies {
             implementation("io.ktor:ktor-client-curl:$ktorVersion")
@@ -179,7 +177,7 @@ tasks {
         filter {
             isFailOnNoMatchingTests = false
         }
-        testLogging {
+        testLogging @ExperimentalStdlibApi {
             showExceptions = true
             showStandardStreams = true
             events = TestLogEvent.values().toSet()
