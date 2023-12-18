@@ -1,4 +1,5 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.devngho/kt_kisopenapi/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.devngho/kt_kisopenapi)
+[![javadoc](https://javadoc.io/badge2/io.github.devngho/kt_kisopenapi/javadoc.svg)](https://javadoc.io/doc/io.github.devngho/kt_kisopenapi)
 # kt_kisopenapi
 
 https://apiportal.koreainvestment.com/about
@@ -28,8 +29,8 @@ implementation("io.github.devngho:kt_kisopenapi:[VERSION]")
 ### 권장 방식
 ```kotlin
 // 국내 주식을 조회/거래하는 예시. 자세한 내용은 Wiki를 확인하세요.
-val stock = StockDomestic(api, "주식 종목 코드")
-stock.updateBy(StockPrice::class)
+val stock = api.stockDomestic("주식 종목 코드")
+stock.updateBy<StockPrice>()
 stock.price
 
 stock.buy(price = 10000, count = 10)
@@ -42,7 +43,7 @@ stock.useLiveConfirmPrice {
 ```java
 // Java에서도 사용할 수 있습니다.
 StockDomestic stock = new StockDomestic(api, "주식 종목 코드");
-        JavaUtil.updateBy(stock,StockPrice.class).get();
+JavaUtil.updateBy(stock,StockPrice.class).get();
 stock.price;
 ```
 ### 로우 레벨 API
