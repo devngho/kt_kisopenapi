@@ -18,6 +18,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 
+@Suppress("SpellCheckingInspection")
 class LayerTest : BehaviorSpec({
     given("API 토큰, 종목 코드") {
         `when`("StockDomestic 업데이트") {
@@ -149,6 +150,23 @@ class LayerTest : BehaviorSpec({
             }
         }
 
+        `when`("MarketDomestic 조건 검색") {
+            val market = api.krx()
+            val conditions = market.getSearchConditions()
+            val result = if (conditions.isOk) market.search(conditions.getOrThrow().entries.first().value) else null
+
+            then("조건 목록을 가져올 수 있다") {
+                conditions.isOk shouldBe true
+                conditions.getOrThrow() shouldNotBe null
+            }
+
+            then("가져온 조건을 검색할 수 있다") {
+                result shouldNotBe null
+                result?.isOk shouldBe true
+                result?.getOrThrow() shouldNotBe null
+            }
+        }
+
         `when`("MarkerOverseas") {
             val market = api.marketOverseas(testOverseasMarket)
 
@@ -161,7 +179,7 @@ class LayerTest : BehaviorSpec({
                 res.getOrThrow() shouldNotBe null
             }
 
-            then("종목을 검색할 수 있다 -2") {
+            then("종목을 검색할 수 있다 - 2") {
                 val res = market.search(Market.StockSearchQuery.stockSearchQuery {
                     priceRange = 100.toBigDecimal()..200.toBigDecimal()
                 })

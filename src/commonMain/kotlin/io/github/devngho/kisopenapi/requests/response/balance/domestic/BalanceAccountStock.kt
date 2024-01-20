@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 package io.github.devngho.kisopenapi.requests.response.balance.domestic
 
 import com.ionspin.kotlin.bignum.decimal.BigDecimal

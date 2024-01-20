@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
  * [KIS Developers 문서](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock-quotations)를 참조하세요.
  * @see io.github.devngho.kisopenapi.requests.domestic.inquire.InquirePrice
  */
+@Suppress("SpellCheckingInspection")
 interface StockPriceFull : StockPrice, StockPriceForeigner, StockPriceChange, Response, Ticker {
     /** 종목 상태 코드 */
     @SerialName("iscd_stat_cls_code")
@@ -42,7 +43,7 @@ interface StockPriceFull : StockPrice, StockPriceForeigner, StockPriceChange, Re
     /** 임시 정지 여부 */
     @SerialName("temp_stop_yn")
     @Serializable(with = YNSerializer::class)
-    val tempStop: Boolean?
+    val isTradeTemporarilyStopped: Boolean?
 
     /** 시가 범위 연장 여부 */
     @SerialName("oprc_rang_cont_yn")
@@ -57,12 +58,12 @@ interface StockPriceFull : StockPrice, StockPriceForeigner, StockPriceChange, Re
     /** 신용 거래 가능 여부 */
     @SerialName("crdt_able_yn")
     @Serializable(with = YNSerializer::class)
-    val creditAble: Boolean?
+    val canTradeCredit: Boolean?
 
     /** ELW 발행 가능 여부 */
     @SerialName("elw_pblc_yn")
     @Serializable(with = YNSerializer::class)
-    val hasElw: Boolean?
+    val canPublishElw: Boolean?
 
     /** 기준가 */
     @SerialName("stck_sdpr")
@@ -135,7 +136,7 @@ interface StockPriceFull : StockPrice, StockPriceForeigner, StockPriceChange, Re
     /** 액면가 */
     @SerialName("stck_fcam")
     @Contextual
-    val facePrice: BigInteger?
+    val facePrice: BigDecimal?
 
     /** 대용가 */
     @SerialName("stck_sspr")
@@ -285,7 +286,7 @@ interface StockPriceFull : StockPrice, StockPriceForeigner, StockPriceChange, Re
     /** 공매도 가능 여부 */
     @SerialName("ssts_yn")
     @Serializable(with = YNSerializer::class)
-    val shortSelling: Boolean?
+    val canShortSell: Boolean?
 
     /** 상품 번호 */
     @SerialName("stck_shrn_iscd")
@@ -329,12 +330,12 @@ interface StockPriceFull : StockPrice, StockPriceForeigner, StockPriceChange, Re
 
     /** 시장 경고 코드 */
     @SerialName("mrkt_warn_cls_code")
-    val marketWarnCode: MarketWarnCode?
+    val marketWarningCode: MarketWarnCode?
 
     /** 단기 과열 여부 */
     @SerialName("short_over_yn")
     @Serializable(with = YNSerializer::class)
-    val shortOver: Boolean?
+    val isShortOver: Boolean?
 
     /** 정리매매 여부 */
     @SerialName("sltr_yn")

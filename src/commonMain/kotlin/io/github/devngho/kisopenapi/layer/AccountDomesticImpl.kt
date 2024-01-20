@@ -14,11 +14,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 
-/**
- * 국내 계좌 정보를 불러오고 관리합니다.
- *
- * @param client KisOpenApi
- */
 class AccountDomesticImpl(val client: KISApiClient) : AccountDomestic {
     class AccountStockDomestic(val stock: StockDomestic) : AccountStock, StockDomestic by stock {
         override var count: BigInteger? = null

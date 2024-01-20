@@ -14,11 +14,12 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * 국내 주식 종목의 주문을 정정하고 주문 정보를 반환합니다.
+ */
 class OrderAmend(override val client: KISApiClient) :
     DataRequest<OrderAmend.OrderData, OrderAmend.OrderResponse> {
-    private val url =
-        if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/domestic-stock/v1/trading/order-rvsecncl"
-        else "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/trading/order-rvsecncl"
+    private val url = "${client.options.baseUrl}/uapi/domestic-stock/v1/trading/order-rvsecncl"
 
     @Serializable
     data class OrderResponse(

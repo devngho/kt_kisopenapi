@@ -6,6 +6,9 @@ import io.github.devngho.kisopenapi.requests.domestic.inquire.live.InquireLiveCo
 import io.github.devngho.kisopenapi.requests.util.Closeable
 import kotlin.jvm.JvmStatic
 
+/**
+ * 국내 계좌 정보를 불러오고 관리합니다.
+ */
 interface AccountDomestic : Account {
     val assetAmount: BigInteger?
     val evalAmount: BigInteger?

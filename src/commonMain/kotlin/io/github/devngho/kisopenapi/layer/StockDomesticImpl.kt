@@ -39,7 +39,7 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
             StockPriceBase::class,
             StockPriceChange::class,
             StockPriceForeigner::class,
-            StockPriceHighMax::class,
+            StockPriceLowHigh::class,
             StockTrade::class,
             StockTradeFull::class,
             StockTrade::class,
@@ -47,7 +47,7 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
             StockTradeRate::class,
             StockTradeAccumulate::class -> {
                 (InquirePrice(client).call(InquirePrice.InquirePriceData(ticker))
-                    .getOrNull()?.output as? StockPriceFull)?.let {
+                    .getOrThrow().output as StockPriceFull).let {
                     updateBy(it)
                 }
             }
@@ -58,7 +58,7 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
                         ticker,
                         ProductTypeCode.Stock
                     )
-                ).getOrNull()?.output?.let {
+                ).getOrThrow().output!!.let {
                     updateBy(it)
                 }
             }
@@ -135,7 +135,6 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
             InquireLivePrice(client).apply {
                 (this@coroutineScope).launch {
                     register(InquireLivePrice.InquireLivePriceData(this@StockDomesticImpl.ticker)) {
-                        updateBy(it)
                         (object : Closeable {
                             override suspend fun close() {
                                 unregister(InquireLivePrice.InquireLivePriceData(this@StockDomesticImpl.ticker))

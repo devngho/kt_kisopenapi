@@ -11,7 +11,7 @@ import io.github.devngho.kisopenapi.requests.data.TradeContinuousData
 import io.github.devngho.kisopenapi.requests.data.TradeContinuousResponse
 import io.github.devngho.kisopenapi.requests.data.TradeIdMsg
 import io.github.devngho.kisopenapi.requests.response.stock.Ticker
-import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPriceHighMax
+import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPriceLowHigh
 import io.github.devngho.kisopenapi.requests.util.*
 import io.github.devngho.kisopenapi.requests.util.YYYYMMDDSerializer.YYYYMMDD
 import io.ktor.client.request.*
@@ -22,10 +22,12 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
+/**
+ * 국내 주식 종목의 일/주/월/년 기간별 시세를 조회하고 반환합니다.
+ */
 class InquirePriceSeries(override val client: KISApiClient) :
     DataRequest<InquirePriceSeries.InquirePriceSeriesData, InquirePriceSeries.InquirePriceSeriesResponse> {
-    private val url = if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice"
-                      else               "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice"
+    private val url = "${client.options.baseUrl}/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice"
 
     @OptIn(ExperimentalSerializationApi::class)
     @Serializable(with = PeriodDivisionCode.PeriodDivisionCodeSerializer::class)
@@ -91,7 +93,7 @@ class InquirePriceSeries(override val client: KISApiClient) :
         @SerialName("prtt_rate") @Contextual val divisionRate: BigDecimal?,
         @SerialName("mod_yn") @Serializable(with = YNSerializer::class) val isModified: Boolean?,
         @SerialName("revl_issu_reas") val reasonForRevision: String?,
-    ): StockPriceHighMax {
+    ) : StockPriceLowHigh {
         @SerialName("error_description")
         override val errorDescription: String? = null
 

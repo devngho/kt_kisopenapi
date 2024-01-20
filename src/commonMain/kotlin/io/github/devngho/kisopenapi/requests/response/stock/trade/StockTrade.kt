@@ -10,6 +10,7 @@ import kotlinx.serialization.SerialName
  * [KIS Developers 문서](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock-quotations)를 참조하세요.
  * @see io.github.devngho.kisopenapi.requests.domestic.inquire.InquirePrice
  */
+@Suppress("SpellCheckingInspection")
 interface StockTrade : Response {
     /** 전일 대비 거래량 비율 */
     @SerialName("prdy_vrss_vol_rate")

@@ -20,6 +20,11 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * 자신의 주문 중 해외 주식의 실시간 체결 결과를 가져옵니다.
+ */
+@Suppress("SpellCheckingInspection")
+@OptIn(InternalApi::class)
 class InquireOverseasLiveConfirm(override val client: KISApiClient) :
     LiveRequest<InquireOverseasLiveConfirm.InquireOverseasLiveConfirmData, InquireOverseasLiveConfirm.InquireOverseasLiveConfirmResponse> {
     private val tradeId = "H0GSCNI0"
@@ -67,7 +72,7 @@ class InquireOverseasLiveConfirm(override val client: KISApiClient) :
     }
 
     private var job: Job? = null
-    private var subscribed: KISApiClient.WebSocketSubscribed? = null
+    private var subscribed: WebSocketSubscribed? = null
 
     @Suppress("UNCHECKED_CAST")
     override suspend fun register(
@@ -77,17 +82,19 @@ class InquireOverseasLiveConfirm(override val client: KISApiClient) :
         init: (suspend (Result<LiveResponse>) -> Unit)?,
         block: suspend (InquireOverseasLiveConfirmResponse) -> Unit
     ) {
-        subscribed = KISApiClient.WebSocketSubscribed(
+        subscribed = WebSocketSubscribed(
             this@InquireOverseasLiveConfirm, data, init,
             block as suspend (Response) -> Unit
         )
 
 
         requestStart(
-            data, subscribed!!, tradeId, data.tradeKey(client), wait,
+            data, subscribed!!, tradeId, data.tradeKey(client),
+            wait = wait,
             updateJob = { job = it },
             init = init ?: {},
             block = block,
+            force = force
         ) {
             InquireOverseasLiveConfirmResponse(
                 it[0],
@@ -117,5 +124,5 @@ class InquireOverseasLiveConfirm(override val client: KISApiClient) :
     }
 
     override suspend fun unregister(data: InquireOverseasLiveConfirmData, wait: Boolean) =
-        requestEnd(data, subscribed, tradeId, data.tradeKey(client), wait, job)
+        requestEnd(data, subscribed!!, tradeId, data.tradeKey(client), wait, job)
 }

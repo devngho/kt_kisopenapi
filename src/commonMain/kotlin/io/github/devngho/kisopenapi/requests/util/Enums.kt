@@ -174,7 +174,7 @@ enum class LockCode(val num: Int) {
 
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable(with = ProductTypeCode.ProductTypeSerializer::class)
-@Suppress("unused")
+@Suppress("unused", "SpellCheckingInspection")
 enum class ProductTypeCode(val num: String) {
     Stock("300"),
     FutureOption("301"),
@@ -496,7 +496,7 @@ enum class OverseasMarket(val code: String) {
 
     companion object {
         val OverseasMarket.fourChar: String
-            get() = when (this) {
+            get() = @Suppress("SpellCheckingInspection") when (this) {
                 NASDAQ,
                 NAS,
                 NASDAQ_DAY,

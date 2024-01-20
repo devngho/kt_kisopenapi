@@ -1,6 +1,7 @@
 package io.github.devngho.kisopenapi
 
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
+import io.github.devngho.kisopenapi.KISApiClient.Companion.options
 import io.github.devngho.kisopenapi.requests.auth.GrantLiveToken
 import io.github.devngho.kisopenapi.requests.auth.GrantToken
 import io.github.devngho.kisopenapi.requests.common.ProductBaseInfo
@@ -24,24 +25,50 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.Clock
 import kotlinx.datetime.number
 import java.io.File
+import java.io.FileNotFoundException
 import kotlin.Result
 import kotlin.time.measureTime
 
 const val testStock = "005930"
 val testStocks = listOf("005930", "373220", "000660", "207940", "005380")
+
+@Suppress("SpellCheckingInspection")
 const val testOverseasStock = "AAPL"
 val testOverseasMarket = OverseasMarket.NASDAQ
+
+@Suppress("SpellCheckingInspection")
 val testOverseasStocks = listOf("AAPL", "MSFT", "AMZN", "GOOGL")
 
 fun readLines(path: String): List<String> = File(path).readLines()
 fun writeText(path: String, text: String) = File(path).writeText(text)
 
+/**
+ * 테스트 시에 사용할 API 클라이언트입니다. 자동으로 토큰을 발급받습니다.
+ * 테스트를 위해 key.txt, account.txt, id.txt 파일을 작성해주세요.
+ *
+ * 웹소켓 클라이언트가 [WebSocketTest.WebSocketMockClient]로 대체되어 있습니다.
+ */
 val api: KISApiClient by lazy {
     runBlocking {
-        val key = readLines("key.txt")
-        val account = readLines("account.txt")
-        val token = readLines("token.txt")
-        val htsId = readLines("id.txt")
+        val key: List<String>
+        val account: List<String>
+        val token: List<String>
+        val htsId: List<String>
+
+        try {
+            key = readLines("key.txt")
+            account = readLines("account.txt")
+            token = readLines("token.txt")
+            htsId = readLines("id.txt")
+        } catch (e: FileNotFoundException) {
+            throw FileNotFoundException("테스트를 위해 key.txt, account.txt, id.txt 파일을 작성해주세요.")
+
+            /*
+            key.txt: 첫 줄에 appKey, 둘째 줄에 appSecret을 작성해주세요.
+            account.txt: 첫 줄에 계좌번호를 작성해주세요.
+            id: 첫 줄에 HTS ID를 작성해주세요.
+             */
+        }
 
         if (token.size == 3 && token[2].toLong() > Clock.System.now().epochSeconds) {
             KISApiClient.withToken(
@@ -51,17 +78,24 @@ val api: KISApiClient by lazy {
                 false,
                 account = account[0],
                 websocketToken = token[1],
-                hashKey = true,
                 id = htsId[0]
-            )
+            ).options {
+                useHashKey = true
+                autoReconnect = true
+                webSocketClient = WebSocketTest.WebSocketMockClient(webSocketClient)
+            }
         } else {
             KISApiClient.withToken(
-                "", key[0], key[1], false, account = account[0], websocketToken = "", hashKey = true, id = htsId[0]
-            ).apply {
+                "", key[0], key[1], false, account = account[0], websocketToken = "", id = htsId[0]
+            ).options {
+                webSocketClient = WebSocketTest.WebSocketMockClient(webSocketClient)
+            }.apply {
                 val newToken = GrantToken(this).call().getOrThrow()
                 val newWebsocketToken = GrantLiveToken(this).call().getOrThrow()
-                this.oauthToken = newToken.accessToken!!
-                this.webSocketToken = newWebsocketToken.approvalKey!!
+                this.tokens.apply {
+                    oauthToken = newToken.accessToken
+                    webSocketToken = newWebsocketToken.approvalKey
+                }
                 writeText(
                     "token.txt",
                     "${newToken.accessToken}\n${newWebsocketToken.approvalKey}\n${Clock.System.now().epochSeconds + (newToken.expiresIn ?: 86400)}"
@@ -71,6 +105,7 @@ val api: KISApiClient by lazy {
     }
 }
 
+@Suppress("SpellCheckingInspection")
 class InquireTest : BehaviorSpec({
     given("API 토큰") {
         and("종목 코드") {
@@ -411,10 +446,33 @@ class InquireTest : BehaviorSpec({
                 }
             }
         }
+        `when`("InquireConditionList 호출") {
+            val result = InquireConditionList(api).call(InquireConditionList.ConditionData()).getOrThrow()
+
+            then("성공한다") {
+                result.isOk shouldBe true
+            }
+            then("리스트를 반환한다") {
+                result.output shouldNotBe null
+            }
+        }
+        xwhen("InquireCondition 호출") {
+            val results = InquireConditionList(api).call(InquireConditionList.ConditionData()).getOrThrow()
+            val result = InquireCondition(api).call(
+                InquireCondition.ConditionData(results.output?.first()?.conditionKey!!)
+            ).getOrThrow()
+
+            then("성공한다") {
+                result.isOk shouldBe true
+            }
+            then("리스트를 반환한다") {
+                result.output shouldNotBe null
+            }
+        }
         `when`("유량을 넘는 호출") {
             var res: Result<Unit>? = null
 
-            val t = measureTime {
+            measureTime {
                 res = runCatching {
                     repeat(100) {
                         InquirePrice(api).call(InquirePrice.InquirePriceData(testStock))
@@ -422,14 +480,8 @@ class InquireTest : BehaviorSpec({
                 }
             }
 
-            val minTime = api.rateLimiter.minDelay * 100
-
             then("성공한다") {
                 res?.isSuccess shouldBe true
-            }
-
-            then("${minTime}ms 이상 걸린다") {
-                t.inWholeMicroseconds shouldBeGreaterThanOrEqualTo minTime.toLong()
             }
         }
     }

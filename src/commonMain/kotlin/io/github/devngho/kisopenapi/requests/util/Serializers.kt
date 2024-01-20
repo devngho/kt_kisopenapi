@@ -34,6 +34,17 @@ object BigIntegerPreciseSerializer : KSerializer<BigInteger> {
     }
 }
 
+object BigIntegerFromDecimalSerializer : KSerializer<BigInteger> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("BigInteger", PrimitiveKind.STRING)
+    override fun serialize(encoder: Encoder, value: BigInteger) {
+        encoder.encodeString(value.toString())
+    }
+
+    override fun deserialize(decoder: Decoder): BigInteger {
+        return BigDecimal.parseString(decoder.decodeString().trim()).toBigInteger()
+    }
+}
+
 typealias Date = LocalDate
 typealias Time = LocalTime
 
@@ -52,11 +63,16 @@ object YYYYMMDDSerializer : KSerializer<Date> {
             value.dayOfMonth.toString().padStart(2, '0')
         }"
 
-    private fun deserializeDate(value: String): Date = Date(
-        value.substring(0, 4).toInt(),
-        value.substring(4, 6).toInt(),
-        value.substring(6, 8).toInt()
-    )
+    private fun deserializeDate(value: String): Date =
+        value.trim()
+            .takeIf { it.length == 8 }
+            ?.let {
+                Date(
+                    it.substring(0, 4).toInt(),
+                    it.substring(4, 6).toInt(),
+                    it.substring(6, 8).toInt()
+                )
+            } ?: Date(0, 1, 1)
 
 
     override fun deserialize(decoder: Decoder): Date {
@@ -112,18 +128,14 @@ object ResultCodeSerializer : KSerializer<Boolean> {
 }
 
 object YNSerializer : KSerializer<Boolean> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("YN", PrimitiveKind.BOOLEAN)
-    override fun serialize(encoder: Encoder, value: Boolean) {
-        encoder.encodeString(serializeBoolean(value))
-    }
-
     private fun serializeBoolean(value: Boolean): String = if (value) "y" else "n"
     private fun deserializeBoolean(value: String): Boolean = value.lowercase() == "y"
 
 
-    override fun deserialize(decoder: Decoder): Boolean {
-        return decoder.decodeString().lowercase() == "y"
-    }
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("YN", PrimitiveKind.BOOLEAN)
+    override fun serialize(encoder: Encoder, value: Boolean) = encoder.encodeString(serializeBoolean(value))
+
+    override fun deserialize(decoder: Decoder): Boolean = deserializeBoolean(decoder.decodeString())
 
     val Boolean.YN
         get() = serializeBoolean(this)

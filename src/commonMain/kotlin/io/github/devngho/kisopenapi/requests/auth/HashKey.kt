@@ -13,6 +13,11 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 
+/**
+ * POST 요청의 변조를 방지하기 위한 hash key를 발급받고, 반환합니다.
+ *
+ * [KISApiClient.KISApiOptions.useHashKey] 옵션을 true로 설정하면 모든 POST 요청에 알아서 hash key를 추가합니다.
+ */
 class HashKey(override val client: KISApiClient) : DataRequest<HashKey.HashKeyData, HashKey.HashKeyResponse> {
     @Serializable
     data class HashKeyResponse(@SerialName("HASH") val hash: String) : Response {
@@ -29,8 +34,7 @@ class HashKey(override val client: KISApiClient) : DataRequest<HashKey.HashKeyDa
 
     override suspend fun call(data: HashKeyData) = request(data) {
         client.httpClient.post(
-            if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/hashkey"
-            else "https://openapi.koreainvestment.com:9443/uapi/hashkey"
+            "${client.options.baseUrl}/uapi/hashkey"
         ) {
             contentType(ContentType.Application.Json)
             setBody(data.value)
@@ -40,7 +44,7 @@ class HashKey(override val client: KISApiClient) : DataRequest<HashKey.HashKeyDa
     companion object {
         @Suppress("SpellCheckingInspection")
         suspend inline fun <reified T> HttpRequestBuilder.hashKey(client: KISApiClient) {
-            if (client.useHashKey) {
+            if (client.options.useHashKey) {
                 val data = HashKeyData(json.encodeToString(this.body as T))
                 val hash = HashKey(client).call(data).getOrThrow()
                 headers {

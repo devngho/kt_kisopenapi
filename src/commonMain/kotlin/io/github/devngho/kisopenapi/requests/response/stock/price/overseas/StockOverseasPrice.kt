@@ -10,6 +10,7 @@ import kotlinx.serialization.SerialName
  * [KIS Developers 문서](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock-current)를 참조하세요.
  * @see io.github.devngho.kisopenapi.requests.overseas.inquire.InquireOverseasPrice
  */
+@Suppress("SpellCheckingInspection")
 interface StockOverseasPrice : StockOverseasPriceBase {
     /** 소수점 위치 */
     @SerialName("zdiv")

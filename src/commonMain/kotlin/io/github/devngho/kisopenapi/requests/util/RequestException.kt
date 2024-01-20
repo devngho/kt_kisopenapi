@@ -11,5 +11,9 @@ class RequestException(
     /**
     에러 코드
      */
-    type: RequestCode?
-) : Exception("${type?.code ?: "(Unknown code)"} $message")
+    type: RequestCode?,
+    /**
+     * 원 에러
+     */
+    cause: Throwable? = null
+) : Exception("${type?.code ?: "(Unknown code)"} $message", cause)

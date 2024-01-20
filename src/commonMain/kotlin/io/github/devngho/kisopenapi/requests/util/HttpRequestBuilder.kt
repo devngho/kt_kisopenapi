@@ -51,15 +51,15 @@ internal fun createHttpClient() = HttpClient {
 internal fun HttpRequestBuilder.setAuth(client: KISApiClient) {
     contentType(ContentType.Application.Json)
     headers {
-        append(HttpHeaders.Authorization, "Bearer ${client.oauthToken}")
+        append(HttpHeaders.Authorization, "Bearer ${client.tokens.oauthToken}")
         append("appkey", client.appKey)
-        append("appsecret", client.appSecret)
+        @Suppress("SpellCheckingInspection") append("appsecret", client.appSecret)
     }
 }
 
 internal fun HttpRequestBuilder.setStock(ticker: String) {
     url {
-        parameters.run {
+        parameters.run @Suppress("SpellCheckingInspection") {
             append("FID_COND_MRKT_DIV_CODE", "J")
             append("FID_INPUT_ISCD", ticker)
         }
@@ -73,7 +73,7 @@ internal fun HttpRequestBuilder.setTradeId(tradeId: String) {
 }
 
 internal fun HttpRequestBuilder.setCorporation(corp: CorporationRequest?) = corp?.let {
-    headers {
+    headers @Suppress("SpellCheckingInspection") {
         it.globalUID?.let { append("gt_uid", it) }
         it.consumerType?.let { append("custtype", it.num) }
         it.phoneNumber?.let { append("phone_number", it.replace("-", "").trim()) }
@@ -93,6 +93,7 @@ internal fun <T : Response> T.processHeader(res: HttpResponse) {
     }
 }
 
+@Suppress("SpellCheckingInspection")
 /**
  * 요청의 결과를 검증하고 [Result]에 담아 반환합니다.
  * 일반적인 경우 [Result]에 결과를 담아 반환합니다.
@@ -134,6 +135,7 @@ internal inline fun <reified T : Response, reified U : Data> T.setupContinuous(
     }
 }
 
+@Suppress("SpellCheckingInspection")
 /**
  * 요청을 수행하고 [Result]에 담아 반환합니다.
  * @param data 요청에 필요한 데이터
@@ -155,10 +157,10 @@ internal suspend inline fun <reified T : Response, reified U : Data> DataRequest
     return try {
         val req = this@request
         val processedData = data.apply {
-            this.corp = this.corp ?: req.client.corp
+            this.corp = this.corp ?: req.client.corpRequest
         }
 
-        client.rateLimiter.rated {
+        client.options.rateLimiter.rated {
             val resp = block(processedData)
             resp.body<T>()
                 .apply {
@@ -178,6 +180,7 @@ internal suspend inline fun <reified T : Response, reified U : Data> DataRequest
     }
 }
 
+@Suppress("SpellCheckingInspection")
 /**
  * 요청을 수행하고 [Result]에 담아 반환합니다.
  * @param bodyModifier 요청 결과를 수정하는 함수
@@ -193,7 +196,7 @@ internal suspend inline fun <reified T : Response> NoDataRequest<T>.request(
     }
 
     return try {
-        client.rateLimiter.rated {
+        client.options.rateLimiter.rated {
             val resp = block()
             resp.body<T>()
                 .apply { processHeader(resp) }
@@ -206,6 +209,6 @@ internal suspend inline fun <reified T : Response> NoDataRequest<T>.request(
         Result(null, e)
     } catch (e: Exception) {
         val errorMsg = "${e::class.qualifiedName}: ${e.message ?: "Unknown error"}"
-        Result(null, RequestException(errorMsg, RequestCode.Unknown))
+        Result(null, RequestException(errorMsg, RequestCode.Unknown, cause = e))
     }
 }

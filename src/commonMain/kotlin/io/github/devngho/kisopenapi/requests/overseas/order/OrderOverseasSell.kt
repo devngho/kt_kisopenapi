@@ -7,10 +7,12 @@ import io.github.devngho.kisopenapi.requests.data.AccountInfo.Companion.fillFrom
 import io.github.devngho.kisopenapi.requests.util.*
 import io.ktor.client.request.*
 
+/**
+ * 해외 주식 종목을 매도하고, 주문 정보를 반환합니다.
+ */
 class OrderOverseasSell(override val client: KISApiClient) :
     DataRequest<OrderOverseasBuy.OrderData, OrderOverseasBuy.OrderResponse> {
-    private val url = if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/overseas-stock/v1/trading/order"
-    else               "https://openapi.koreainvestment.com:9443/uapi/overseas-stock/v1/trading/order"
+    private val url = "${client.options.baseUrl}/uapi/overseas-stock/v1/trading/order"
 
     override suspend fun call(data: OrderOverseasBuy.OrderData) = request(data) {
         client.httpClient.post(url) {

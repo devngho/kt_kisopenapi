@@ -9,6 +9,9 @@ import io.ktor.http.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * API를 사용하기 위한 access token을 발급받고, 반환합니다.
+ */
 class GrantToken(override val client: KISApiClient) : NoDataRequest<GrantToken.GrantTokenResponse> {
     @Serializable
     data class GrantTokenResponse(
@@ -32,8 +35,7 @@ class GrantToken(override val client: KISApiClient) : NoDataRequest<GrantToken.G
 
     override suspend fun call() = request {
         client.httpClient.post(
-            if (client.isDemo) "https://openapivts.koreainvestment.com:29443/oauth2/tokenP"
-            else "https://openapi.koreainvestment.com:9443/oauth2/tokenP"
+            "${client.options.baseUrl}/oauth2/tokenP"
         ) {
             contentType(ContentType.Application.Json)
             setBody(GrantTokenJson("client_credentials", client.appKey, client.appSecret))

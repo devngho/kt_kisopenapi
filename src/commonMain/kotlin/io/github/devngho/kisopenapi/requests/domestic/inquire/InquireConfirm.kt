@@ -19,10 +19,12 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * 국내 주식 종목의 최근 체결 정보를 조회하고 반환합니다.
+ */
 class InquireConfirm(override val client: KISApiClient) :
     DataRequest<InquireConfirm.InquireConfirmData, InquireConfirm.InquireConfirmResponse> {
-    private val url = if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/domestic-stock/v1/quotations/inquire-ccnl"
-                      else               "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-ccnl"
+    private val url = "${client.options.baseUrl}/uapi/domestic-stock/v1/quotations/inquire-ccnl"
 
     @Serializable
     data class InquireConfirmResponse(

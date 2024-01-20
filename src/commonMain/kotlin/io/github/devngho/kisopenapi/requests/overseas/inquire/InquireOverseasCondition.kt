@@ -18,10 +18,12 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * 해외 주식 종목을 조건 검색해 반환합니다.
+ */
 class InquireOverseasCondition(override val client: KISApiClient) :
     DataRequest<InquireOverseasCondition.ConditionData, InquireOverseasCondition.ConditionResponse> {
-    private val url = if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/overseas-price/v1/quotations/inquire-search"
-    else               "https://openapi.koreainvestment.com:9443/uapi/overseas-price/v1/quotations/inquire-search"
+    private val url = "${client.options.baseUrl}/uapi/overseas-price/v1/quotations/inquire-search"
 
     @Serializable
     data class ConditionResponse(

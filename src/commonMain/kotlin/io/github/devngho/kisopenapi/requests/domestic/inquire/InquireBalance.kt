@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 package io.github.devngho.kisopenapi.requests.domestic.inquire
 
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
@@ -19,10 +21,12 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * 국내 주식 잔고를 조회해 반환합니다.
+ */
 class InquireBalance(override val client: KISApiClient) :
     DataRequest<InquireBalance.InquireBalanceData, InquireBalance.InquireBalanceResponse> {
-    private val url = if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/domestic-stock/v1/trading/inquire-balance"
-                        else             "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/trading/inquire-balance"
+    private val url = "${client.options.baseUrl}/uapi/domestic-stock/v1/trading/inquire-balance"
 
     @Serializable
     data class InquireBalanceResponse(
@@ -47,7 +51,6 @@ class InquireBalance(override val client: KISApiClient) :
     }
 
     @Serializable
-    @Suppress("SpellCheckingInspection")
     data class InquireBalanceResponseOutput1(
         @SerialName("pdno") override val ticker: String?,
         @SerialName("prdt_name") override val productName: String?,
@@ -84,7 +87,6 @@ class InquireBalance(override val client: KISApiClient) :
     }
 
     @Serializable
-    @Suppress("SpellCheckingInspection")
     data class InquireBalanceResponseOutput2(
         @SerialName("dnca_tot_amt") @Contextual override val depositReceivedTotalAmount: BigInteger?,
         @SerialName("nxdy_excc_amt") @Contextual override val execAmountNextDay: BigInteger?,
@@ -142,8 +144,8 @@ class InquireBalance(override val client: KISApiClient) :
 
             url { _ ->
                 parameters.run {
-                    set("CANO", client.account!![0])
-                    set("ACNT_PRDT_CD", client.account!![1])
+                    set("CANO", client.account!!.first)
+                    set("ACNT_PRDT_CD", client.account!!.second)
                     set("AFHR_FLPR_YN", it.afterHourFinalPrice.YN)
                     set("OFL_YN", "")
                     set("INQR_DVSN", it.inquireDivision.num)

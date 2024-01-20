@@ -22,6 +22,10 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * 국내 주식의 실시간 체결가를 가져옵니다.
+ */
+@OptIn(InternalApi::class)
 class InquireLivePrice(override val client: KISApiClient) :
     LiveRequest<InquireLivePrice.InquireLivePriceData, InquireLivePrice.InquireLivePriceResponse> {
     @Serializable
@@ -87,7 +91,7 @@ class InquireLivePrice(override val client: KISApiClient) :
     }
 
     private var job: Job? = null
-    private var subscribed: KISApiClient.WebSocketSubscribed? = null
+    private var subscribed: WebSocketSubscribed? = null
 
     @Suppress("UNCHECKED_CAST")
     override suspend fun register(
@@ -97,16 +101,18 @@ class InquireLivePrice(override val client: KISApiClient) :
         init: (suspend (Result<LiveResponse>) -> Unit)?,
         block: suspend (InquireLivePriceResponse) -> Unit
     ) {
-        subscribed = KISApiClient.WebSocketSubscribed(
+        subscribed = WebSocketSubscribed(
             this@InquireLivePrice, data, init,
             block as suspend (Response) -> Unit
         )
 
         requestStart(
-            data, subscribed!!, "H0STCNT0", data.tradeKey(client), wait,
+            data, subscribed!!, "H0STCNT0", data.tradeKey(client),
+            wait = wait,
             updateJob = { job = it },
             init = init ?: {},
             block = block,
+            force = force
         ) {
             InquireLivePriceResponse(
                 it[0],
@@ -159,5 +165,12 @@ class InquireLivePrice(override val client: KISApiClient) :
     }
 
     override suspend fun unregister(data: InquireLivePriceData, wait: Boolean) =
-        requestEnd(data, subscribed, "H0STCNT0", data.tradeKey(client), wait, job)
+        requestEnd(
+            data,
+            subscribed!!,
+            @Suppress("SpellCheckingInspection") "H0STCNT0",
+            data.tradeKey(client),
+            wait,
+            job
+        )
 }

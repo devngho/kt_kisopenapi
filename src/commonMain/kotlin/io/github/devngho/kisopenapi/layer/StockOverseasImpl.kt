@@ -37,13 +37,14 @@ class StockOverseasImpl(
 
     override suspend fun update(res: KClass<out Response>) {
         when (res) {
-            StockOverseasPrice::class -> {
+            StockOverseasPrice::class,
+            StockOverseasPriceBase::class -> {
                 (InquireOverseasPrice(client).call(
                     InquireOverseasPrice.InquirePriceData(
                         ticker,
                         market
                     )
-                ).getOrNull()?.output as? StockOverseasPrice)?.let {
+                ).getOrThrow().output as StockOverseasPrice).let {
                     updateBy(it)
                 }
             }

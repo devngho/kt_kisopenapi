@@ -18,6 +18,11 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * 국내 주식의 실시간 호가를 가져옵니다.
+ */
+@Suppress("SpellCheckingInspection")
+@OptIn(InternalApi::class)
 class InquireLiveAskPrice(override val client: KISApiClient) :
     LiveRequest<InquireLiveAskPrice.InquireLiveAskPriceData, InquireLiveAskPrice.InquireLiveAskPriceResponse> {
     private val tradeId = "H0STASP0"
@@ -64,8 +69,6 @@ class InquireLiveAskPrice(override val client: KISApiClient) :
         @SerialName("ovtm_total_askp_icdc") @Contextual val afterHourTotalSellAskPriceCountChange: BigInteger? = null,
         /** 시간외 총 매수 호가 잔량 증감 */
         @SerialName("ovtm_total_bidp_icdc") @Contextual val afterHourTotalBuyAskPriceCountChange: BigInteger? = null,
-        /** 주식 매매 구분 코드 */
-        @SerialName("stck_deal_cls_code") val stockTradeDivisionCode: Int? = null,
     ) : Response, Ticker {
         @SerialName("error_description")
         override val errorDescription: String? = null
@@ -81,7 +84,7 @@ class InquireLiveAskPrice(override val client: KISApiClient) :
     }
 
     private var job: Job? = null
-    private var subscribed: KISApiClient.WebSocketSubscribed? = null
+    private var subscribed: WebSocketSubscribed? = null
 
     @Suppress("UNCHECKED_CAST")
     override suspend fun register(
@@ -91,16 +94,18 @@ class InquireLiveAskPrice(override val client: KISApiClient) :
         init: (suspend (Result<LiveResponse>) -> Unit)?,
         block: suspend (InquireLiveAskPriceResponse) -> Unit
     ) {
-        subscribed = KISApiClient.WebSocketSubscribed(
+        subscribed = WebSocketSubscribed(
             this@InquireLiveAskPrice, data, init,
-            block as (Response) -> Unit
+            block as suspend (Response) -> Unit
         )
 
         requestStart(
-            data, subscribed!!, tradeId, data.tradeKey(client), wait,
+            data, subscribed!!, tradeId, data.tradeKey(client),
+            wait = wait,
             updateJob = { job = it },
             init = init ?: {},
             block = block,
+            force = force
         ) {
             InquireLiveAskPriceResponse(
                 it[0],
@@ -135,11 +140,11 @@ class InquireLiveAskPrice(override val client: KISApiClient) :
                 it[53].toBigInteger(),
                 it[54].toBigInteger(),
                 it[55].toBigInteger(),
-                it[56].toInt(),
+//                it[56].toInt(),  // 삭제된 코드입니다.
             )
         }
     }
 
     override suspend fun unregister(data: InquireLiveAskPriceData, wait: Boolean) =
-        requestEnd(data, subscribed, tradeId, data.tradeKey(client), wait, job)
+        requestEnd(data, subscribed!!, tradeId, data.tradeKey(client), wait, job)
 }

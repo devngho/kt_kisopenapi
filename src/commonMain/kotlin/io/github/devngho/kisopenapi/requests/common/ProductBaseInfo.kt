@@ -15,13 +15,12 @@ import io.ktor.client.request.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * 상품의 기본 정보를 조회하고 반환합니다.
+ */
 class ProductBaseInfo(override val client: KISApiClient) :
     DataRequest<ProductBaseInfo.ProductBaseInfoData, ProductBaseInfo.ProductBaseInfoResponse> {
-    private val url = if (client.isDemo) throw RequestException(
-        "ProductBaseInfo couldn't supports demo.",
-        RequestCode.DemoUnavailable
-    )
-    else "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/search-info"
+    private val url = "${client.options.baseUrl}/uapi/domestic-stock/v1/quotations/search-info"
 
     @Serializable
     data class ProductBaseInfoResponse(
@@ -79,6 +78,11 @@ class ProductBaseInfo(override val client: KISApiClient) :
 
     @Suppress("SpellCheckingInspection")
     override suspend fun call(data: ProductBaseInfoData) = request(data) {
+        if (client.isDemo) throw RequestException(
+            "모의투자에서는 사용할 수 없는 API ProductBaseInfo를 호출했습니다.",
+            RequestCode.DemoUnavailable
+        )
+
         client.httpClient.get(url) {
             setAuth(client)
             setTradeId("CTPF1604R")

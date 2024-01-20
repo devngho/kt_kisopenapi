@@ -9,6 +9,9 @@ import io.ktor.http.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * 웹소켓 연결을 위한 approval key를 발급받고, 반환합니다.
+ */
 class GrantLiveToken(override val client: KISApiClient) : NoDataRequest<GrantLiveToken.GrantTokenResponse> {
     @Serializable
     data class GrantTokenResponse(@SerialName("approval_key") val approvalKey: String?) : Response {
@@ -31,8 +34,7 @@ class GrantLiveToken(override val client: KISApiClient) : NoDataRequest<GrantLiv
 
     override suspend fun call() = request {
         client.httpClient.post(
-            if (client.isDemo) "https://openapivts.koreainvestment.com:29443/oauth2/Approval"
-            else "https://openapi.koreainvestment.com:9443/oauth2/Approval"
+            "${client.options.baseUrl}/oauth2/Approval"
         ) {
             contentType(ContentType.Application.Json)
             setBody(GrantTokenData("client_credentials", client.appKey, client.appSecret))

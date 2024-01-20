@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "io.github.devngho"
-version = "0.2.0"
+version = "0.2.1"
 
 repositories {
     mavenCentral()
@@ -69,7 +69,7 @@ kotlin {
 
             pom {
                 name.set(artifactId)
-                description.set("A Kotlin library for korea stock trading.")
+                description.set("한국투자증권의 오픈 API 서비스를 Kotlin/Java 환경에서 사용할 수 있는 라이브러리")
                 url.set("https://github.com/devngho/kt_kisopenapi")
 
 
@@ -120,8 +120,8 @@ kotlin {
             implementation("io.ktor:ktor-client-core:$ktorVersion")
             implementation("io.ktor:ktor-client-websockets:$ktorVersion")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
-            implementation("com.ionspin.kotlin:bignum:0.3.7")
+            api("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
+            api("com.ionspin.kotlin:bignum:0.3.7")
             implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:0.3.7")
         }
         commonTest.dependencies {
@@ -133,10 +133,9 @@ kotlin {
         }
         jvmMain.dependencies {
             implementation(kotlin("stdlib"))
-            implementation("io.ktor:ktor-client-cio:$ktorVersion")
+            implementation("io.ktor:ktor-client-java:$ktorVersion")
         }
         jvmTest.dependencies {
-            implementation("io.ktor:ktor-client-cio:$ktorVersion")
             implementation("io.kotest:kotest-runner-junit5:$kotestVersion")
             implementation("org.slf4j:slf4j-simple:2.0.9")
             implementation("io.mockk:mockk:1.13.8")

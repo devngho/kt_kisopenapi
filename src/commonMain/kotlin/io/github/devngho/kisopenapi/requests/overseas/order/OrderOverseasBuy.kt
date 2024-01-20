@@ -17,10 +17,12 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
+/**
+ * 해외 주식 종목을 매수하고, 주문 정보를 반환합니다.
+ */
 class OrderOverseasBuy(override val client: KISApiClient) :
     DataRequest<OrderOverseasBuy.OrderData, OrderOverseasBuy.OrderResponse> {
-    private val url = if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/overseas-stock/v1/trading/order"
-    else               "https://openapi.koreainvestment.com:9443/uapi/overseas-stock/v1/trading/order"
+    private val url = "${client.options.baseUrl}/uapi/overseas-stock/v1/trading/order"
 
     @Serializable
     data class OrderResponse(

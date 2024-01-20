@@ -62,7 +62,7 @@ data class LiveCallBody(
 @Serializable
 data class LiveCallHeader(
     @SerialName("approval_key") val approvalKey: String,
-    @SerialName("custtype") val consumerType: String,
+    @Suppress("SpellCheckingInspection") @SerialName("custtype") val consumerType: String,
     @SerialName("tr_type") val trType: String,
     @SerialName("content-type") val contentType: String
 )

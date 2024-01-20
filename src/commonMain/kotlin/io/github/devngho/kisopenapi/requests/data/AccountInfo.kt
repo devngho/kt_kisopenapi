@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 package io.github.devngho.kisopenapi.requests.data
 
 import io.github.devngho.kisopenapi.KISApiClient
@@ -21,8 +23,8 @@ interface AccountInfo {
         inline fun <reified T : AccountInfo> T.fillFrom(client: KISApiClient) =
             if (this.accountNumber == null || this.accountProductCode == null)
                 object : AccountInfo by this {
-                    override val accountNumber: String = client.account!![0]
-                    override val accountProductCode: String = client.account!![1]
+                    override val accountNumber: String = client.account!!.first
+                    override val accountProductCode: String = client.account!!.second
                 } as T
             else this
     }

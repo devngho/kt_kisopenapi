@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 package io.github.devngho.kisopenapi.requests.response.stock
 
 import io.github.devngho.kisopenapi.requests.Response

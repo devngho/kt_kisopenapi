@@ -18,10 +18,12 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * 해외 주식 종목의 가격을 조회하고 반환합니다.
+ */
 class InquireOverseasPrice(override val client: KISApiClient) :
     DataRequest<InquireOverseasPrice.InquirePriceData, InquireOverseasPrice.InquirePriceResponse> {
-    private val url = if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/overseas-price/v1/quotations/price"
-                        else             "https://openapi.koreainvestment.com:9443/uapi/overseas-price/v1/quotations/price"
+    private val url = "${client.options.baseUrl}/uapi/overseas-price/v1/quotations/price"
 
     @Serializable
     data class InquirePriceResponse(

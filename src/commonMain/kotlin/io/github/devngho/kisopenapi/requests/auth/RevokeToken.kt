@@ -12,6 +12,9 @@ import io.ktor.http.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * API를 사용하기 위한 access token을 폐기합니다.
+ */
 @Suppress("unused")
 class RevokeToken(override val client: KISApiClient) :
     DataRequest<RevokeToken.RevokeTokenData, RevokeToken.RevokeTokenResponse> {
@@ -36,8 +39,7 @@ class RevokeToken(override val client: KISApiClient) :
 
     override suspend fun call(data: RevokeTokenData): Result<RevokeTokenResponse> = request(data) {
         client.httpClient.post(
-            if (client.isDemo) "https://openapi.koreainvestment.com:9443/oauth2/revokeP"
-            else "https://openapivts.koreainvestment.com:29443/oauth2/revokeP"
+            "${client.options.baseUrl}/oauth2/revokeP"
         ) {
             contentType(ContentType.Application.Json)
             setBody(RevokeTokenJson(it.token, client.appKey, client.appSecret))

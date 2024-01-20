@@ -19,10 +19,12 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * 해외 주식의 잔고를 조회하고 반환합니다.
+ */
 class InquireOverseasBalance(override val client: KISApiClient) :
     DataRequest<InquireOverseasBalance.InquireBalanceData, InquireOverseasBalance.InquireBalanceResponse> {
-    private val url = if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/overseas-stock/v1/trading/inquire-balance"
-                        else             "https://openapi.koreainvestment.com:9443/uapi/overseas-stock/v1/trading/inquire-balance"
+    private val url = "${client.options.baseUrl}/uapi/overseas-stock/v1/trading/inquire-balance"
 
     @Serializable
     data class InquireBalanceResponse(
@@ -108,8 +110,8 @@ class InquireOverseasBalance(override val client: KISApiClient) :
 
             url { _ ->
                 parameters.run {
-                    set("CANO", client.account!![0])
-                    set("ACNT_PRDT_CD", client.account!![1])
+                    set("CANO", client.account!!.first)
+                    set("ACNT_PRDT_CD", client.account!!.second)
                     set("OVRS_EXCG_CD", it.marketCode.fourChar)
                     set("TR_CRCY_CD", it.currencyCode.code)
                     set("CTX_AREA_FK200", it.continuousAreaFK)

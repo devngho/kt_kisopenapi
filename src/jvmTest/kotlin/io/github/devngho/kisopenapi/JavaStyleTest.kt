@@ -14,6 +14,7 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.mockk
 
+@Suppress("SpellCheckingInspection")
 class JavaStyleTest : BehaviorSpec({
     given("API 토큰, 종목 코드") {
         `when`("InquirePrice 호출(자바 형식)") {

@@ -14,7 +14,7 @@ import io.github.devngho.kisopenapi.requests.response.stock.Ticker
 import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPriceBase
 import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPriceChange
 import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPriceForeigner
-import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPriceHighMax
+import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPriceLowHigh
 import io.github.devngho.kisopenapi.requests.response.stock.trade.StockTrade
 import io.github.devngho.kisopenapi.requests.response.stock.trade.StockTradeAccumulate
 import io.github.devngho.kisopenapi.requests.util.*
@@ -25,11 +25,13 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * 국내 주식 종목의 당일 분봉 시세를 조회하고 반환합니다.
+ */
 @Suppress("unused")
 class InquirePriceTodayMinute(override val client: KISApiClient) :
     DataRequest<InquirePriceTodayMinute.InquirePriceTodayMinuteData, InquirePriceTodayMinute.InquirePriceTodayMinuteResponse> {
-    private val url = if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/domestic-stock/v1/quotations/inquire-daily-price"
-                      else               "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-daily-price"
+    private val url = "${client.options.baseUrl}/uapi/domestic-stock/v1/quotations/inquire-daily-price"
 
     @Serializable
     data class InquirePriceTodayMinuteResponse(
@@ -85,7 +87,7 @@ class InquirePriceTodayMinute(override val client: KISApiClient) :
         @SerialName("stck_hgpr") @Contextual override val highPrice: BigInteger?,
         @SerialName("stck_lwpr") @Contextual override val lowPrice: BigInteger?,
         @SerialName("cntg_vol") @Contextual val confirmVolume: BigInteger?
-    ) : StockPriceHighMax, StockTradeAccumulate {
+    ) : StockPriceLowHigh, StockTradeAccumulate {
         @SerialName("error_description")
         override val errorDescription: String? = null
 

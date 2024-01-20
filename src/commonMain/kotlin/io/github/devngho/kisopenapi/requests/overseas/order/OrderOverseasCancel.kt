@@ -17,11 +17,12 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
+/**
+ * 해외 주식 종목 주문을 취소하고, 주문 정보를 반환합니다.
+ */
 class OrderOverseasCancel(override val client: KISApiClient) :
     DataRequest<OrderOverseasCancel.OrderData, OrderOverseasCancel.OrderResponse> {
-    private val url =
-        if (client.isDemo) "https://openapivts.koreainvestment.com:29443/uapi/overseas-stock/v1/trading/order-rvsecncl"
-        else "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/trading/order-rvsecncl"
+    private val url = "${client.options.baseUrl}/uapi/overseas-stock/v1/trading/order-rvsecncl"
 
     @Serializable
     data class OrderResponse(

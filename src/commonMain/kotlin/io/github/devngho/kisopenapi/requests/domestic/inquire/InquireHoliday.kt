@@ -16,13 +16,12 @@ import kotlinx.datetime.plus
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * 국내 주식 거래일과 휴장일 여부를 조회하고 반환합니다.
+ */
 class InquireHoliday(override val client: KISApiClient) :
     DataRequest<InquireHoliday.InquireHolidayData, InquireHoliday.InquireHolidayResponse> {
-    private val url = if (client.isDemo) throw RequestException(
-        "InquireHoliday cannot run with demo account.",
-        RequestCode.DemoUnavailable
-    )
-                        else             "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/chk-holiday"
+    private val url = "${client.options.baseUrl}/uapi/domestic-stock/v1/quotations/chk-holiday"
 
     @Serializable
     data class InquireHolidayResponse(
@@ -78,6 +77,11 @@ class InquireHoliday(override val client: KISApiClient) :
         : Data, TradeContinuousData
 
     override suspend fun call(data: InquireHolidayData) = request(data, block = {
+        if (client.isDemo) throw RequestException(
+            "모의투자에서는 사용할 수 없는 API InquireHoliday를 호출했습니다.",
+            RequestCode.DemoUnavailable
+        )
+
         @Suppress("SpellCheckingInspection")
         client.httpClient.get(url) {
             setAuth(client)

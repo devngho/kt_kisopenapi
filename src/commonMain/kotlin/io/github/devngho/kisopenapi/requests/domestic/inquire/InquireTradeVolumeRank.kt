@@ -18,13 +18,12 @@ import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+/**
+ * 국내 주식 종목의 거래량 순위를 조회하고 반환합니다.
+ */
 class InquireTradeVolumeRank(override val client: KISApiClient) :
     DataRequest<InquireTradeVolumeRank.InquireTradeVolumeRankData, InquireTradeVolumeRank.InquireTradeVolumeRankResponse> {
-    private val url = if (client.isDemo) throw RequestException(
-        "InquireTradeVolumeRank cannot run with demo account.",
-        RequestCode.DemoUnavailable
-    )
-    else "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/volume-rank"
+    private val url = "${client.options.baseUrl}/uapi/domestic-stock/v1/quotations/volume-rank"
 
     @Serializable
     data class InquireTradeVolumeRankResponse(
@@ -121,6 +120,11 @@ class InquireTradeVolumeRank(override val client: KISApiClient) :
 
     @Suppress("SpellCheckingInspection")
     override suspend fun call(data: InquireTradeVolumeRankData) = request(data) {
+        if (client.isDemo) throw RequestException(
+            "모의투자에서 사용할 수 없는 API InquireTradeVolumeRank를 호출했습니다.",
+            RequestCode.DemoUnavailable
+        )
+
         client.httpClient.get(url) {
             setAuth(client)
             setTradeId("FHPST01710000")
