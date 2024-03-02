@@ -15,7 +15,7 @@ import io.github.devngho.kisopenapi.requests.response.LiveResponse
  */
 @InternalApi
 data class WebSocketSubscribed(
-    val request: LiveRequest<out LiveData, out Response>,
+    val request: LiveRequest<LiveData, Response>,
     val data: LiveData,
     val initFunc: (suspend (Result<LiveResponse>) -> Unit)? = null,
     val block: suspend (Response) -> Unit

@@ -14,6 +14,7 @@ import kotlinx.serialization.Serializable
 /**
  * 국내 주식 종목 검색 조건 목록을 가져와 반환합니다.
  */
+@DemoNotSupported
 class InquireConditionList(override val client: KISApiClient) :
     DataRequest<InquireConditionList.ConditionData, InquireConditionList.ConditionResponse> {
     private val url = "${client.options.baseUrl}/uapi/domestic-stock/v1/quotations/psearch-title"

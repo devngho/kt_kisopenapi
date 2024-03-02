@@ -78,15 +78,15 @@ class InquirePricePerDay(override val client: KISApiClient) :
     data class InquirePricePerDayResponseOutput(
         @SerialName("stck_bsop_date") val bizDate: String?,
         @SerialName("stck_oprc") @Contextual override val openingPrice: BigInteger?,
-        @SerialName("stck_hgpr") @Contextual override val highPrice: BigInteger?,
-        @SerialName("stck_lwpr") @Contextual override val lowPrice: BigInteger?,
+        @SerialName("stck_hgpr") @Contextual override val highestPrice: BigInteger?,
+        @SerialName("stck_lwpr") @Contextual override val lowestPrice: BigInteger?,
         /**
          * Close Price
          */
         @SerialName("stck_clpr") @Contextual override val price: BigInteger?,
-        @SerialName("prdy_vrss") @Contextual override val changeFromYesterday: BigInteger?,
-        @SerialName("prdy_vrss_sign") override val signFromYesterday: SignPrice?,
-        @SerialName("prdy_ctrt") @Contextual override val rateFromYesterday: BigDecimal?,
+        @SerialName("prdy_vrss") @Contextual override val change: BigInteger?,
+        @SerialName("prdy_vrss_sign") override val sign: SignPrice?,
+        @SerialName("prdy_ctrt") @Contextual override val rate: BigDecimal?,
         @SerialName("flng_cls_code") val lockCode: LockCode?,
         @SerialName("acml_prtt_rate") @Contextual val accumulateDivisionRate: BigDecimal?,
         @SerialName("acml_vol") @Contextual override val accumulateTradeVolume: BigInteger?,

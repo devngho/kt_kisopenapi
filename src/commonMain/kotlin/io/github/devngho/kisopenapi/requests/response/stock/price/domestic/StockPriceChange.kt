@@ -15,14 +15,14 @@ interface StockPriceChange {
     /** 전일 대비 가격 변동 */
     @SerialName("prdy_vrss")
     @Contextual
-    val changeFromYesterday: BigInteger?
+    val change: BigInteger?
 
     /** 전일 대비 가격 부호 */
     @SerialName("prdy_vrss_sign")
-    val signFromYesterday: SignPrice?
+    val sign: SignPrice?
 
     /** 전일 대비 등락률 */
     @SerialName("prdy_ctrt")
     @Contextual
-    val rateFromYesterday: BigDecimal?
+    val rate: BigDecimal?
 }

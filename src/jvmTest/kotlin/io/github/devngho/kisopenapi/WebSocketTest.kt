@@ -504,10 +504,15 @@ class WebSocketTest : ShouldSpec({
 
     context("Reconnect") {
         should("종료할 수 있다") {
+            delay(1000)
+
             api.options.autoReconnect = true
             api.webSocket.closeWebsocket()
 
+            delay(1000)
+
             api.webSocket.scope shouldBe null
+            api.webSocket.isConnected shouldBe false
 
             api.options.autoReconnect = false
         }

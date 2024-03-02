@@ -78,8 +78,8 @@ class InquirePriceSeries(override val client: KISApiClient) :
     data class InquirePriceSeriesResponseOutput2(
         @Serializable(with = YYYYMMDDSerializer::class) @SerialName("stck_bsop_date") val bizDate: Date?,
         @SerialName("stck_oprc") @Contextual override val openingPrice: BigInteger?,
-        @SerialName("stck_hgpr") @Contextual override val highPrice: BigInteger?,
-        @SerialName("stck_lwpr") @Contextual override val lowPrice: BigInteger?,
+        @SerialName("stck_hgpr") @Contextual override val highestPrice: BigInteger?,
+        @SerialName("stck_lwpr") @Contextual override val lowestPrice: BigInteger?,
         /**
          * Close Price
          */

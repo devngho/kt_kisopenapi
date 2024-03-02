@@ -4,7 +4,8 @@ import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.KISApiClient
 import io.github.devngho.kisopenapi.requests.Response
-import io.github.devngho.kisopenapi.requests.common.ProductBaseInfo
+import io.github.devngho.kisopenapi.requests.common.InquireProductBaseInfo
+import io.github.devngho.kisopenapi.requests.overseas.inquire.InquireOverseasDetailedPrice
 import io.github.devngho.kisopenapi.requests.overseas.inquire.InquireOverseasPrice
 import io.github.devngho.kisopenapi.requests.overseas.inquire.live.InquireOverseasLivePrice
 import io.github.devngho.kisopenapi.requests.overseas.order.OrderOverseasAmend
@@ -14,6 +15,7 @@ import io.github.devngho.kisopenapi.requests.overseas.order.OrderOverseasSell
 import io.github.devngho.kisopenapi.requests.response.stock.BaseInfo
 import io.github.devngho.kisopenapi.requests.response.stock.price.overseas.StockOverseasPrice
 import io.github.devngho.kisopenapi.requests.response.stock.price.overseas.StockOverseasPriceBase
+import io.github.devngho.kisopenapi.requests.response.stock.price.overseas.StockOverseasPriceFull
 import io.github.devngho.kisopenapi.requests.util.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -35,6 +37,7 @@ class StockOverseasImpl(
     override lateinit var price: StockOverseasPriceBase
     override var name = StockBase.Name()
 
+    @OptIn(DemoNotSupported::class)
     override suspend fun update(res: KClass<out Response>) {
         when (res) {
             StockOverseasPrice::class,
@@ -48,13 +51,23 @@ class StockOverseasImpl(
                     updateBy(it)
                 }
             }
+            StockOverseasPriceFull::class -> {
+                (InquireOverseasDetailedPrice(client).call(
+                    InquireOverseasDetailedPrice.InquirePriceData(
+                        ticker,
+                        market
+                    )
+                ).getOrThrow().output as StockOverseasPriceFull).let {
+                    updateBy(it)
+                }
+            }
 
             BaseInfo::class -> {
                 val type = when (market) {
                     OverseasMarket.NASDAQ, OverseasMarket.NAS -> ProductTypeCode.Nasdaq
                     OverseasMarket.NEWYORK, OverseasMarket.NYS -> ProductTypeCode.NewYork
                     OverseasMarket.AMEX, OverseasMarket.AMS -> ProductTypeCode.Amex
-                    OverseasMarket.TOYKO, OverseasMarket.TSE -> ProductTypeCode.Japan
+                    OverseasMarket.TOKYO, OverseasMarket.TSE -> ProductTypeCode.Japan
                     OverseasMarket.HONGKONG, OverseasMarket.HKS -> ProductTypeCode.HongKong
                     OverseasMarket.HANOI, OverseasMarket.HNX -> ProductTypeCode.VietnamHanoi
                     OverseasMarket.HOCHIMINH, OverseasMarket.HSX -> ProductTypeCode.VietnamHoChiMinh
@@ -62,7 +75,7 @@ class StockOverseasImpl(
                     OverseasMarket.SHENZHEN, OverseasMarket.SZS -> ProductTypeCode.ChinaSimCheonA
                     else -> ProductTypeCode.Stock
                 }
-                ProductBaseInfo(client).call(ProductBaseInfo.ProductBaseInfoData(ticker, type))
+                InquireProductBaseInfo(client).call(InquireProductBaseInfo.ProductBaseInfoData(ticker, type))
                     .getOrNull()?.output?.let {
                         updateBy(it)
                     }

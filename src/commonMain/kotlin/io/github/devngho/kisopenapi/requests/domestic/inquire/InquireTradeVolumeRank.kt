@@ -21,6 +21,7 @@ import kotlinx.serialization.Serializable
 /**
  * 국내 주식 종목의 거래량 순위를 조회하고 반환합니다.
  */
+@DemoNotSupported
 class InquireTradeVolumeRank(override val client: KISApiClient) :
     DataRequest<InquireTradeVolumeRank.InquireTradeVolumeRankData, InquireTradeVolumeRank.InquireTradeVolumeRankResponse> {
     private val url = "${client.options.baseUrl}/uapi/domestic-stock/v1/quotations/volume-rank"
@@ -47,9 +48,9 @@ class InquireTradeVolumeRank(override val client: KISApiClient) :
         @SerialName("data_rank") val rank: Int?,
         @SerialName("hts_kor_isnm") val name: String?,
         @SerialName("stck_prpr") @Contextual override val price: BigInteger?,
-        @SerialName("prdy_vrss") @Contextual override val changeFromYesterday: BigInteger?,
-        @SerialName("prdy_vrss_sign") @Contextual override val signFromYesterday: SignPrice?,
-        @SerialName("prdy_ctrt") @Contextual override val rateFromYesterday: BigDecimal?,
+        @SerialName("prdy_vrss") @Contextual override val change: BigInteger?,
+        @SerialName("prdy_vrss_sign") @Contextual override val sign: SignPrice?,
+        @SerialName("prdy_ctrt") @Contextual override val rate: BigDecimal?,
         @SerialName("vol_inrt") @Contextual override val rateTradeVolumeFromYesterday: BigDecimal?,
         @SerialName("acml_vol") @Contextual override val accumulateTradeVolume: BigInteger?,
         @SerialName("vol_tnrt") @Contextual override val tradeVolumeTurningRate: BigDecimal?,

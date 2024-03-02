@@ -19,6 +19,7 @@ import kotlinx.serialization.Serializable
 /**
  * 국내 주식 거래일과 휴장일 여부를 조회하고 반환합니다.
  */
+@DemoNotSupported
 class InquireHoliday(override val client: KISApiClient) :
     DataRequest<InquireHoliday.InquireHolidayData, InquireHoliday.InquireHolidayResponse> {
     private val url = "${client.options.baseUrl}/uapi/domestic-stock/v1/quotations/chk-holiday"

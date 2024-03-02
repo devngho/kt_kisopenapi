@@ -3,7 +3,7 @@ package io.github.devngho.kisopenapi.layer
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.KISApiClient
 import io.github.devngho.kisopenapi.requests.Response
-import io.github.devngho.kisopenapi.requests.common.ProductBaseInfo
+import io.github.devngho.kisopenapi.requests.common.InquireProductBaseInfo
 import io.github.devngho.kisopenapi.requests.domestic.inquire.InquirePrice
 import io.github.devngho.kisopenapi.requests.domestic.inquire.live.InquireLivePrice
 import io.github.devngho.kisopenapi.requests.domestic.order.OrderAmend
@@ -32,6 +32,7 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
     override var name = StockBase.Name()
     override lateinit var tradeVolume: StockTrade
 
+    @OptIn(DemoNotSupported::class)
     override suspend fun update(res: KClass<out Response>) {
         when (res) {
             StockPriceFull::class,
@@ -53,8 +54,8 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
             }
 
             BaseInfo::class -> {
-                ProductBaseInfo(client).call(
-                    ProductBaseInfo.ProductBaseInfoData(
+                InquireProductBaseInfo(client).call(
+                    InquireProductBaseInfo.ProductBaseInfoData(
                         ticker,
                         ProductTypeCode.Stock
                     )

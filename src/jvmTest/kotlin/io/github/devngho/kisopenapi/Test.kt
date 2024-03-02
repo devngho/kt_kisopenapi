@@ -2,12 +2,11 @@ package io.github.devngho.kisopenapi
 
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import io.github.devngho.kisopenapi.KISApiClient.Companion.options
-import io.github.devngho.kisopenapi.requests.auth.GrantLiveToken
-import io.github.devngho.kisopenapi.requests.auth.GrantToken
-import io.github.devngho.kisopenapi.requests.common.ProductBaseInfo
+import io.github.devngho.kisopenapi.requests.common.InquireProductBaseInfo
 import io.github.devngho.kisopenapi.requests.domestic.inquire.*
 import io.github.devngho.kisopenapi.requests.overseas.inquire.InquireOverseasBalance
 import io.github.devngho.kisopenapi.requests.overseas.inquire.InquireOverseasCondition
+import io.github.devngho.kisopenapi.requests.overseas.inquire.InquireOverseasDetailedPrice
 import io.github.devngho.kisopenapi.requests.overseas.inquire.InquireOverseasPrice
 import io.github.devngho.kisopenapi.requests.util.*
 import io.github.devngho.kisopenapi.requests.util.HHMMSSSerializer.HHMMSS
@@ -22,8 +21,8 @@ import io.kotest.matchers.ints.shouldBeInRange
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.Clock
 import kotlinx.datetime.number
+import kotlinx.serialization.encodeToString
 import java.io.File
 import java.io.FileNotFoundException
 import kotlin.Result
@@ -52,16 +51,20 @@ val api: KISApiClient by lazy {
     runBlocking {
         val key: List<String>
         val account: List<String>
-        val token: List<String>
+        val token: KISApiClient.KISApiTokens
         val htsId: List<String>
 
         try {
             key = readLines("key.txt")
             account = readLines("account.txt")
-            token = readLines("token.txt")
+            token = kotlin.runCatching {
+                json.decodeFromString<KISApiClient.KISApiTokens>(
+                    readLines("token.txt").joinToString("")
+                )
+            }.getOrDefault(KISApiClient.KISApiTokens("", ""))
             htsId = readLines("id.txt")
         } catch (e: FileNotFoundException) {
-            throw FileNotFoundException("테스트를 위해 key.txt, account.txt, id.txt 파일을 작성해주세요.")
+            throw FileNotFoundException("테스트를 위해 key.txt, account.txt, id.txt와 빈 token.txt 파일을 작성해주세요.")
 
             /*
             key.txt: 첫 줄에 appKey, 둘째 줄에 appSecret을 작성해주세요.
@@ -70,14 +73,13 @@ val api: KISApiClient by lazy {
              */
         }
 
-        if (token.size == 3 && token[2].toLong() > Clock.System.now().epochSeconds) {
+        if (!token.isExpired) {
             KISApiClient.withToken(
-                token[0],
+                token,
                 key[0],
                 key[1],
                 false,
                 account = account[0],
-                websocketToken = token[1],
                 id = htsId[0]
             ).options {
                 useHashKey = true
@@ -85,26 +87,21 @@ val api: KISApiClient by lazy {
                 webSocketClient = WebSocketTest.WebSocketMockClient(webSocketClient)
             }
         } else {
-            KISApiClient.withToken(
-                "", key[0], key[1], false, account = account[0], websocketToken = "", id = htsId[0]
+            KISApiClient.with(
+                key[0], key[1], false, account = account[0], id = htsId[0]
             ).options {
                 webSocketClient = WebSocketTest.WebSocketMockClient(webSocketClient)
             }.apply {
-                val newToken = GrantToken(this).call().getOrThrow()
-                val newWebsocketToken = GrantLiveToken(this).call().getOrThrow()
-                this.tokens.apply {
-                    oauthToken = newToken.accessToken
-                    webSocketToken = newWebsocketToken.approvalKey
-                }
                 writeText(
                     "token.txt",
-                    "${newToken.accessToken}\n${newWebsocketToken.approvalKey}\n${Clock.System.now().epochSeconds + (newToken.expiresIn ?: 86400)}"
+                    json.encodeToString(this.tokens)
                 )
             }
         }
     }
 }
 
+@OptIn(DemoNotSupported::class)
 @Suppress("SpellCheckingInspection")
 class InquireTest : BehaviorSpec({
     given("API 토큰") {
@@ -138,6 +135,25 @@ class InquireTest : BehaviorSpec({
                 then("정보를 반환한다") {
                     res.output!!.price shouldNotBe null
                     res.output!!.tradeVolume shouldNotBe null
+                }
+            }
+            `when`("InquireOverseasDetailedPrice 호출") {
+                val res = InquireOverseasDetailedPrice(api).call(
+                    InquireOverseasDetailedPrice.InquirePriceData(
+                        testOverseasStock,
+                        testOverseasMarket
+                    )
+                ).getOrThrow()
+
+                then("성공한다") {
+                    res.isOk shouldBe true
+                    res.msg shouldNotBe null
+                    res.code shouldNotBe null
+                }
+                then("정보를 반환한다") {
+                    res.output!!.price shouldNotBe null
+                    res.output!!.tradeVolume shouldNotBe null
+                    res.output!!.priceKRW shouldNotBe null
                 }
             }
             `when`("InquireConfirm 호출") {
@@ -283,7 +299,7 @@ class InquireTest : BehaviorSpec({
                 InquireBalance.InquireBalanceData(
                     false, InquireDivisionCode.ByStock,
                     includeFund = false,
-                    includeYesterdaySell = false
+                    includeYesterdayTrade = false
                 )
             ).getOrThrow()
             val output2 = res.output2!!.first()
@@ -408,8 +424,8 @@ class InquireTest : BehaviorSpec({
             }
             then("제외 조건을 만족한다") {
                 result.output!!.map {
-                    it to ProductBaseInfo(api).call(
-                        ProductBaseInfo.ProductBaseInfoData(
+                    it to InquireProductBaseInfo(api).call(
+                        InquireProductBaseInfo.ProductBaseInfoData(
                             it.ticker!!,
                             ProductTypeCode.Stock
                         )

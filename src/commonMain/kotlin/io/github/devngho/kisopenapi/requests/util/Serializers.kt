@@ -49,7 +49,7 @@ typealias Date = LocalDate
 typealias Time = LocalTime
 
 /**
- * Serializa date to YYYYMMDD format
+ * Serialize date to YYYYMMDD format
  * like 20210101
  */
 object YYYYMMDDSerializer : KSerializer<Date> {

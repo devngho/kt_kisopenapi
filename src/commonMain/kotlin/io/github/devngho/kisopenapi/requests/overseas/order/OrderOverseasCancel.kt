@@ -98,7 +98,7 @@ class OrderOverseasCancel(override val client: KISApiClient) :
                         OverseasMarket.AMS,
                         OverseasMarket.AMEX_DAY,
                         OverseasMarket.BAA -> "T1004U" // USA
-                        OverseasMarket.TOYKO,
+                        OverseasMarket.TOKYO,
                         OverseasMarket.TSE -> "S0309U"
 
                         OverseasMarket.SHANGHAI,

@@ -66,8 +66,8 @@ class InquireOverseasCondition(override val client: KISApiClient) :
         @SerialName("popen") @Contextual val openingPrice: BigDecimal?,
         /** 부호 */
         @SerialName("sign") override val sign: SignPrice?,
-        @SerialName("diff") @Contextual override val changeFromYesterday: BigDecimal?,
-        @SerialName("rate") @Contextual override val rateFromYesterday: BigDecimal?,
+        @SerialName("diff") @Contextual override val change: BigDecimal?,
+        @SerialName("rate") @Contextual override val rate: BigDecimal?,
         @SerialName("tvol") @Contextual override val tradeVolume: BigInteger?,
         @SerialName("avol") @Contextual override val tradePriceVolume: BigDecimal?,
         /** 발행 주식 */

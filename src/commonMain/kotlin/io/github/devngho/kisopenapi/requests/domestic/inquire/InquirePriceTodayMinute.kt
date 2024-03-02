@@ -56,9 +56,9 @@ class InquirePriceTodayMinute(override val client: KISApiClient) :
     @Serializable
     @Suppress("SpellCheckingInspection")
     data class InquirePriceTodayMinuteResponseOutput1(
-        @SerialName("prdy_vrss") @Contextual override val changeFromYesterday: BigInteger?,
-        @SerialName("prdy_vrss_sign") override val signFromYesterday: SignPrice?,
-        @SerialName("prdy_ctrt") @Contextual override val rateFromYesterday: BigDecimal?,
+        @SerialName("prdy_vrss") @Contextual override val change: BigInteger?,
+        @SerialName("prdy_vrss_sign") override val sign: SignPrice?,
+        @SerialName("prdy_ctrt") @Contextual override val rate: BigDecimal?,
         @SerialName("stck_prdy_clpr") @Contextual val priceFinalYesterday: BigInteger?,
         @SerialName("acml_prtt_rate") @Contextual val accumulateDivisionRate: BigDecimal?,
         @SerialName("hts_frgn_ehrt") @Contextual override val htsForeignerExhaustionRate: BigDecimal?,
@@ -84,8 +84,8 @@ class InquirePriceTodayMinute(override val client: KISApiClient) :
         @SerialName("acml_tr_pbmn") @Contextual override val accumulateTradePrice: BigInteger?,
         @SerialName("stck_prpr") @Contextual override val price: BigInteger?,
         @SerialName("stck_oprc") @Contextual override val openingPrice: BigInteger?,
-        @SerialName("stck_hgpr") @Contextual override val highPrice: BigInteger?,
-        @SerialName("stck_lwpr") @Contextual override val lowPrice: BigInteger?,
+        @SerialName("stck_hgpr") @Contextual override val highestPrice: BigInteger?,
+        @SerialName("stck_lwpr") @Contextual override val lowestPrice: BigInteger?,
         @SerialName("cntg_vol") @Contextual val confirmVolume: BigInteger?
     ) : StockPriceLowHigh, StockTradeAccumulate {
         @SerialName("error_description")

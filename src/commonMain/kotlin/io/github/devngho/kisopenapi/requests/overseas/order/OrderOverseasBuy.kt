@@ -83,7 +83,7 @@ class OrderOverseasBuy(override val client: KISApiClient) :
                 OverseasMarket.AMS,
                 OverseasMarket.AMEX_DAY,
                 OverseasMarket.BAA -> "T1002U" // USA
-                OverseasMarket.TOYKO,
+                        OverseasMarket.TOKYO,
                 OverseasMarket.TSE -> "S0308U"
                 OverseasMarket.SHANGHAI,
                 OverseasMarket.SHANGHAI_INDEX,
@@ -115,22 +115,17 @@ class OrderOverseasBuy(override val client: KISApiClient) :
                 OverseasMarket.AMS,
                 OverseasMarket.AMEX_DAY,
                 OverseasMarket.BAA -> {
+                    if (client.isDemo && data.orderType != OrderTypeCode.SelectPrice) throw RequestException(
+                        "모의 투자에서는 지정가 주문만 가능합니다.",
+                        RequestCode.DemoUnavailable
+                    )
+
                     when (it.orderType) {
                         OrderTypeCode.SelectPrice -> "00"
                         OrderTypeCode.USALimitOnClose -> "34"
                         OrderTypeCode.USALimitOnOpen -> "32"
                         else -> throw RequestException(
-                            "Invalid order type. Only SelectPrice, USALimitOnClose, USALimitOnOpen are allowed in USA stock exchange.",
-                            RequestCode.InvalidOrder
-                        )
-                    }
-                }
-                OverseasMarket.HONGKONG,
-                OverseasMarket.HKS -> {
-                    when (it.orderType) {
-                        OrderTypeCode.SelectPrice -> "00"
-                        else -> throw RequestException(
-                            "Invalid order type. Only SelectPrice are allowed in Hong Kong Stock Exchange.",
+                            "미국 거래소에서는 지정가, 장마감지정가(USALimitOnClose), 장개시지정가(USALimitOnOpen) 주문만 가능합니다.",
                             RequestCode.InvalidOrder
                         )
                     }
@@ -139,7 +134,7 @@ class OrderOverseasBuy(override val client: KISApiClient) :
             }
 
         if (it.price.isZero() && it.orderType == OrderTypeCode.SelectPrice) throw RequestException(
-            "Price must be set when order type is SelectPrice.",
+            "지정가 주문에서 가격은 필수 값입니다.",
             RequestCode.InvalidOrder
         )
 

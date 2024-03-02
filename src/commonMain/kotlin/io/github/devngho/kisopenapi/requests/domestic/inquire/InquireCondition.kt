@@ -21,6 +21,7 @@ import kotlinx.serialization.Serializable
 /**
  * 국내 주식 종목 검색 조건을 사용해 검색하고 반환합니다.
  */
+@DemoNotSupported
 class InquireCondition(override val client: KISApiClient) :
     DataRequest<InquireCondition.ConditionData, InquireCondition.ConditionResponse> {
     private val url = "${client.options.baseUrl}/uapi/domestic-stock/v1/quotations/psearch-result"
@@ -47,16 +48,16 @@ class InquireCondition(override val client: KISApiClient) :
     data class ConditionResponseOutput(
         @SerialName("code") override val ticker: String?,
         @SerialName("name") val name: String?,
-        @SerialName("daebi") override val signFromYesterday: SignPrice?,
+        @SerialName("daebi") override val sign: SignPrice?,
         @SerialName("price") @Serializable(with = BigIntegerFromDecimalSerializer::class) override val price: BigInteger?,
-        @SerialName("chgrate") @Contextual override val rateFromYesterday: BigDecimal?,
+        @SerialName("chgrate") @Contextual override val rate: BigDecimal?,
         @SerialName("acml_vol") @Serializable(with = BigIntegerFromDecimalSerializer::class) override val accumulateTradeVolume: BigInteger?,
-        @SerialName("change") @Serializable(with = BigIntegerFromDecimalSerializer::class) override val changeFromYesterday: BigInteger?,
+        @SerialName("change") @Serializable(with = BigIntegerFromDecimalSerializer::class) override val change: BigInteger?,
         @SerialName("trade_amt") @Serializable(with = BigIntegerFromDecimalSerializer::class) override val accumulateTradePrice: BigInteger?,
         @SerialName("cttr") @Serializable(with = BigIntegerFromDecimalSerializer::class) val confirmPower: BigInteger?,
         @SerialName("open") @Serializable(with = BigIntegerFromDecimalSerializer::class) override val openingPrice: BigInteger?,
-        @SerialName("high") @Serializable(with = BigIntegerFromDecimalSerializer::class) override val highPrice: BigInteger?,
-        @SerialName("low") @Serializable(with = BigIntegerFromDecimalSerializer::class) override val lowPrice: BigInteger?,
+        @SerialName("high") @Serializable(with = BigIntegerFromDecimalSerializer::class) override val highestPrice: BigInteger?,
+        @SerialName("low") @Serializable(with = BigIntegerFromDecimalSerializer::class) override val lowestPrice: BigInteger?,
         @SerialName("high52") @Serializable(with = BigIntegerFromDecimalSerializer::class) val high52WeekPrice: BigInteger?,
         @SerialName("low52") @Serializable(with = BigIntegerFromDecimalSerializer::class) val low52WeekPrice: BigInteger?,
         @SerialName("expprice") @Serializable(with = BigIntegerFromDecimalSerializer::class) val expectedPrice: BigInteger?,

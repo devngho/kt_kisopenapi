@@ -8,9 +8,10 @@ import io.github.devngho.kisopenapi.requests.response.balance.domestic.BalanceAc
 import io.github.devngho.kisopenapi.requests.response.balance.overseas.BalanceAccountOverseas
 import io.github.devngho.kisopenapi.requests.response.stock.BaseInfo
 import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPrice
-import io.github.devngho.kisopenapi.requests.response.stock.price.overseas.StockOverseasPrice
+import io.github.devngho.kisopenapi.requests.response.stock.price.overseas.StockOverseasPriceFull
 import io.github.devngho.kisopenapi.requests.util.Currency
 import io.github.devngho.kisopenapi.requests.util.Date
+import io.github.devngho.kisopenapi.requests.util.DemoNotSupported
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -18,8 +19,38 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 
+@OptIn(DemoNotSupported::class)
 @Suppress("SpellCheckingInspection")
 class LayerTest : BehaviorSpec({
+    xgiven("앱 키, 시크릿") {
+        `when`("API 토큰을 발급받는다") {
+            api.tokens.issue()
+
+            then("토큰을 발급받을 수 있다") {
+                api.tokens.oauthToken shouldNotBe null
+            }
+        }
+        `when`("API 토큰을 폐기한다") {
+            api.tokens.revoke()
+
+            then("토큰을 폐기할 수 있다") {
+                api.tokens.oauthToken shouldBe null
+            }
+        }
+        `when`("API 토큰이 만료되었을 때") {
+            api.tokens.webSocketTokenExpire = 0
+
+            then("만료 여부를 확인할 수 있다") {
+                api.tokens.isExpired shouldBe true
+            }
+            then("재발급받을 수 있다") {
+                api.tokens.issueIfExpired()
+
+                api.tokens.isExpired shouldBe false
+                api.tokens.oauthToken shouldNotBe null
+            }
+        }
+    }
     given("API 토큰, 종목 코드") {
         `when`("StockDomestic 업데이트") {
             val stock = api.stockDomestic(testStock)
@@ -47,7 +78,7 @@ class LayerTest : BehaviorSpec({
         `when`("StockOverseas 업데이트") {
             val stock = api.stockOverseas(testOverseasStock, testOverseasMarket)
 
-            stock.update<StockOverseasPrice>()
+            stock.update<StockOverseasPriceFull>()
             stock.update<BaseInfo>()
 
             then("종목 이름을 가져올 수 있다") {
@@ -55,6 +86,9 @@ class LayerTest : BehaviorSpec({
             }
             then("종목 가격을 가져올 수 있다") {
                 stock.price.price shouldNotBe null
+            }
+            then("종목 상세 정보를 가져올 수 있다") {
+                (stock.price as StockOverseasPriceFull).pbr shouldNotBe null
             }
             xthen("실시간 가격을 가져올 수 있다") {
                 var isDone = false
@@ -153,7 +187,7 @@ class LayerTest : BehaviorSpec({
         `when`("MarketDomestic 조건 검색") {
             val market = api.krx()
             val conditions = market.getSearchConditions()
-            val result = if (conditions.isOk) market.search(conditions.getOrThrow().entries.first().value) else null
+            val result = if (conditions.isOk) market.search(conditions.getOrThrow().first().conditionKey) else null
 
             then("조건 목록을 가져올 수 있다") {
                 conditions.isOk shouldBe true
@@ -180,7 +214,7 @@ class LayerTest : BehaviorSpec({
             }
 
             then("종목을 검색할 수 있다 - 2") {
-                val res = market.search(Market.StockSearchQuery.stockSearchQuery {
+                val res = market.search(MarketOverseas.StockSearchQuery.stockSearchQuery {
                     priceRange = 100.toBigDecimal()..200.toBigDecimal()
                 })
 

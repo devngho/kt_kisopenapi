@@ -9,7 +9,7 @@
 [한국투자증권 KIS Developers](https://apiportal.koreainvestment.com/about)
 
 한국투자증권의 오픈 API 서비스를 Kotlin/Java 환경에서 사용할 수 있는 라이브러리입니다.
-대부분의 API를 지원하며 자동으로 복원되는 웹소켓 등 다양한 기능을 제공합니다.
+대부분의 API를 지원하며, 중복 요청 없는 웹소켓 등 다양한 기능을 제공합니다.
 
 ## 주의사항
 

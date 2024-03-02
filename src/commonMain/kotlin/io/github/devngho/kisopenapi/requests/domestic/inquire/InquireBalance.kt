@@ -128,7 +128,7 @@ class InquireBalance(override val client: KISApiClient) :
         val afterHourFinalPrice: Boolean = true,
         val inquireDivision: InquireDivisionCode = InquireDivisionCode.ByStock,
         val includeFund: Boolean = false,
-        val includeYesterdaySell: Boolean = false,
+        val includeYesterdayTrade: Boolean = false,
         val includeCost: Boolean = false,
         override var corp: CorporationRequest? = null,
         override var tradeContinuous: String? = "",
@@ -152,7 +152,7 @@ class InquireBalance(override val client: KISApiClient) :
                     set("UNPR_DVSN", "01")
                     set("FUND_STTL_ICLD_YN", it.includeFund.YN)
                     set("FNCG_AMT_AUTO_RDPT_YN", "N")
-                    set("PRCS_DVSN", if (it.includeYesterdaySell) "00" else "01")
+                    set("PRCS_DVSN", if (it.includeYesterdayTrade) "00" else "01")
                     if (!client.isDemo) set("COST_ICLD_YN", it.includeCost.YN)
                     set("CTX_AREA_FK100", it.continuousAreaFK)
                     set("CTX_AREA_NK100", it.continuousAreaNK)

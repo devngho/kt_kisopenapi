@@ -19,10 +19,10 @@ interface StockPriceLowHigh : StockPriceBase, Response {
     /** 고가 */
     @SerialName("stck_hgpr")
     @Contextual
-    val highPrice: BigInteger?
+    val highestPrice: BigInteger?
 
     /** 저가 */
     @SerialName("stck_lwpr")
     @Contextual
-    val lowPrice: BigInteger?
+    val lowestPrice: BigInteger?
 }

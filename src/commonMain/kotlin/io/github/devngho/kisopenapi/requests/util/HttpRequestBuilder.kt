@@ -176,7 +176,7 @@ internal suspend inline fun <reified T : Response, reified U : Data> DataRequest
         Result(null, e)
     } catch (e: Exception) {
         val errorMsg = "${e::class.qualifiedName}: ${e.message ?: "Unknown error"}"
-        Result(null, RequestException(errorMsg, RequestCode.Unknown))
+        Result(null, RequestException(errorMsg, RequestCode.Unknown, cause = e))
     }
 }
 

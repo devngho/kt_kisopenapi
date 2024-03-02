@@ -32,7 +32,7 @@ class OrderOverseasSell(override val client: KISApiClient) :
                             OverseasMarket.AMS,
                             OverseasMarket.AMEX_DAY,
                             OverseasMarket.BAA -> "T1006U" // USA
-                            OverseasMarket.TOYKO,
+                            OverseasMarket.TOKYO,
                             OverseasMarket.TSE -> "S0307U"
                             OverseasMarket.SHANGHAI,
                             OverseasMarket.SHANGHAI_INDEX,
@@ -65,7 +65,7 @@ class OrderOverseasSell(override val client: KISApiClient) :
                     OverseasMarket.AMEX_DAY,
                     OverseasMarket.BAA -> {
                         if (client.isDemo && data.orderType != OrderTypeCode.SelectPrice) throw RequestException(
-                            "Invalid order type. Only SelectPrice is allowed in demo.",
+                            "모의 투자에서는 지정가 주문만 가능합니다.",
                             RequestCode.DemoUnavailable
                         )
                         when(data.orderType) {
@@ -75,7 +75,7 @@ class OrderOverseasSell(override val client: KISApiClient) :
                             OrderTypeCode.USAMarketOnClose -> "33"
                             OrderTypeCode.USAMarketOnOpen -> "31"
                             else -> throw RequestException(
-                                "Invalid order type. Only SelectPrice, USALimitOnClose, USALimitOnOpen, USAMarketOnClose, USAMarketOnOpen are allowed in USA.",
+                                "미국 거래소에서는 지정가, 장마감지정가(USALimitOnClose), 장개시지정가(USALimitOnOpen), 장마감시장가(USAMarketOnClose), 장개시시장가(USAMarketOnOpen) 주문만 가능합니다.",
                                 RequestCode.InvalidOrder
                             )
                         }
@@ -83,14 +83,14 @@ class OrderOverseasSell(override val client: KISApiClient) :
                     OverseasMarket.HONGKONG,
                     OverseasMarket.HKS -> {
                         if (client.isDemo && data.orderType != OrderTypeCode.SelectPrice) throw RequestException(
-                            "Invalid order type. Only SelectPrice is allowed in demo.",
+                            "모의 투자에서는 지정가 주문만 가능합니다.",
                             RequestCode.DemoUnavailable
                         )
                         when(data.orderType) {
                             OrderTypeCode.SelectPrice -> "00"
                             OrderTypeCode.HONGKONGSingleSelectPrice -> "50"
                             else -> throw RequestException(
-                                "Invalid order type. Only SelectPrice, HONGKONGSingleSelectPrice are allowed in Hong Kong Stock Exchange.",
+                                "홍콩 거래소에서는 지정가, 단주지정가(HONGKONGSingleSelectPrice) 주문만 가능합니다.",
                                 RequestCode.InvalidOrder
                             )
                         }

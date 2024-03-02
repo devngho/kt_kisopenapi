@@ -50,11 +50,11 @@ class InquireConfirm(override val client: KISApiClient) :
     data class InquireConfirmResponseOutput(
         @SerialName("stck_cntg_hour") val stockConfirmHour: Int?,
         @SerialName("stck_prpr") @Contextual override val price: BigInteger?,
-        @SerialName("prdy_vrss") @Contextual override val changeFromYesterday: BigInteger?,
-        @SerialName("prdy_vrss_sign") override val signFromYesterday: SignPrice?,
+        @SerialName("prdy_vrss") @Contextual override val change: BigInteger?,
+        @SerialName("prdy_vrss_sign") override val sign: SignPrice?,
         @SerialName("cntg_vol") @Contextual val confirmVolume: BigInteger?,
         @SerialName("tday_rltv") @Contextual val todayConfirmPowerVolume: BigDecimal?,
-        @SerialName("prdy_ctrt") @Contextual override val rateFromYesterday: BigDecimal?,
+        @SerialName("prdy_ctrt") @Contextual override val rate: BigDecimal?,
     ): StockPriceBase, StockPriceChange
 
     data class InquireConfirmData(

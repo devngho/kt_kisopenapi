@@ -1,7 +1,5 @@
 package io.github.devngho.kisopenapi
 
-import io.github.devngho.kisopenapi.requests.LiveData
-import io.github.devngho.kisopenapi.requests.LiveRequest
 import io.github.devngho.kisopenapi.requests.data.CorporationRequest
 import io.github.devngho.kisopenapi.requests.ratelimit.ClockRateLimiter
 import io.github.devngho.kisopenapi.requests.response.LiveResponse
@@ -20,6 +18,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.time.TimeSource
 
 @Suppress("SpellCheckingInspection")
 @OptIn(InternalApi::class)
@@ -188,33 +187,38 @@ class KISApiClientImpl internal constructor(
         }
 
         private fun DefaultClientWebSocketSession.setupSession() {
-            // outgoing 전송
+            var lastIncomingTime = TimeSource.Monotonic.markNow()
+
+            setupOutgoing()
+            setupIncoming { lastIncomingTime = TimeSource.Monotonic.markNow() }
+            setupReceiveTimeout { lastIncomingTime }
+        }
+
+        private fun DefaultClientWebSocketSession.setupOutgoing() {
             launch {
                 val channel = this@WebSocketImpl.outgoing as Channel<String>
 
                 while (true) {
                     val msg = channel.receive()
 
-                    if (!this@setupSession.isActive) {
+                    if (!this@setupOutgoing.isActive) {
                         channel.send(msg)
                         break
                     }
 
-                    _eventFlow.emit(KISApiClient.WebSocket.Event.OnSend(msg))
-                    send(Frame.Text(msg))
+                    processOutgoing(msg)
                 }
             }
+        }
 
-            // incoming 수신
+        private fun DefaultClientWebSocketSession.setupIncoming(markIncoming: () -> Unit) {
             launch {
-                var e: Exception? = null
-                try {
+                runCatching {
                     for (it in incoming) {
                         processIncoming(it)
+                        markIncoming()
                     }
-                } catch (ex: Exception) {
-                    e = ex
-                } finally {
+                }.exceptionOrNull().let { e ->
                     withContext(NonCancellable) {
                         val cause = closeReason.await()
 
@@ -224,6 +228,21 @@ class KISApiClientImpl internal constructor(
                     }
 
                     if (e != null) throw e
+                }
+            }
+        }
+
+        private fun DefaultClientWebSocketSession.setupReceiveTimeout(getLastIncomingTime: () -> TimeSource.Monotonic.ValueTimeMark) {
+            launch {
+                while (true) {
+                    // 새 데이터가 없으면 timeout이 일어나는 순간까지 대기합니다.
+                    delay(client.options.webSocketReceiveTimeout * 1000 - getLastIncomingTime().elapsedNow().inWholeMilliseconds)
+
+                    if (getLastIncomingTime().elapsedNow().inWholeMilliseconds >= client.options.webSocketReceiveTimeout * 1000) {
+                        close(CloseReason(CloseReason.Codes.GOING_AWAY, "receiveTimeout"))
+
+                        break
+                    }
                 }
             }
         }
@@ -251,6 +270,23 @@ class KISApiClientImpl internal constructor(
                     processPingPong(frame, txt)
                 } catch (e: Exception) {
                     _eventFlow.tryEmit(KISApiClient.WebSocket.Event.OnError(e))
+                }
+            }
+        }
+
+        /**
+         * 웹소켓으로 보낼 데이터를 처리합니다.
+         */
+        private suspend fun WebSocketSession.processOutgoing(msg: String) {
+            withTimeout(client.options.webSocketSendTimeout * 1000) {
+                try {
+                    send(Frame.Text(msg))
+                    _eventFlow.emit(KISApiClient.WebSocket.Event.OnSend(msg))
+                } catch (e: TimeoutCancellationException) {
+                    withContext(NonCancellable) {
+                        this@processOutgoing.close(CloseReason(CloseReason.Codes.GOING_AWAY, "sendTimeout"))
+                    }
+                    throw e
                 }
             }
         }
@@ -293,23 +329,40 @@ class KISApiClientImpl internal constructor(
             reconnect(alreadyClosing)
         }
 
-        @Suppress("unchecked_cast")
+        private val reconnectMutex = Mutex()
+
         private suspend fun reconnect(alreadyClosing: Boolean) = coroutineScope {
-            val copiedSubscriptions = client.options.webSocketManager.getSubscribed()
+            reconnectMutex.tryLock().let { if (!it) return@coroutineScope }
 
-            if (!alreadyClosing) closeWebsocket()
+            try {
+                _eventFlow.emit(KISApiClient.WebSocket.Event.OnSend("reconnectWebsocket"))
+                val copiedSubscriptions = client.options.webSocketManager.getSubscribed()
+                _eventFlow.emit(KISApiClient.WebSocket.Event.OnSend("copiedSubscriptions: $copiedSubscriptions"))
 
-            buildWebsocket()
+                if (!alreadyClosing) closeWebsocket()
+                else {
+                    clearSubscriptions()
+                    clearSocket()
+                }
+                _eventFlow.emit(KISApiClient.WebSocket.Event.OnSend("closeWebsocket"))
 
-            // 구독 중인 요청을 다시 구독합니다.
-            copiedSubscriptions.forEach {
-                (it.request as LiveRequest<LiveData, *>).register(
-                    it.data,
-                    wait = true,
-                    force = true,
-                    it.initFunc,
-                    it.block
-                )
+                buildWebsocket()
+                _eventFlow.emit(KISApiClient.WebSocket.Event.OnSend("buildWebsocket"))
+
+                // 구독 중인 요청을 다시 구독합니다.
+                copiedSubscriptions.forEach {
+                    _eventFlow.emit(KISApiClient.WebSocket.Event.OnSend("subscribeStart: $it"))
+                    it.request.register(
+                        it.data,
+                        wait = true,
+                        force = true,
+                        it.initFunc,
+                        it.block
+                    )
+                    _eventFlow.emit(KISApiClient.WebSocket.Event.OnSend("subscribeDone: $it"))
+                }
+            } finally {
+                reconnectMutex.unlock()
             }
         }
     }

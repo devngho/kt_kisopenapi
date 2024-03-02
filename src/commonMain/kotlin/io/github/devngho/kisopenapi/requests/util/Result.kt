@@ -19,11 +19,11 @@ class Result<out T>(val value: T?, @Transient val error: RequestException? = nul
 
     val isOk: Boolean = error == null && value != null
 
-    fun getOrThrow(): T =
+    inline fun getOrThrow(): T =
         if (isOk) value!!
         else throw error!!
 
-    fun getOrNull(): T? =
+    inline fun getOrNull(): T? =
         if (isOk) value!!
         else null
 }

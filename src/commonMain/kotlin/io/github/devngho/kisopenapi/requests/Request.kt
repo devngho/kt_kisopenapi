@@ -37,14 +37,14 @@ interface Response {
 /**
  * API 요청을 나타냅니다.
  */
-interface Request<T : Response> {
+interface Request<out T : Response> {
     val client: KISApiClient
 }
 
 /**
  * 웹소켓 실시간 요청을 나타냅니다.
  */
-interface LiveRequest<T : LiveData, U : Response> : Request<U> {
+interface LiveRequest<out T : LiveData, out U : Response> : Request<U> {
     /**
      * 실시간 요청을 등록합니다.
      *
@@ -55,7 +55,7 @@ interface LiveRequest<T : LiveData, U : Response> : Request<U> {
      * @param block 실시간 값이 수신되었을 때의 콜백
      */
     suspend fun register(
-        data: T,
+        data: @UnsafeVariance T,
         wait: Boolean = false,
         force: Boolean = false,
         init: (suspend (Result<LiveResponse>) -> Unit)? = null,
@@ -68,7 +68,7 @@ interface LiveRequest<T : LiveData, U : Response> : Request<U> {
      * @param data 등록 해제할 요청의 데이터입니다.
      * @param wait 등록 해제가 완료될 때까지 대기할지 여부입니다.
      */
-    suspend fun unregister(data: T, wait: Boolean = false)
+    suspend fun unregister(data: @UnsafeVariance T, wait: Boolean = false)
 }
 
 /**

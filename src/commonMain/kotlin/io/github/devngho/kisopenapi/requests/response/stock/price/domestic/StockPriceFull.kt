@@ -151,7 +151,7 @@ interface StockPriceFull : StockPrice, StockPriceForeigner, StockPriceChange, Re
     /** HTS 매매 수량 단위 */
     @SerialName("hts_deal_qty_unit_val")
     @Contextual
-    val htsSellCountUnit: BigInteger?
+    val htsTradeCountUnit: BigInteger?
 
     /** 총 상장 주식 수 */
     @SerialName("lstn_stcn")

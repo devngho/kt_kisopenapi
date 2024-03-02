@@ -2,6 +2,7 @@ package io.github.devngho.kisopenapi
 
 import io.github.devngho.kisopenapi.requests.auth.GrantLiveToken
 import io.github.devngho.kisopenapi.requests.auth.GrantToken
+import io.github.devngho.kisopenapi.requests.auth.RevokeToken
 import io.github.devngho.kisopenapi.requests.data.CorporationRequest
 import io.github.devngho.kisopenapi.requests.ratelimit.RateLimiter
 import io.github.devngho.kisopenapi.requests.response.LiveResponse
@@ -13,6 +14,9 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.datetime.Clock
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlin.jvm.JvmStatic
 
 /**
@@ -76,6 +80,7 @@ interface KISApiClient {
     /**
      * API 옵션입니다.
      */
+    @Serializable
     data class KISApiOptions(
         /**
          * 요청을 전송할 때, 해시키 API를 사용하려면 true, 아니면 false로 설정하세요. 기본값은 false입니다.
@@ -105,11 +110,29 @@ interface KISApiClient {
          * 웹소켓 접속 URL입니다.
          */
         var webSocketUrl: String,
+        /**
+         * 웹소켓 전송 타임아웃입니다. 단위는 초입니다. 기본값은 10초입니다.
+         *
+         * **구현 상세**
+         *
+         * 전송 타임아웃이 지나는 동안 전송이 완료되지 않으면 웹소켓을 종료합니다.
+         */
+        var webSocketSendTimeout: Long = 10,
+        /**
+         * 웹소켓 수신 타임아웃입니다. 단위는 초입니다. 기본값은 20초입니다.
+         *
+         * **구현 상세**
+         *
+         * 수신 타임아웃이 지나는 동안 수신된 데이터가 없으면 웹소켓을 종료합니다.
+         * 기본적으로 PINGPONG 메시지를 주고받으므로, 일반적으로는 수신 타임아웃이 지나는 일은 없습니다.
+         */
+        var webSocketReceiveTimeout: Long = 20,
     )
 
     /**
      * API 요청에 사용할 토큰입니다.
      */
+    @Serializable
     data class KISApiTokens(
         /**
          * API 요청에 사용할 토큰입니다.
@@ -123,7 +146,51 @@ interface KISApiClient {
          * @see io.github.devngho.kisopenapi.requests.auth.GrantLiveToken
          */
         var webSocketToken: String? = null,
-    )
+        /**
+         * 웹소켓 토큰이 만료되는 시간의 epoch seconds입니다.
+         */
+        var webSocketTokenExpire: Long? = null,
+        /**
+         * 토큰을 발급받을 때 사용할 [KISApiClient]입니다.
+         */
+        @Transient
+        var client: KISApiClient? = null,
+    ) {
+        suspend fun revoke() {
+            if (client != null && oauthToken != null) RevokeToken(client!!).call(RevokeToken.RevokeTokenData(oauthToken!!))
+
+            oauthToken = null
+            webSocketToken = null
+            webSocketTokenExpire = null
+        }
+
+        suspend fun issue() {
+            client?.let {
+                GrantToken(it).call().getOrThrow().let { resp ->
+                    oauthToken = resp.accessToken
+                    webSocketTokenExpire = Clock.System.now().epochSeconds + resp.expiresIn!!
+                }
+                webSocketToken = GrantLiveToken(it).call().getOrThrow().approvalKey
+            }
+        }
+
+        suspend fun issueIfExpired() {
+            if (isExpired) issue()
+        }
+
+        /**
+         * 웹소켓 토큰이 만료되었는지 확인하고, 만료되었다면 true, 아니면 false를 반환합니다.
+         * 만약 토큰이 존재하지 않으면 true를 반환합니다.
+         */
+        val isExpired: Boolean
+            get() {
+                if (this.oauthToken == null || this.webSocketToken == null || webSocketTokenExpire == null) return true
+
+                val now = Clock.System.now().epochSeconds
+
+                return now >= webSocketTokenExpire!!
+            }
+    }
 
     /**
      * 웺소켓 구독 요청을 관리하는 [WebSocketManager]입니다.
@@ -200,7 +267,7 @@ interface KISApiClient {
              * @param reason 닫힌 이유
              * @param exception 예외
              */
-            data class OnClose(val reason: CloseReason?, val exception: Exception?) : Event
+            data class OnClose(val reason: CloseReason?, val exception: Throwable?) : Event
 
             /**
              * 웹소켓에서 알 수 없는 에러가 발생했을 때 발생합니다.
@@ -268,6 +335,10 @@ interface KISApiClient {
          * @param options 요청 옵션
          */
         @JvmStatic
+        @Deprecated(
+            "Use withToken using KISApiTokens instead.",
+            ReplaceWith("withToken(tokens, appKey, appSecret, isDemo, account, id, corp, options)")
+        )
         fun withToken(
             token: String,
             appKey: String,
@@ -290,7 +361,36 @@ interface KISApiClient {
                     oauthToken = token,
                     webSocketToken = websocketToken
                 )
-            ).apply { this.options(options) }
+            ).apply {
+                this.tokens.client = this
+
+                this.options(options)
+            }
+
+        @JvmStatic
+        fun withToken(
+            tokens: KISApiTokens,
+            appKey: String,
+            appSecret: String,
+            isDemo: Boolean = false,
+            account: String? = null,
+            id: String? = null,
+            corp: CorporationRequest? = CorporationRequest(),
+            options: KISApiOptions.(KISApiClient) -> Unit = { },
+        ): KISApiClient =
+            KISApiClientImpl(
+                appKey,
+                appSecret,
+                isDemo,
+                account?.split("-")?.let { Pair(it[0], it[1]) },
+                id,
+                corp,
+                tokens
+            ).apply {
+                this.tokens.client = this
+
+                this.options(options)
+            }
 
         /**
          * KISApiClient 객체를 생성해 반환합니다.
@@ -299,7 +399,6 @@ interface KISApiClient {
          * @param appKey 앱 키
          *  @param appSecret 앱 시크릿
          *  @param isDemo 모의투자 여부
-         *  @param grantWebsocket 웹소켓 토큰 발급 여부
          *  @param account 계좌번호(XXXXXXXX-XX 형식)
          *  @param id HTS ID
          *  @param corp 호출하는 개인/기관 정보
@@ -313,7 +412,6 @@ interface KISApiClient {
             account: String? = null,
             id: String? = null,
             corp: CorporationRequest? = CorporationRequest(),
-            grantWebsocket: Boolean = false,
             options: KISApiOptions.(KISApiClient) -> Unit = { },
         ): KISApiClient =
             KISApiClientImpl(
@@ -326,8 +424,9 @@ interface KISApiClient {
                 KISApiTokens()
             )
                 .apply {
-                    tokens.oauthToken = GrantToken(this).call().getOrThrow().accessToken!!
-                    if (grantWebsocket) tokens.webSocketToken = GrantLiveToken(this).call().getOrThrow().approvalKey
+                    tokens.client = this
+
+                    tokens.issue()
 
                     this.options(options)
                 }

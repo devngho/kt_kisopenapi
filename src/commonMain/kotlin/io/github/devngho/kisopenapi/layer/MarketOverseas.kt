@@ -1,13 +1,32 @@
 package io.github.devngho.kisopenapi.layer
 
+import com.ionspin.kotlin.bignum.BigNumber
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
+import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.KISApiClient
 import io.github.devngho.kisopenapi.requests.overseas.inquire.InquireOverseasCondition
 import io.github.devngho.kisopenapi.requests.util.OverseasMarket
 import io.github.devngho.kisopenapi.requests.util.Result
 
 class MarketOverseas(val api: KISApiClient, val exchange: OverseasMarket) : Market {
-    suspend fun search(query: Market.StockSearchQuery<BigDecimal>): Result<List<StockOverseas>> {
+    class StockSearchQuery<T> where T : Comparable<Any>, T : BigNumber<T> {
+        var priceRange: ClosedRange<T>? = null
+        var rateFromYesterdayRange: ClosedRange<T>? = null
+        var tradeVolumeRange: BigInteger.BigIntegerRange? = null
+        var perRange: ClosedRange<T>? = null
+        var epsRange: ClosedRange<T>? = null
+        var tradePriceVolumeRange: ClosedRange<T>? = null
+        var shareRange: BigInteger.BigIntegerRange? = null
+        var marketCapRange: ClosedRange<T>? = null
+
+        companion object {
+            fun <T> stockSearchQuery(block: StockSearchQuery<T>.() -> Unit): StockSearchQuery<T> where T : Comparable<Any>, T : BigNumber<T> {
+                return StockSearchQuery<T>().apply(block)
+            }
+        }
+    }
+
+    suspend fun search(query: StockSearchQuery<BigDecimal>): Result<List<StockOverseas>> {
         val res = InquireOverseasCondition(api).call(
             InquireOverseasCondition.ConditionData(
                 exchange = exchange,
@@ -29,6 +48,6 @@ class MarketOverseas(val api: KISApiClient, val exchange: OverseasMarket) : Mark
             .let { return Result(it) }
     }
 
-    suspend fun search(queryBuilder: (Market.StockSearchQuery<BigDecimal>.() -> Unit)): Result<List<StockOverseas>> =
-        search(Market.StockSearchQuery.stockSearchQuery(queryBuilder))
+    suspend fun search(queryBuilder: (StockSearchQuery<BigDecimal>.() -> Unit)): Result<List<StockOverseas>> =
+        search(StockSearchQuery.stockSearchQuery(queryBuilder))
 }

@@ -27,12 +27,12 @@ interface StockOverseasPrice : StockOverseasPriceBase {
     /** 전일 대비 가격 */
     @SerialName("diff")
     @Contextual
-    val changeFromYesterday: BigDecimal?
+    val change: BigDecimal?
 
     /** 전일 대비 등락률 */
     @SerialName("rate")
     @Contextual
-    val rateFromYesterday: BigDecimal?
+    val rate: BigDecimal?
 
     /** 거래량 */
     @SerialName("tvol")

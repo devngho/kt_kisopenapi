@@ -224,7 +224,7 @@ enum class OrderTypeCode(val num: String) {
     /**
      * 조건부 지정가
      */
-    SelectPriceWithContition("02"),
+    SelectPriceWithCondition("02"),
 
     /**
      * 최유리 지정가
@@ -454,7 +454,7 @@ enum class OverseasMarket(val code: String) {
     NEWYORK("NYS"),
     NASDAQ("NAS"),
     AMEX("AMS"),
-    TOYKO("TSE"),
+    TOKYO("TSE"),
     SHANGHAI("SHS"),
     SHENZHEN("SZS"),
     SHANGHAI_INDEX("SHI"),
@@ -512,7 +512,7 @@ enum class OverseasMarket(val code: String) {
                 AMEX_DAY,
                 BAA -> "AMEX"
 
-                TOYKO,
+                TOKYO,
                 TSE -> "TKSE"
 
                 SHANGHAI,

@@ -32,7 +32,7 @@ class AccountDomesticImpl(val client: KISApiClient) : AccountDomestic {
                 InquireBalance(client).call(
                     InquireBalance.InquireBalanceData(
                         true, InquireDivisionCode.ByStock, true,
-                        includeYesterdaySell = false
+                        includeYesterdayTrade = false
                     )
                 ).getOrNull()?.run {
                     output1?.update()
