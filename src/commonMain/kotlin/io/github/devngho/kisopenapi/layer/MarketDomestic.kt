@@ -1,10 +1,7 @@
 package io.github.devngho.kisopenapi.layer
 
 import io.github.devngho.kisopenapi.KISApiClient
-import io.github.devngho.kisopenapi.requests.domestic.inquire.InquireCondition
-import io.github.devngho.kisopenapi.requests.domestic.inquire.InquireConditionList
-import io.github.devngho.kisopenapi.requests.domestic.inquire.InquireHoliday
-import io.github.devngho.kisopenapi.requests.domestic.inquire.InquireTradeVolumeRank
+import io.github.devngho.kisopenapi.requests.domestic.inquire.*
 import io.github.devngho.kisopenapi.requests.util.*
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.plus
@@ -136,4 +133,19 @@ class MarketDomestic(val api: KISApiClient) : Market {
     @DemoNotSupported
     suspend fun getHolidays(range: ClosedRange<Date>): Result<Map<Date, Boolean>> =
         getHolidays(range.start, range.endInclusive)
+
+    /**
+     * 업종의 현재 지수를 가져옵니다.
+     *
+     * @param sector 업종(FAQ : 종목정보 다운로드(국내) - 업종코드 참조)
+     * @return [InquireSectorIndex.InquireSectorIndexResponseOutput]
+     */
+    @DemoNotSupported
+    suspend fun getSectorIndex(sector: String): Result<InquireSectorIndex.InquireSectorIndexResponseOutput> =
+        InquireSectorIndex(api)
+            .call(InquireSectorIndex.InquireSectorIndexData(sector))
+            .also { if (!it.isOk) return Result(null, it.error) }
+            .getOrThrow()
+            .let { it.output ?: return Result(null, RequestException("Sector index not found.", RequestCode.Unknown)) }
+            .let { Result(it) }
 }
