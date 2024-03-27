@@ -1,9 +1,9 @@
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
-    kotlin("multiplatform") version "1.9.20"
-    kotlin("plugin.serialization") version "1.9.20"
-    id("org.jetbrains.dokka") version "1.9.0"
+    kotlin("multiplatform") version "1.9.22"
+    kotlin("plugin.serialization") version "1.9.22"
+    id("org.jetbrains.dokka") version "1.9.20"
     id("io.kotest.multiplatform") version "5.7.2"
     id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
     `maven-publish`
@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "io.github.devngho"
-version = "0.2.2"
+version = "0.2.3"
 
 repositories {
     mavenCentral()
@@ -108,8 +108,8 @@ kotlin {
     jvm()
     
     sourceSets {
-        val ktorVersion = "2.3.7"
-        val coroutineVersion = "1.7.3"
+        val ktorVersion = "2.3.9"
+        val coroutineVersion = "1.8.0"
         val kotestVersion = "5.8.0"
 
         commonMain.dependencies {
