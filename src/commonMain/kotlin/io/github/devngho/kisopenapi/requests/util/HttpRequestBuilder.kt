@@ -66,6 +66,15 @@ internal fun HttpRequestBuilder.setStock(ticker: String) {
     }
 }
 
+internal fun HttpRequestBuilder.setSector(ticker: String) {
+    url {
+        parameters.run @Suppress("SpellCheckingInspection") {
+            append("FID_COND_MRKT_DIV_CODE", "U")
+            append("FID_INPUT_ISCD", ticker)
+        }
+    }
+}
+
 internal fun HttpRequestBuilder.setTradeId(tradeId: String) {
     headers {
         append("tr_id", tradeId)
