@@ -75,7 +75,7 @@ class StockOverseasImpl(
                     OverseasMarket.SHENZHEN, OverseasMarket.SZS -> ProductTypeCode.ChinaSimCheonA
                     else -> ProductTypeCode.Stock
                 }
-                InquireProductBaseInfo(client).call(InquireProductBaseInfo.ProductBaseInfoData(ticker, type))
+                InquireProductBaseInfo(client).call(InquireProductBaseInfo.InquireProductBaseInfoData(ticker, type))
                     .getOrNull()?.output?.let {
                         updateBy(it)
                     }

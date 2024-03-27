@@ -55,7 +55,7 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
 
             BaseInfo::class -> {
                 InquireProductBaseInfo(client).call(
-                    InquireProductBaseInfo.ProductBaseInfoData(
+                    InquireProductBaseInfo.InquireProductBaseInfoData(
                         ticker,
                         ProductTypeCode.Stock
                     )

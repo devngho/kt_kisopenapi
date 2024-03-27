@@ -20,11 +20,11 @@ import kotlinx.serialization.Serializable
  */
 @DemoNotSupported
 class InquireProductBaseInfo(override val client: KISApiClient) :
-    DataRequest<InquireProductBaseInfo.ProductBaseInfoData, InquireProductBaseInfo.ProductBaseInfoResponse> {
+    DataRequest<InquireProductBaseInfo.InquireProductBaseInfoData, InquireProductBaseInfo.InquireProductBaseInfoResponse> {
     private val url = "${client.options.baseUrl}/uapi/domestic-stock/v1/quotations/search-info"
 
     @Serializable
-    data class ProductBaseInfoResponse(
+    data class InquireProductBaseInfoResponse(
         @SerialName("tr_id") override var tradeId: String?,
         @SerialName("tr_cont") override var tradeContinuous: String?,
         @SerialName("gt_uid") override var globalTradeID: String?,
@@ -32,8 +32,9 @@ class InquireProductBaseInfo(override val client: KISApiClient) :
         @SerialName("msg1") override val msg: String?,
         @SerialName("rt_cd") @Serializable(with = ResultCodeSerializer::class) override val isOk: Boolean?,
 
-        var output: ProductBaseInfoResponseOutput?, override var next: (suspend () -> Result<ProductBaseInfoResponse>)?
-    ) : Response, TradeContinuousResponse<ProductBaseInfoResponse>, TradeIdMsg {
+        var output: InquireProductBaseInfoResponseOutput?,
+        override var next: (suspend () -> Result<InquireProductBaseInfoResponse>)?
+    ) : Response, TradeContinuousResponse<InquireProductBaseInfoResponse>, TradeIdMsg {
         @SerialName("error_description")
         override val errorDescription: String? = null
 
@@ -43,7 +44,7 @@ class InquireProductBaseInfo(override val client: KISApiClient) :
 
     @Serializable
     @Suppress("SpellCheckingInspection")
-    data class ProductBaseInfoResponseOutput(
+    data class InquireProductBaseInfoResponseOutput(
         @SerialName("pdno") override val ticker: String?,
         @SerialName("prdt_type_cd") override val type: ProductTypeCode?,
         @SerialName("prdt_name") override val name: String?,
@@ -69,7 +70,7 @@ class InquireProductBaseInfo(override val client: KISApiClient) :
         override val errorCode: String? = null
     }
 
-    data class ProductBaseInfoData(
+    data class InquireProductBaseInfoData(
         /** 조회할 상품 번호 */
         override val ticker: String,
         /** 조회할 상품 종류 */
@@ -78,7 +79,7 @@ class InquireProductBaseInfo(override val client: KISApiClient) :
     ) : Data, TradeContinuousData, Ticker
 
     @Suppress("SpellCheckingInspection")
-    override suspend fun call(data: ProductBaseInfoData) = request(data) {
+    override suspend fun call(data: InquireProductBaseInfoData) = request(data) {
         if (client.isDemo) throw RequestException(
             "모의투자에서는 사용할 수 없는 API ProductBaseInfo를 호출했습니다.",
             RequestCode.DemoUnavailable
