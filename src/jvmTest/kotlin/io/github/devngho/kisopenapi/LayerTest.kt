@@ -201,6 +201,16 @@ class LayerTest : BehaviorSpec({
             }
         }
 
+        `when`("MarketDomestic 지수 조회") {
+            val market = api.krx()
+            val res = market.getSectorIndex(testSector)
+
+            then("가져올 수 있다") {
+                res.isOk shouldBe true
+                res.getOrThrow() shouldNotBe null
+            }
+        }
+
         `when`("MarkerOverseas") {
             val market = api.marketOverseas(testOverseasMarket)
 

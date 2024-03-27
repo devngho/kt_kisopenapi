@@ -16,6 +16,7 @@ import io.kotest.inspectors.shouldForAll
 import io.kotest.matchers.collections.shouldBeSortedBy
 import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.comparables.shouldBeGreaterThanOrEqualTo
+import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.comparables.shouldBeLessThanOrEqualTo
 import io.kotest.matchers.ints.shouldBeInRange
 import io.kotest.matchers.shouldBe
@@ -37,6 +38,8 @@ val testOverseasMarket = OverseasMarket.NASDAQ
 
 @Suppress("SpellCheckingInspection")
 val testOverseasStocks = listOf("AAPL", "MSFT", "AMZN", "GOOGL")
+
+const val testSector = "0001" // KOSPI
 
 fun readLines(path: String): List<String> = File(path).readLines()
 fun writeText(path: String, text: String) = File(path).writeText(text)
@@ -62,6 +65,7 @@ val api: KISApiClient by lazy {
                     readLines("token.txt").joinToString("")
                 )
             }.getOrDefault(KISApiClient.KISApiTokens("", ""))
+            token.issueIfExpired()
             htsId = readLines("id.txt")
         } catch (e: FileNotFoundException) {
             throw FileNotFoundException("테스트를 위해 key.txt, account.txt, id.txt와 빈 token.txt 파일을 작성해주세요.")
@@ -240,7 +244,7 @@ class InquireTest : BehaviorSpec({
                     .call(
                         InquirePriceSeries.InquirePriceSeriesData(
                             testStock,
-                            InquirePriceSeries.PeriodDivisionCode.Days,
+                            PeriodDivisionCode.Days,
                             startDate = Date(2023, 1, 1),
                             endDate = Date(2023, 3, 31)
                         )
@@ -425,7 +429,7 @@ class InquireTest : BehaviorSpec({
             then("제외 조건을 만족한다") {
                 result.output!!.map {
                     it to InquireProductBaseInfo(api).call(
-                        InquireProductBaseInfo.ProductBaseInfoData(
+                        InquireProductBaseInfo.InquireProductBaseInfoData(
                             it.ticker!!,
                             ProductTypeCode.Stock
                         )
@@ -498,6 +502,60 @@ class InquireTest : BehaviorSpec({
 
             then("성공한다") {
                 res?.isSuccess shouldBe true
+            }
+        }
+        `when`("InquireSectorIndex 호출") {
+            val result =
+                InquireSectorIndex(api).call(InquireSectorIndex.InquireSectorIndexData(testSector)).getOrThrow()
+
+            then("성공한다") {
+                result.isOk shouldBe true
+            }
+            then("빈 리스트를 반환하지 않는다") {
+                result.output shouldNotBe null
+            }
+            then("정보를 반환한다") {
+                result.output!!.price shouldNotBe null
+                result.output!!.change shouldNotBe null
+                result.output!!.rate shouldNotBe null
+            }
+        }
+        `when`("InquireSectorIndexSeries 호출") {
+            val result = InquireSectorIndexSeries(api).call(
+                InquireSectorIndexSeries.InquireSectorIndexSeriesData(
+                    testSector,
+                    PeriodDivisionCode.Days,
+                    endDate = Date(2023, 3, 31)
+                )
+            ).getOrThrow()
+            val resultNext = result.next!!.invoke().getOrThrow()
+
+            then("성공한다") {
+                result.isOk shouldBe true
+            }
+            then("빈 리스트를 반환하지 않는다") {
+                result.output2 shouldNotBe null
+            }
+            then("정보를 반환한다") {
+                result.output2!!.all { it.price != null } shouldBe true
+                result.output2!!.all { it.change != null } shouldBe true
+                result.output2!!.all { it.rate != null } shouldBe true
+            }
+            then("2023년 3월 31일 이전의 100개 데이터를 반환한다") {
+                result.output2!!.count() shouldBe 100
+
+                result.output2!!.shouldForAll { it.bizDate!! shouldBeLessThanOrEqualTo Date(2023, 3, 31) }
+            }
+            then("역순으로 정렬되어 있다") {
+                result.output2!!.sortedBy { it.bizDate!!.YYYYMMDD } shouldBe result.output2!!.reversed()
+            }
+            then("다음 목록을 가져올 수 있다") {
+                resultNext.isOk shouldBe true
+                resultNext.output2 shouldNotBe null
+            }
+            then("이전 목록보다 이전의 100개 데이터를 반환한다") {
+                resultNext.output2!!.count() shouldBe 100
+                resultNext.output2!!.shouldForAll { it.bizDate!! shouldBeLessThan result.output2!!.last().bizDate!! }
             }
         }
     }
