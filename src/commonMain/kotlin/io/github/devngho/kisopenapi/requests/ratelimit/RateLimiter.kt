@@ -10,8 +10,16 @@ import kotlin.jvm.JvmStatic
 interface RateLimiter {
     val ratePerSecond: Int
     companion object {
+        /**
+         * 유량 제한 값을 반환합니다.
+         * 2024.3.29 기준 실전 투자 초당 20회, 모의 투자 초당 2회입니다.
+         *
+         * [API 호출 유량 안내](https://apiportal.koreainvestment.com/community/10000000-0000-0011-0000-000000000002)
+         *
+         * @param isDemo 모의 투자 여부입니다. 기본값은 false입니다.
+         */
         @JvmStatic
-        fun defaultRate(isDemo: Boolean = false) = if (isDemo) 5 else 20
+        fun getDefaultRate(isDemo: Boolean = false) = if (isDemo) 5 else 20
     }
 
     /**

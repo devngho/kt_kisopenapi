@@ -17,13 +17,10 @@ class ClockRateLimiter(override val ratePerSecond: Int, val timeSource: TimeSour
     companion object {
         /**
          * 기본 유량 제한을 가진 [ClockRateLimiter]를 생성합니다.
-         * 2023.6.23 기준 실전 투자 초당 20회, 모의 투자 초당 5회입니다.
-         *
-         * [API 호출 유량 안내](https://apiportal.koreainvestment.com/community/10000000-0000-0011-0000-000000000002)
          *
          * @param isDemo 모의 투자 여부입니다. 기본값은 false입니다.
          */
-        fun byDefaultRate(isDemo: Boolean = false) = ClockRateLimiter(RateLimiter.defaultRate(isDemo))
+        fun byDefaultRate(isDemo: Boolean = false) = ClockRateLimiter(RateLimiter.getDefaultRate(isDemo))
     }
 
     private val minDelay = 1000 / ratePerSecond
