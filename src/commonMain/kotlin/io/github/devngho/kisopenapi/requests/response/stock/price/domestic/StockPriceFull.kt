@@ -191,92 +191,92 @@ interface StockPriceFull : StockPrice, StockPriceForeigner, StockPriceChange, Re
     /** 250일 최고가 */
     @SerialName("d250_hgpr")
     @Contextual
-    val highPriceD250: BigInteger?
+    val highestPriceD250: BigInteger?
 
     /** 250일 최고가 날짜 */
     @Serializable(with = YYYYMMDDSerializer::class)
     @SerialName("d250_hgpr_date")
-    val highPriceDateD250: Date?
+    val highestPriceDateD250: Date?
 
     /** 250일 최고가 대비 현재가 비율 */
     @SerialName("d250_hgpr_vrss_prpr_rate")
     @Contextual
-    val highPriceRateD250: BigDecimal?
+    val highestPriceRateD250: BigDecimal?
 
     /** 250일 최저가 */
     @SerialName("d250_lwpr")
     @Contextual
-    val lowPriceD250: BigInteger?
+    val lowestPriceD250: BigInteger?
 
     /** 250일 최저가 날짜 */
     @Serializable(with = YYYYMMDDSerializer::class)
     @SerialName("d250_lwpr_date")
-    val lowPriceDateD250: Date?
+    val lowestPriceDateD250: Date?
 
     /** 250일 최저가 대비 현재가 비율 */
     @SerialName("d250_lwpr_vrss_prpr_rate")
     @Contextual
-    val lowPriceRateD250: BigDecimal?
+    val lowestPriceRateD250: BigDecimal?
 
     /** 연중 최고가 */
     @SerialName("stck_dryy_hgpr")
     @Contextual
-    val highPriceInYear: BigInteger?
+    val highestPriceInYear: BigInteger?
 
     /** 연중 최고가 날짜 */
     @Serializable(with = YYYYMMDDSerializer::class)
     @SerialName("dryy_hgpr_date")
-    val highPriceDateInYear: Date?
+    val highestPriceDateInYear: Date?
 
     /** 연중 최고가 대비 현재가 비율 */
     @SerialName("dryy_hgpr_vrss_prpr_rate")
     @Contextual
-    val highPriceRateInYear: BigDecimal?
+    val highestPriceRateInYear: BigDecimal?
 
     /** 연중 최저가 */
     @SerialName("stck_dryy_lwpr")
     @Contextual
-    val lowPriceInYear: BigInteger?
+    val lowestPriceInYear: BigInteger?
 
     /** 연중 최저가 날짜 */
     @Serializable(with = YYYYMMDDSerializer::class)
     @SerialName("dryy_lwpr_date")
-    val lowPriceDateInYear: Date?
+    val lowestPriceDateInYear: Date?
 
     /** 연중 최저가 대비 현재가 비율 */
     @SerialName("dryy_lwpr_vrss_prpr_rate")
     @Contextual
-    val lowPriceRateInYear: BigDecimal?
+    val lowestPriceRateInYear: BigDecimal?
 
     /** 52주 최고가 */
     @SerialName("w52_hgpr")
     @Contextual
-    val highPriceW52: BigInteger?
+    val highestPriceW52: BigInteger?
 
     /** 52주 최고가 날짜 */
     @Serializable(with = YYYYMMDDSerializer::class)
     @SerialName("w52_hgpr_date")
-    val highPriceDateW52: Date?
+    val highestPriceDateW52: Date?
 
     /** 52주 최고가 대비 현재가 비율 */
     @SerialName("w52_hgpr_vrss_prpr_ctrt")
     @Contextual
-    val highPriceRateW52: BigDecimal?
+    val highestPriceRateW52: BigDecimal?
 
     /** 52주 최저가 */
     @SerialName("w52_lwpr")
     @Contextual
-    val lowPriceW52: BigInteger?
+    val lowestPriceW52: BigInteger?
 
     /** 52주 최저가 날짜 */
     @Serializable(with = YYYYMMDDSerializer::class)
     @SerialName("w52_lwpr_date")
-    val lowPriceDateW52: Date?
+    val lowestPriceDateW52: Date?
 
     /** 52주 최저가 대비 현재가 비율 */
     @SerialName("w52_lwpr_vrss_prpr_ctrt")
     @Contextual
-    val lowPriceRateW52: BigDecimal?
+    val lowestPriceRateW52: BigDecimal?
 
     /** 전체 융자 잔고 비율 */
     @SerialName("whol_loan_rmnd_rate")
