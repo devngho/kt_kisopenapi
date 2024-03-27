@@ -15,12 +15,9 @@ import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.Stock
 import io.github.devngho.kisopenapi.requests.util.*
 import io.github.devngho.kisopenapi.requests.util.YYYYMMDDSerializer.YYYYMMDD
 import io.ktor.client.request.*
-import kotlinx.serialization.*
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * 국내 주식 종목의 일/주/월/년 기간별 시세를 조회하고 반환합니다.
@@ -28,30 +25,6 @@ import kotlinx.serialization.encoding.Encoder
 class InquirePriceSeries(override val client: KISApiClient) :
     DataRequest<InquirePriceSeries.InquirePriceSeriesData, InquirePriceSeries.InquirePriceSeriesResponse> {
     private val url = "${client.options.baseUrl}/uapi/domestic-stock/v1/quotations/inquire-daily-itemchartprice"
-
-    @OptIn(ExperimentalSerializationApi::class)
-    @Serializable(with = PeriodDivisionCode.PeriodDivisionCodeSerializer::class)
-    @Suppress("unused")
-    enum class PeriodDivisionCode(val num: String) {
-        Days("D"),
-        Weeks("W"),
-        Months("M"),
-        Years("Y");
-
-        @ExperimentalSerializationApi
-        object PeriodDivisionCodeSerializer : KSerializer<PeriodDivisionCode> {
-            override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("PeriodDivisionCode", PrimitiveKind.STRING)
-
-            override fun deserialize(decoder: Decoder): PeriodDivisionCode {
-                val d = decoder.decodeString()
-                return entries.first { it.num == d }
-            }
-
-            override fun serialize(encoder: Encoder, value: PeriodDivisionCode) {
-                encoder.encodeString(value.num)
-            }
-        }
-    }
 
     @Serializable
     data class InquirePriceSeriesResponse(

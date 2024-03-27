@@ -675,3 +675,28 @@ enum class LoanType(val code: String) {
         }
     }
 }
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable(with = PeriodDivisionCode.PeriodDivisionCodeSerializer::class)
+@Suppress("unused")
+enum class PeriodDivisionCode(val num: String) {
+    Days("D"),
+    Weeks("W"),
+    Months("M"),
+    Years("Y");
+
+    @ExperimentalSerializationApi
+    object PeriodDivisionCodeSerializer : KSerializer<PeriodDivisionCode> {
+        override val descriptor: SerialDescriptor =
+            PrimitiveSerialDescriptor("PeriodDivisionCode", PrimitiveKind.STRING)
+
+        override fun deserialize(decoder: Decoder): PeriodDivisionCode {
+            val d = decoder.decodeString()
+            return entries.first { it.num == d }
+        }
+
+        override fun serialize(encoder: Encoder, value: PeriodDivisionCode) {
+            encoder.encodeString(value.num)
+        }
+    }
+}
