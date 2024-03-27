@@ -63,7 +63,7 @@ class KISApiClientImpl internal constructor(
          * 구독된 요청을 다시 구독할 때, 같은 [LiveResponse]를 사용해 요청의 init 함수를 실행하기 위해 사용합니다.
          * @see io.github.devngho.kisopenapi.requests.LiveRequest
          */
-        private val webSocketSubscribedInit = mutableMapOf<String, Deferred<LiveResponse>>()
+        private val webSocketSubscribedInit = mutableMapOf<String, CompletableDeferred<LiveResponse>>()
         private val webSocketSubscribedInitMutex = Mutex()
 
         /**
@@ -112,7 +112,7 @@ class KISApiClientImpl internal constructor(
                 webSocketSubscribedInit[id]
                     ?.let {
                         // 구독 완료 정보를 저장합니다.
-                        (webSocketSubscribedInit[id] as? CompletableDeferred<LiveResponse>
+                        (webSocketSubscribedInit[id]
                             ?: throw IllegalStateException("Subscribed init is not CompletableDeferred.")).complete(
                             response
                         )
@@ -128,7 +128,7 @@ class KISApiClientImpl internal constructor(
 
             return webSocketSubscribedKeyMutex.withLock {
                 webSocketSubscribedKey.remove(id)
-                (!webSocketSubscribedKey.contains(id)).also @Suppress("DeferredResultUnused") {
+                (!webSocketSubscribedKey.contains(id)).also {
                     if (it) webSocketSubscribedInit.remove(id) // 마지막 구독이 해제되었을 경우, 구독 완료 정보를 제거합니다.
                 } // 다른 곳에서 구독 중인지 확인하고, 없으면 구독 해제 요청을 전송해야 합니다.
             }
@@ -335,23 +335,18 @@ class KISApiClientImpl internal constructor(
             reconnectMutex.tryLock().let { if (!it) return@coroutineScope }
 
             try {
-                _eventFlow.emit(KISApiClient.WebSocket.Event.OnSend("reconnectWebsocket"))
                 val copiedSubscriptions = client.options.webSocketManager.getSubscribed()
-                _eventFlow.emit(KISApiClient.WebSocket.Event.OnSend("copiedSubscriptions: $copiedSubscriptions"))
 
                 if (!alreadyClosing) closeWebsocket()
                 else {
                     clearSubscriptions()
                     clearSocket()
                 }
-                _eventFlow.emit(KISApiClient.WebSocket.Event.OnSend("closeWebsocket"))
 
                 buildWebsocket()
-                _eventFlow.emit(KISApiClient.WebSocket.Event.OnSend("buildWebsocket"))
 
                 // 구독 중인 요청을 다시 구독합니다.
                 copiedSubscriptions.forEach {
-                    _eventFlow.emit(KISApiClient.WebSocket.Event.OnSend("subscribeStart: $it"))
                     it.request.register(
                         it.data,
                         wait = true,
@@ -359,7 +354,6 @@ class KISApiClientImpl internal constructor(
                         it.initFunc,
                         it.block
                     )
-                    _eventFlow.emit(KISApiClient.WebSocket.Event.OnSend("subscribeDone: $it"))
                 }
             } finally {
                 reconnectMutex.unlock()
