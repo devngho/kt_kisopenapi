@@ -104,7 +104,7 @@ JavaUtil.callWithData(new InquirePrice(api), new InquirePrice.InquirePriceData("
 - [ ] 해외주식
   - [ ] 주문
     - [x] 주문
-    - [ ] 정정
+    - [x] 정정/취소
     - [ ] 예약
     - [x] 잔고 조회
   - [ ] 시세
