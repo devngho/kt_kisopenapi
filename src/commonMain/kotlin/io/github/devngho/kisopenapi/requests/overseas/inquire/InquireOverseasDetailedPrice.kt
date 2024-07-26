@@ -90,7 +90,7 @@ class InquireOverseasDetailedPrice(override val client: KISApiClient) :
         @SerialName("e_hogau") @Contextual override val askingPriceUnit: BigDecimal?,
         @SerialName("e_icod") override val sectorName: String?,
         @SerialName("e_parp") @Contextual override val facePrice: BigDecimal?,
-        @SerialName("etyp_nm") override val etpClassificationName: String?,
+        @SerialName("etyp_nm") override val etpClassName: String?,
     ) : StockOverseasPriceFull {
         @SerialName("error_description")
         override val errorDescription: String? = null

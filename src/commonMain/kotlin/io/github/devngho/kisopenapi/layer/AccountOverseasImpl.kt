@@ -11,8 +11,11 @@ import io.github.devngho.kisopenapi.requests.response.balance.overseas.BalanceAc
 import io.github.devngho.kisopenapi.requests.util.Closeable
 import io.github.devngho.kisopenapi.requests.util.Currency
 import io.github.devngho.kisopenapi.requests.util.OverseasMarket
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlin.reflect.KClass
 
 /**
@@ -34,8 +37,13 @@ class AccountOverseasImpl(val client: KISApiClient, val exchange: OverseasMarket
     override var evalAmount: BigDecimal? = null
     override val accountStocks: MutableList<AccountStock> = mutableListOf()
 
-    override suspend fun update(res: KClass<out Response>) {
-        when (res) {
+    override suspend fun update(vararg type: KClass<out Response>): Unit = coroutineScope {
+        type.map { async { updateSingle(it) } }.awaitAll()
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    private suspend fun updateSingle(type: KClass<out Response>) {
+        when (type) {
             BalanceAccountOverseas::class -> {
                 InquireOverseasBalance(client).call(InquireOverseasBalance.InquireBalanceData(exchange, currency))
                     .getOrNull()?.run {

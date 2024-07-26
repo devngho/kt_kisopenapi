@@ -188,5 +188,5 @@ interface StockOverseasPriceFull : StockOverseasPrice {
 
     /** ETP 분류명 */
     @SerialName("etyp_nm")
-    val etpClassificationName: String?
+    val etpClassName: String?
 }

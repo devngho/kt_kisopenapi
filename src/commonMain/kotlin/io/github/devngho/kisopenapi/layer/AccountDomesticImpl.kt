@@ -10,6 +10,8 @@ import io.github.devngho.kisopenapi.requests.response.balance.domestic.BalanceAc
 import io.github.devngho.kisopenapi.requests.response.balance.domestic.BalanceAccountStock
 import io.github.devngho.kisopenapi.requests.util.Closeable
 import io.github.devngho.kisopenapi.requests.util.InquireDivisionCode
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
@@ -26,8 +28,12 @@ class AccountDomesticImpl(val client: KISApiClient) : AccountDomestic {
     override var evalAmount: BigInteger? = null
     override val accountStocks: MutableList<AccountStock> = mutableListOf()
 
-    override suspend fun update(res: KClass<out Response>) {
-        when (res) {
+    override suspend fun update(vararg type: KClass<out Response>): Unit = coroutineScope {
+        type.map { async { updateSingle(it) } }.awaitAll()
+    }
+
+    private suspend fun updateSingle(type: KClass<out Response>) {
+        when (type) {
             BalanceAccount::class -> {
                 InquireBalance(client).call(
                     InquireBalance.InquireBalanceData(

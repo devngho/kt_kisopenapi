@@ -7,6 +7,7 @@ import io.github.devngho.kisopenapi.KISApiClient
 import io.github.devngho.kisopenapi.requests.overseas.inquire.InquireOverseasCondition
 import io.github.devngho.kisopenapi.requests.util.OverseasMarket
 import io.github.devngho.kisopenapi.requests.util.Result
+import kotlinx.serialization.ExperimentalSerializationApi
 
 class MarketOverseas(val api: KISApiClient, val exchange: OverseasMarket) : Market {
     class StockSearchQuery<T> where T : Comparable<Any>, T : BigNumber<T> {
@@ -26,6 +27,7 @@ class MarketOverseas(val api: KISApiClient, val exchange: OverseasMarket) : Mark
         }
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     suspend fun search(query: StockSearchQuery<BigDecimal>): Result<List<StockOverseas>> {
         val res = InquireOverseasCondition(api).call(
             InquireOverseasCondition.ConditionData(

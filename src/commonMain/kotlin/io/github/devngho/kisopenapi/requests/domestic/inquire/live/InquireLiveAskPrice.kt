@@ -41,6 +41,10 @@ class InquireLiveAskPrice(override val client: KISApiClient) :
         val sellAskPrices: List<AskPrice>? = null,
         /** 매수 호가, 10개가 있습니다. */
         val buyAskPrices: List<AskPrice>? = null,
+        /** 총 매도호가 잔량 */
+        @SerialName("TOTAL_ASKP_RSQN") @Contextual val totalSellAskPriceCount: BigInteger? = null,
+        /** 총 매수호가 잔량 */
+        @SerialName("TOTAL_BIDP_RSQN") @Contextual val totalBuyAskPriceCount: BigInteger? = null,
         /** 시간외 총 매도 호가 잔량 */
         @SerialName("ovtm_total_askp_rsqn") @Contextual val afterHourSellCount: BigInteger? = null,
         /** 시간외 총 매수 호가 잔량 */
@@ -105,7 +109,8 @@ class InquireLiveAskPrice(override val client: KISApiClient) :
             updateJob = { job = it },
             init = init ?: {},
             block = block,
-            force = force
+            force = force,
+            bodySize = 59
         ) {
             InquireLiveAskPriceResponse(
                 it[0],
@@ -133,14 +138,16 @@ class InquireLiveAskPrice(override val client: KISApiClient) :
                 it[46].toBigInteger(),
                 it[47].toBigInteger(),
                 it[48].toBigInteger(),
-                SignPrice.fromCode(it[49].toInt()),
-                it[50].toBigDecimal(),
-                it[51].toBigInteger(),
-                it[52].toBigInteger(),
+                it[49].toBigInteger(),
+                it[50].toBigInteger(),
+                SignPrice.fromCode(it[51].toInt()),
+                it[52].toBigDecimal(),
                 it[53].toBigInteger(),
                 it[54].toBigInteger(),
                 it[55].toBigInteger(),
-//                it[56].toInt(),  // 삭제된 코드입니다.
+                it[56].toBigInteger(),
+                it[57].toBigInteger(),
+//                it[58].toInt(),  // 삭제된 코드입니다.
             )
         }
     }

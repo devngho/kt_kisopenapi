@@ -10,13 +10,17 @@ import io.github.devngho.kisopenapi.requests.domestic.order.OrderAmend
 import io.github.devngho.kisopenapi.requests.domestic.order.OrderBuy
 import io.github.devngho.kisopenapi.requests.domestic.order.OrderCancel
 import io.github.devngho.kisopenapi.requests.domestic.order.OrderSell
-import io.github.devngho.kisopenapi.requests.response.stock.BaseInfo
+import io.github.devngho.kisopenapi.requests.response.stock.BaseProductInfo
+import io.github.devngho.kisopenapi.requests.response.stock.ProductInfo
+import io.github.devngho.kisopenapi.requests.response.stock.StockInfo
 import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.*
 import io.github.devngho.kisopenapi.requests.response.stock.trade.StockTrade
 import io.github.devngho.kisopenapi.requests.response.stock.trade.StockTradeAccumulate
 import io.github.devngho.kisopenapi.requests.response.stock.trade.StockTradeFull
 import io.github.devngho.kisopenapi.requests.response.stock.trade.StockTradeRate
 import io.github.devngho.kisopenapi.requests.util.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
@@ -32,9 +36,14 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
     override var name = StockBase.Name()
     override lateinit var tradeVolume: StockTrade
 
+
+    override suspend fun update(vararg type: KClass<out Response>): Unit = coroutineScope {
+        type.map { async { updateSingle(it) } }.awaitAll()
+    }
+
     @OptIn(DemoNotSupported::class)
-    override suspend fun update(res: KClass<out Response>) {
-        when (res) {
+    private suspend fun updateSingle(type: KClass<out Response>) {
+        when (type) {
             StockPriceFull::class,
             StockPrice::class,
             StockPriceBase::class,
@@ -53,7 +62,9 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
                 }
             }
 
-            BaseInfo::class -> {
+            BaseProductInfo::class,
+            ProductInfo::class,
+            StockInfo::class -> {
                 InquireProductBaseInfo(client).call(
                     InquireProductBaseInfo.InquireProductBaseInfoData(
                         ticker,
@@ -70,10 +81,10 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
     override fun updateBy(res: Response) {
         if (res is StockPriceBase) price = res
         if (res is StockTrade) tradeVolume = res
-        if (res is BaseInfo) res.update()
+        if (res is ProductInfo) res.update()
     }
 
-    private fun BaseInfo.update() {
+    private fun ProductInfo.update() {
         this@StockDomesticImpl.name.also {
             it.name = name ?: it.name
             it.name120 = name120 ?: it.name120

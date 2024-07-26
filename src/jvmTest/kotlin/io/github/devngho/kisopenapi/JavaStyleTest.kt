@@ -5,7 +5,7 @@ import io.github.devngho.kisopenapi.requests.NoDataRequest
 import io.github.devngho.kisopenapi.requests.Response
 import io.github.devngho.kisopenapi.requests.data.Msg
 import io.github.devngho.kisopenapi.requests.domestic.inquire.InquirePrice
-import io.github.devngho.kisopenapi.requests.response.stock.BaseInfo
+import io.github.devngho.kisopenapi.requests.response.stock.ProductInfo
 import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPrice
 import io.github.devngho.kisopenapi.requests.util.Result
 import io.kotest.core.spec.style.BehaviorSpec
@@ -35,7 +35,7 @@ class JavaStyleTest : BehaviorSpec({
         `when`("StockDomestic 업데이트(자바 형식)") {
             val stock = StockDomestic.create(api, testStock)
             JavaUtil.updateBy(stock, StockPrice::class.java)
-            JavaUtil.updateBy(stock, BaseInfo::class.java)
+            JavaUtil.updateBy(stock, ProductInfo::class.java)
 
             then("종목 이름을 가져올 수 있다") {
                 stock.name.nameShort shouldBe "삼성전자"

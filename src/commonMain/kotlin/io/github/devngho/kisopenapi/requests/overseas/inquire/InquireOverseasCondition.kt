@@ -26,7 +26,7 @@ class InquireOverseasCondition(override val client: KISApiClient) :
     private val url = "${client.options.baseUrl}/uapi/overseas-price/v1/quotations/inquire-search"
 
     @Serializable
-    data class ConditionResponse(
+    data class ConditionResponse @OptIn(ExperimentalSerializationApi::class) constructor(
         @SerialName("tr_cont") override var tradeContinuous: String?,
         @SerialName("tr_id") override var tradeId: String?,
         @SerialName("gt_uid") override var globalTradeID: String?,
@@ -46,7 +46,8 @@ class InquireOverseasCondition(override val client: KISApiClient) :
 
     @Serializable
     @Suppress("SpellCheckingInspection")
-    data class ConditionResponseOutput @OptIn(ExperimentalSerializationApi::class) constructor(
+    @ExperimentalSerializationApi
+    data class ConditionResponseOutput(
         @SerialName("symb") override val ticker: String?,
         /** 실시간 조회 심볼 */
         @SerialName("rsym") val liveLoadCode: String?,

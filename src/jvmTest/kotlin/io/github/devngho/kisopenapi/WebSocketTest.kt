@@ -188,7 +188,7 @@ class WebSocketTest : ShouldSpec({
             }
 
             // fake 데이터를 보냄
-            (api.webSocket as WebSocketMockClient).incoming.emit("0|HDFSCNT0|${data.tradeKey(api)}^FAKE")
+            (api.webSocket as WebSocketMockClient).incoming.emit("0|H0STCNT0|001|${data.tradeKey(api)}^FAKE")
 
             delay(1000)
 
@@ -288,6 +288,29 @@ class WebSocketTest : ShouldSpec({
                         body.header.trType shouldBe "1" // subscribe
                     }
             }
+        }
+
+        should("여러 값이 동시에 들어오면 차례대로 처리한다") {
+            val instance = InquireLivePrice(api)
+            val data = InquireLivePrice.InquireLivePriceData(testStock)
+            var callCount = 0
+
+            // when
+            instance.register(data, wait = true) {
+                callCount += 1
+            }
+
+            val textData =
+                "${data.tradeKey(api)}^093354^71900^5^-100^-0.14^72023.83^72100^72400^71700^71900^71800^1^3052507^219853241700^5105^6937^1832^84.90^1366314^1159996^1^0.39^20.28^090020^5^-200^090820^5^-500^092619^2^200^20230612^20^N^65945^216924^1118750^2199206^0.05^2424142^125.92^0^^72100"
+
+            // fake 데이터를 보냄
+            (api.webSocket as WebSocketMockClient).incoming.emit("0|H0STCNT0|004|$textData^$textData^$textData^$textData")
+
+            delay(1000)
+
+            callCount shouldBe 4
+
+            instance.unregister(data)
         }
     }
 
@@ -546,7 +569,7 @@ class WebSocketTest : ShouldSpec({
      * 원본의 incoming을 MutableSharedFlow로 대체합니다.
      * 따라서 테스트 시 incoming을 emit하여 테스트할 수 있습니다.
      *
-     * 자세한 예시는InquireLivePrice 테스트 중 *연결 해제한 후에는 데이터를 수신할 수 없다*를 확인하세요.
+     * 자세한 예시는 InquireLivePrice 테스트 중 *연결 해제한 후에는 데이터를 수신할 수 없다*를 확인하세요.
      *
      * @property raw 원본 웹소켓 클라이언트
      */

@@ -93,7 +93,8 @@ class InquireOverseasLivePrice(override val client: KISApiClient) :
             updateJob = { job = it },
             init = init ?: {},
             block = block,
-            force = force
+            force = force,
+            bodySize = 26
         ) {
             InquireOverseasLivePriceResponse(
                 it[0],
@@ -123,7 +124,7 @@ class InquireOverseasLivePrice(override val client: KISApiClient) :
                 it[22].toBigInteger(),
                 it[23].toBigInteger(),
                 it[24].toBigDecimal(),
-                MarketStatus.entries.firstOrNull { f -> f.code == it[24] }
+                MarketStatus.entries.firstOrNull { f -> f.code == it[25] }
             )
         }
     }

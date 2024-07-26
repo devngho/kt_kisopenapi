@@ -11,6 +11,7 @@ import io.github.devngho.kisopenapi.requests.data.TradeContinuousData
 import io.github.devngho.kisopenapi.requests.data.TradeContinuousResponse
 import io.github.devngho.kisopenapi.requests.data.TradeIdMsg
 import io.github.devngho.kisopenapi.requests.util.*
+import io.github.devngho.kisopenapi.requests.util.RequestException.Companion.throwIfClientIsDemo
 import io.ktor.client.request.*
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
@@ -110,10 +111,7 @@ class InquireSectorIndex(override val client: KISApiClient) :
 
     @Suppress("SpellCheckingInspection")
     override suspend fun call(data: InquireSectorIndexData) = request(data) {
-        if (client.isDemo) throw RequestException(
-            "모의투자에서는 사용할 수 없는 API InquireSectorIndex를 호출했습니다.",
-            RequestCode.DemoUnavailable
-        )
+        throwIfClientIsDemo()
 
         client.httpClient.get(url) {
             setAuth(client)

@@ -179,6 +179,7 @@ enum class ProductTypeCode(val num: String) {
     Stock("300"),
     FutureOption("301"),
     Bond("302"),
+    ELS("306"),
     Nasdaq("512"),
     NewYork("513"),
     Amex("529"),

@@ -8,9 +8,10 @@ import io.github.devngho.kisopenapi.requests.data.CorporationRequest
 import io.github.devngho.kisopenapi.requests.data.TradeContinuousData
 import io.github.devngho.kisopenapi.requests.data.TradeContinuousResponse
 import io.github.devngho.kisopenapi.requests.data.TradeIdMsg
-import io.github.devngho.kisopenapi.requests.response.stock.BaseInfo
+import io.github.devngho.kisopenapi.requests.response.stock.ProductInfo
 import io.github.devngho.kisopenapi.requests.response.stock.Ticker
 import io.github.devngho.kisopenapi.requests.util.*
+import io.github.devngho.kisopenapi.requests.util.RequestException.Companion.throwIfClientIsDemo
 import io.ktor.client.request.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -54,7 +55,7 @@ class InquireProductBaseInfo(override val client: KISApiClient) :
         @SerialName("prdt_eng_name120") override val nameEng120: String?,
         @SerialName("prdt_eng_abrv_name") override val nameEngShort: String?,
         @SerialName("std_pdno") override val codeStandard: String?,
-        @SerialName("shtn_pdno") override val codeShort: String?,
+        @SerialName("shtn_pdno") val codeShort: String?,
         @SerialName("prdt_sale_stat_cd") override val productSaleState: String?,
         @SerialName("prdt_risk_grad_cd") override val productRiskGrade: String?,
         @SerialName("prdt_clsf_cd") override val productClassifier: String?,
@@ -65,7 +66,7 @@ class InquireProductBaseInfo(override val client: KISApiClient) :
         @SerialName("ivst_prdt_type_cd") override val productInvestmentType: String?,
         @SerialName("ivst_prdt_type_cd_name") override val productInvestmentTypeName: String?,
         @SerialName("frst_erlm_date") override val firstRegisterDate: String?,
-    ) : BaseInfo {
+    ) : ProductInfo {
         override val errorDescription: String? = null
         override val errorCode: String? = null
     }
@@ -80,11 +81,7 @@ class InquireProductBaseInfo(override val client: KISApiClient) :
 
     @Suppress("SpellCheckingInspection")
     override suspend fun call(data: InquireProductBaseInfoData) = request(data) {
-        if (client.isDemo) throw RequestException(
-            "모의투자에서는 사용할 수 없는 API ProductBaseInfo를 호출했습니다.",
-            RequestCode.DemoUnavailable
-        )
-
+        throwIfClientIsDemo()
         client.httpClient.get(url) {
             setAuth(client)
             setTradeId("CTPF1604R")

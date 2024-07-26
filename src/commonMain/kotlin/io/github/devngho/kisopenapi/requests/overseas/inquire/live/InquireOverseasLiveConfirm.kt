@@ -94,7 +94,8 @@ class InquireOverseasLiveConfirm(override val client: KISApiClient) :
             updateJob = { job = it },
             init = init ?: {},
             block = block,
-            force = force
+            force = force,
+            bodySize = 21
         ) {
             InquireOverseasLiveConfirmResponse(
                 it[0],

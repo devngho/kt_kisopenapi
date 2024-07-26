@@ -6,7 +6,7 @@ import io.github.devngho.kisopenapi.layer.Updatable.Companion.update
 import io.github.devngho.kisopenapi.requests.domestic.inquire.InquireTradeVolumeRank
 import io.github.devngho.kisopenapi.requests.response.balance.domestic.BalanceAccount
 import io.github.devngho.kisopenapi.requests.response.balance.overseas.BalanceAccountOverseas
-import io.github.devngho.kisopenapi.requests.response.stock.BaseInfo
+import io.github.devngho.kisopenapi.requests.response.stock.ProductInfo
 import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPrice
 import io.github.devngho.kisopenapi.requests.response.stock.price.overseas.StockOverseasPriceFull
 import io.github.devngho.kisopenapi.requests.util.Currency
@@ -55,8 +55,7 @@ class LayerTest : BehaviorSpec({
         `when`("StockDomestic 업데이트") {
             val stock = api.stockDomestic(testStock)
 
-            stock.update<StockPrice>()
-            stock.update<BaseInfo>()
+            stock.update(StockPrice::class, ProductInfo::class)
 
             then("종목 이름을 가져올 수 있다") {
                 stock.name.nameShort shouldBe "삼성전자"
@@ -78,8 +77,7 @@ class LayerTest : BehaviorSpec({
         `when`("StockOverseas 업데이트") {
             val stock = api.stockOverseas(testOverseasStock, testOverseasMarket)
 
-            stock.update<StockOverseasPriceFull>()
-            stock.update<BaseInfo>()
+            stock.update(StockOverseasPriceFull::class, ProductInfo::class)
 
             then("종목 이름을 가져올 수 있다") {
                 stock.name.name shouldBe "애플"

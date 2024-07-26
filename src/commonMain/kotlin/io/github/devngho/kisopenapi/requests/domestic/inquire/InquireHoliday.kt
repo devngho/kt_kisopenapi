@@ -9,6 +9,7 @@ import io.github.devngho.kisopenapi.requests.data.Msg
 import io.github.devngho.kisopenapi.requests.data.TradeContinuousData
 import io.github.devngho.kisopenapi.requests.data.TradeContinuousResponse
 import io.github.devngho.kisopenapi.requests.util.*
+import io.github.devngho.kisopenapi.requests.util.RequestException.Companion.throwIfClientIsDemo
 import io.github.devngho.kisopenapi.requests.util.YYYYMMDDSerializer.YYYYMMDD
 import io.ktor.client.request.*
 import kotlinx.datetime.DateTimeUnit
@@ -78,10 +79,7 @@ class InquireHoliday(override val client: KISApiClient) :
         : Data, TradeContinuousData
 
     override suspend fun call(data: InquireHolidayData) = request(data, block = {
-        if (client.isDemo) throw RequestException(
-            "모의투자에서는 사용할 수 없는 API InquireHoliday를 호출했습니다.",
-            RequestCode.DemoUnavailable
-        )
+        throwIfClientIsDemo()
 
         @Suppress("SpellCheckingInspection")
         client.httpClient.get(url) {

@@ -1,17 +1,17 @@
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
-    kotlin("multiplatform") version "1.9.22"
-    kotlin("plugin.serialization") version "1.9.22"
+    kotlin("multiplatform") version "2.0.0"
+    kotlin("plugin.serialization") version "2.0.0"
     id("org.jetbrains.dokka") version "1.9.20"
-    id("io.kotest.multiplatform") version "5.7.2"
+    id("io.kotest.multiplatform") version "5.9.1"
     id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
     `maven-publish`
     signing
 }
 
 group = "io.github.devngho"
-version = "0.2.3"
+version = "0.2.4"
 
 repositories {
     mavenCentral()
@@ -108,9 +108,12 @@ kotlin {
     jvm()
     
     sourceSets {
-        val ktorVersion = "2.3.9"
-        val coroutineVersion = "1.8.0"
-        val kotestVersion = "5.8.0"
+        val ktorVersion = "2.3.12"
+        val coroutineVersion = "1.9.0-RC"
+        val kotestVersion = "5.9.1"
+        val bigNumVersion = "0.3.10"
+        val mockkVersion = "1.13.12"
+        val slf4jVersion = "2.0.13"
 
         commonMain.dependencies {
             implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
@@ -121,8 +124,8 @@ kotlin {
             implementation("io.ktor:ktor-client-websockets:$ktorVersion")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
             api("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
-            api("com.ionspin.kotlin:bignum:0.3.7")
-            implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:0.3.7")
+            api("com.ionspin.kotlin:bignum:$bigNumVersion")
+            implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:$bigNumVersion")
         }
         commonTest.dependencies {
             implementation("io.kotest:kotest-framework-engine:$kotestVersion")
@@ -137,8 +140,8 @@ kotlin {
         }
         jvmTest.dependencies {
             implementation("io.kotest:kotest-runner-junit5:$kotestVersion")
-            implementation("org.slf4j:slf4j-simple:2.0.9")
-            implementation("io.mockk:mockk:1.13.8")
+            implementation("org.slf4j:slf4j-simple:$slf4jVersion")
+            implementation("io.mockk:mockk:$mockkVersion")
         }
         nativeMain.dependencies {
             implementation("io.ktor:ktor-client-curl:$ktorVersion")

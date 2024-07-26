@@ -27,7 +27,7 @@ class InquireOverseasBalance(override val client: KISApiClient) :
     private val url = "${client.options.baseUrl}/uapi/overseas-stock/v1/trading/inquire-balance"
 
     @Serializable
-    data class InquireBalanceResponse(
+    data class InquireBalanceResponse @OptIn(ExperimentalSerializationApi::class) constructor(
         @SerialName("tr_id") override var tradeId: String?,
         @SerialName("gt_uid") override var globalTradeID: String?,
         @SerialName("msg_cd") override val code: String?,
@@ -50,7 +50,8 @@ class InquireOverseasBalance(override val client: KISApiClient) :
 
     @Serializable
     @Suppress("SpellCheckingInspection")
-    data class InquireBalanceResponseOutput1 @OptIn(ExperimentalSerializationApi::class) constructor(
+    @ExperimentalSerializationApi
+    data class InquireBalanceResponseOutput1(
         @SerialName("ovrs_pdno") override val ticker: String?,
         @SerialName("ovrs_item_name") override val productName: String?,
         @SerialName("ovrs_cblc_qty") @Contextual override val count: BigInteger?,

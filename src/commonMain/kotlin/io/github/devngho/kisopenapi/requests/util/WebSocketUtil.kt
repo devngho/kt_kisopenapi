@@ -91,7 +91,7 @@ internal suspend fun <T> waitFor(
  * @param transformBody 수신된 데이터를 [T]로 변환하는 함수
  * @param block 요청을 수행하는 함수
  */
-@OptIn(ExperimentalContracts::class, InternalApi::class)
+@OptIn(InternalApi::class)
 internal suspend fun <T : Response, U : LiveData> LiveRequest<U, T>.requestStart(
     data: U,
     subscribed: WebSocketSubscribed,
@@ -99,16 +99,12 @@ internal suspend fun <T : Response, U : LiveData> LiveRequest<U, T>.requestStart
     tradeKey: String,
     wait: Boolean,
     force: Boolean,
+    bodySize: Int,
     updateJob: (Job) -> Unit,
     init: suspend (Result<LiveResponse>) -> Unit,
     block: suspend (T) -> Unit,
     transformBody: suspend (List<String>) -> T
 ) {
-    contract {
-        callsInPlace(init, InvocationKind.EXACTLY_ONCE)
-        callsInPlace(block, InvocationKind.UNKNOWN)
-    }
-
     coroutineScope {
         val req = this@requestStart
         if (!client.webSocket.isConnected) client.webSocket.buildWebsocket()
@@ -131,6 +127,7 @@ internal suspend fun <T : Response, U : LiveData> LiveRequest<U, T>.requestStart
             client,
             tradeId,
             tradeKey,
+            bodySize = bodySize,
             getAES = { key to iv },
             block = block,
             transformBody = transformBody
@@ -231,6 +228,7 @@ private fun <T : Response> attachListener(
     client: KISApiClient,
     tradeId: String,
     tradeKey: String,
+    bodySize: Int,
     getAES: suspend () -> Pair<String, String>,
     block: suspend (T) -> Unit,
     transformBody: suspend (List<String>) -> T
@@ -241,15 +239,17 @@ private fun <T : Response> attachListener(
         val list = it.split("|")
         if (list[1] != tradeId) return@collect
 
-        val body = (
+        val bodies = (
                 if (it[0] == '1') {
                     val (key, iv) = getAES()
                     AES.decodeAES(key, iv, list[3].decodeBase64Bytes())
                 } else list[3]
-                ).split("^")
+                ).split("^").chunked(bodySize)
 
-        if (body[0] != tradeKey) return@collect
-        block(transformBody(body))
+        bodies.forEach { body ->
+            if (body[0] != tradeKey) return@forEach
+            block(transformBody(body))
+        }
     }
 }
 

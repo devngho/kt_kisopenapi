@@ -12,11 +12,13 @@ import io.github.devngho.kisopenapi.requests.overseas.order.OrderOverseasAmend
 import io.github.devngho.kisopenapi.requests.overseas.order.OrderOverseasBuy
 import io.github.devngho.kisopenapi.requests.overseas.order.OrderOverseasCancel
 import io.github.devngho.kisopenapi.requests.overseas.order.OrderOverseasSell
-import io.github.devngho.kisopenapi.requests.response.stock.BaseInfo
+import io.github.devngho.kisopenapi.requests.response.stock.ProductInfo
 import io.github.devngho.kisopenapi.requests.response.stock.price.overseas.StockOverseasPrice
 import io.github.devngho.kisopenapi.requests.response.stock.price.overseas.StockOverseasPriceBase
 import io.github.devngho.kisopenapi.requests.response.stock.price.overseas.StockOverseasPriceFull
 import io.github.devngho.kisopenapi.requests.util.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
@@ -37,9 +39,13 @@ class StockOverseasImpl(
     override lateinit var price: StockOverseasPriceBase
     override var name = StockBase.Name()
 
+    override suspend fun update(vararg type: KClass<out Response>): Unit = coroutineScope {
+        type.map { async { updateSingle(it) } }.awaitAll()
+    }
+
     @OptIn(DemoNotSupported::class)
-    override suspend fun update(res: KClass<out Response>) {
-        when (res) {
+    private suspend fun updateSingle(type: KClass<out Response>) {
+        when (type) {
             StockOverseasPrice::class,
             StockOverseasPriceBase::class -> {
                 (InquireOverseasPrice(client).call(
@@ -62,8 +68,8 @@ class StockOverseasImpl(
                 }
             }
 
-            BaseInfo::class -> {
-                val type = when (market) {
+            ProductInfo::class -> {
+                val market = when (market) {
                     OverseasMarket.NASDAQ, OverseasMarket.NAS -> ProductTypeCode.Nasdaq
                     OverseasMarket.NEWYORK, OverseasMarket.NYS -> ProductTypeCode.NewYork
                     OverseasMarket.AMEX, OverseasMarket.AMS -> ProductTypeCode.Amex
@@ -75,7 +81,7 @@ class StockOverseasImpl(
                     OverseasMarket.SHENZHEN, OverseasMarket.SZS -> ProductTypeCode.ChinaSimCheonA
                     else -> ProductTypeCode.Stock
                 }
-                InquireProductBaseInfo(client).call(InquireProductBaseInfo.InquireProductBaseInfoData(ticker, type))
+                InquireProductBaseInfo(client).call(InquireProductBaseInfo.InquireProductBaseInfoData(ticker, market))
                     .getOrNull()?.output?.let {
                         updateBy(it)
                     }
@@ -86,10 +92,10 @@ class StockOverseasImpl(
 
     override fun updateBy(res: Response) {
         if (res is StockOverseasPrice) price = res
-        if (res is BaseInfo) res.update()
+        if (res is ProductInfo) res.update()
     }
 
-    private fun BaseInfo.update() {
+    private fun ProductInfo.update() {
         this@StockOverseasImpl.name.also {
             it.name = name ?: it.name
             it.name120 = name120 ?: it.name120

@@ -23,6 +23,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.number
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import java.io.File
 import java.io.FileNotFoundException
@@ -105,7 +106,7 @@ val api: KISApiClient by lazy {
     }
 }
 
-@OptIn(DemoNotSupported::class)
+@OptIn(DemoNotSupported::class, ExperimentalSerializationApi::class)
 @Suppress("SpellCheckingInspection")
 class InquireTest : BehaviorSpec({
     given("API 토큰") {
@@ -556,6 +557,24 @@ class InquireTest : BehaviorSpec({
             then("이전 목록보다 이전의 100개 데이터를 반환한다") {
                 resultNext.output2!!.count() shouldBe 100
                 resultNext.output2!!.shouldForAll { it.bizDate!! shouldBeLessThan result.output2!!.last().bizDate!! }
+            }
+        }
+        `when`("InquireStockBaseInfo 호출") {
+            val result = InquireStockBaseInfo(api).call(
+                InquireStockBaseInfo.InquireProductBaseInfoData(testStock, ProductTypeCode.Stock)
+            ).getOrThrow()
+
+            then("성공한다") {
+                result.isOk shouldBe true
+            }
+            then("정보를 반환한다") {
+                result.output shouldNotBe null
+                result.output!!.name shouldNotBe null
+                result.output!!.nameShort shouldNotBe null
+                result.output!!.nameEng shouldNotBe null
+                result.output!!.nameEngShort shouldNotBe null
+                result.output!!.codeStandard shouldNotBe null
+                result.output!!.isInKospi200 shouldBe true
             }
         }
     }

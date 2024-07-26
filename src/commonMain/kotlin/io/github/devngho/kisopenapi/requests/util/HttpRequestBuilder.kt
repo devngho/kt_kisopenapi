@@ -25,9 +25,6 @@ import io.ktor.utils.io.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.InvocationKind
-import kotlin.contracts.contract
 
 @OptIn(ExperimentalSerializationApi::class)
 val json = Json {
@@ -152,17 +149,12 @@ internal inline fun <reified T : Response, reified U : Data> T.setupContinuous(
  * @param continuousModifier 연속 조회를 위해 요청 데이터를 수정하는 함수
  * @param block 요청을 수행하는 함수
  */
-@OptIn(ExperimentalContracts::class)
 internal suspend inline fun <reified T : Response, reified U : Data> DataRequest<U, T>.request(
     data: U,
     noinline bodyModifier: (T) -> T = { it },
     noinline continuousModifier: U.(T) -> U = { this },
     crossinline block: suspend (U) -> HttpResponse,
 ): Result<T> {
-    contract {
-        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-    }
-
     return try {
         val req = this@request
         val processedData = data.apply {
@@ -195,15 +187,10 @@ internal suspend inline fun <reified T : Response, reified U : Data> DataRequest
  * @param bodyModifier 요청 결과를 수정하는 함수
  * @param block 요청을 수행하는 함수
  */
-@OptIn(ExperimentalContracts::class)
 internal suspend inline fun <reified T : Response> NoDataRequest<T>.request(
     noinline bodyModifier: ((T) -> T)? = null,
     crossinline block: suspend () -> HttpResponse
 ): Result<T> {
-    contract {
-        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
-    }
-
     return try {
         client.options.rateLimiter.rated {
             val resp = block()

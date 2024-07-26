@@ -13,6 +13,7 @@ import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.Stock
 import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPriceChange
 import io.github.devngho.kisopenapi.requests.response.stock.trade.StockTradeAccumulate
 import io.github.devngho.kisopenapi.requests.util.*
+import io.github.devngho.kisopenapi.requests.util.RequestException.Companion.throwIfClientIsDemo
 import io.ktor.client.request.*
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
@@ -85,10 +86,7 @@ class InquireCondition(override val client: KISApiClient) :
 
     @Suppress("SpellCheckingInspection")
     override suspend fun call(data: ConditionData) = request(data) {
-        if (client.isDemo) throw RequestException(
-            "모의투자에서는 사용할 수 없는 API InquireCondition을 호출했습니다.",
-            RequestCode.DemoUnavailable
-        )
+        throwIfClientIsDemo()
 
         client.httpClient.get(url) {
             setAuth(client)

@@ -112,7 +112,8 @@ class InquireLivePrice(override val client: KISApiClient) :
             updateJob = { job = it },
             init = init ?: {},
             block = block,
-            force = force
+            force = force,
+            bodySize = 46
         ) {
             InquireLivePriceResponse(
                 it[0],
@@ -159,7 +160,8 @@ class InquireLivePrice(override val client: KISApiClient) :
                 it[41].toBigInteger(),
                 it[42].toBigDecimal(),
                 HourCode.entries.find { f -> f.num == it[43] },
-                it[44]
+                it[44],
+                it[45].toBigInteger()
             )
         }
     }

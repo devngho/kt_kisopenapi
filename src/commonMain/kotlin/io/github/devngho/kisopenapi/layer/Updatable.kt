@@ -9,9 +9,9 @@ import kotlin.reflect.KClass
  */
 interface Updatable {
     /**
-     * 주어진 [res]에 따라 적절한 요청을 호출해 값을 업데이트합니다.
+     * 주어진 [type]에 따라 적절한 요청을 호출해 값을 업데이트합니다. 여러 인자가 주어지면 동시에 업데이트합니다.
      */
-    suspend fun update(res: KClass<out Response>)
+    suspend fun update(vararg type: KClass<out Response>)
 
     /**
      * 주어진 [res]로 값을 업데이트합니다.
