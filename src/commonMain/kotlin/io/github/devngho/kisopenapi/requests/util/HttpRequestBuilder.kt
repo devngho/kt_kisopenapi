@@ -9,6 +9,7 @@ import io.github.devngho.kisopenapi.requests.Data
 import io.github.devngho.kisopenapi.requests.DataRequest
 import io.github.devngho.kisopenapi.requests.NoDataRequest
 import io.github.devngho.kisopenapi.requests.Response
+import io.github.devngho.kisopenapi.requests.auth.TokenRefreshRequiredException
 import io.github.devngho.kisopenapi.requests.data.CorporationRequest
 import io.github.devngho.kisopenapi.requests.data.Msg
 import io.github.devngho.kisopenapi.requests.data.TradeContinuousResponse
@@ -115,9 +116,17 @@ internal fun <T : Response> T.validateAndGet(): Result<T> {
         )
     }
     if ((this as? Msg)?.isOk == false) {
+        val code = code?.let { RequestCode.fromCode(it) }
+        when (code) {
+            RequestCode.TokenExpired -> {
+                throw TokenRefreshRequiredException()
+            }
+
+            else -> {}
+        }
         return Result(
             this,
-            RequestException((this as Msg).msg ?: "Unknown error", code?.let { RequestCode.fromCode(it) })
+            RequestException((this as Msg).msg ?: "Unknown error", code),
         )
     }
     return Result(this)
@@ -155,30 +164,34 @@ internal suspend inline fun <reified T : Response, reified U : Data> DataRequest
     noinline continuousModifier: U.(T) -> U = { this },
     crossinline block: suspend (U) -> HttpResponse,
 ): Result<T> {
-    return try {
-        val req = this@request
-        val processedData = data.apply {
-            this.corp = this.corp ?: req.client.corpRequest
-        }
+    var attempts = 0
+    while (attempts < 3) {
+        try {
+            val req = this@request
+            val processedData = data.apply {
+                this.corp = this.corp ?: req.client.corpRequest
+            }
 
-        client.options.rateLimiter.rated {
-            val resp = block(processedData)
-            resp.body<T>()
-                .apply {
+            return client.options.rateLimiter.rated {
+                val resp = block(processedData)
+                resp.body<T>().apply {
                     processHeader(resp)
                     setupContinuous(processedData, continuousModifier, req)
-                }
-                .let { bodyModifier(it) }
-                .validateAndGet()
+                }.let { bodyModifier(it) }.validateAndGet()
+            }
+        } catch (e: TokenRefreshRequiredException) {
+            attempts++
+            client.tokens.issue()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: RequestException) {
+            return Result(null, e)
+        } catch (e: Exception) {
+            val errorMsg = "${e::class.qualifiedName}: ${e.message ?: "Unknown error"}"
+            return Result(null, RequestException(errorMsg, RequestCode.Unknown, cause = e))
         }
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: RequestException) {
-        Result(null, e)
-    } catch (e: Exception) {
-        val errorMsg = "${e::class.qualifiedName}: ${e.message ?: "Unknown error"}"
-        Result(null, RequestException(errorMsg, RequestCode.Unknown, cause = e))
     }
+    return Result(null, RequestException("Max retry attempts exceeded", RequestCode.Unknown))
 }
 
 @Suppress("SpellCheckingInspection")
@@ -188,23 +201,26 @@ internal suspend inline fun <reified T : Response, reified U : Data> DataRequest
  * @param block 요청을 수행하는 함수
  */
 internal suspend inline fun <reified T : Response> NoDataRequest<T>.request(
-    noinline bodyModifier: ((T) -> T)? = null,
-    crossinline block: suspend () -> HttpResponse
+    noinline bodyModifier: ((T) -> T)? = null, crossinline block: suspend () -> HttpResponse
 ): Result<T> {
-    return try {
-        client.options.rateLimiter.rated {
-            val resp = block()
-            resp.body<T>()
-                .apply { processHeader(resp) }
-                .let { if (bodyModifier != null) bodyModifier(it) else it }
-                .validateAndGet()
+    var attempts = 0
+    while (attempts < 3) {
+        try {
+            return client.options.rateLimiter.rated {
+                val resp = block()
+                resp.body<T>().apply { processHeader(resp) }.let { bodyModifier?.invoke(it) ?: it }.validateAndGet()
+            }
+        } catch (e: TokenRefreshRequiredException) {
+            attempts++
+            client.tokens.issue()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: RequestException) {
+            return Result(null, e)
+        } catch (e: Exception) {
+            val errorMsg = "${e::class.qualifiedName}: ${e.message ?: "Unknown error"}"
+            return Result(null, RequestException(errorMsg, RequestCode.Unknown, cause = e))
         }
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: RequestException) {
-        Result(null, e)
-    } catch (e: Exception) {
-        val errorMsg = "${e::class.qualifiedName}: ${e.message ?: "Unknown error"}"
-        Result(null, RequestException(errorMsg, RequestCode.Unknown, cause = e))
     }
+    return Result(null, RequestException("Max retry attempts exceeded", RequestCode.Unknown))
 }
