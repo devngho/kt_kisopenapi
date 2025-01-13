@@ -1,9 +1,9 @@
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
-    kotlin("multiplatform") version "2.0.0"
-    kotlin("plugin.serialization") version "2.0.0"
-    id("org.jetbrains.dokka") version "1.9.20"
+    kotlin("multiplatform") version "2.1.0"
+    kotlin("plugin.serialization") version "2.1.0"
+    id("org.jetbrains.dokka") version "2.0.0"
     id("io.kotest.multiplatform") version "5.9.1"
     id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
     `maven-publish`
@@ -108,22 +108,21 @@ kotlin {
     jvm()
     
     sourceSets {
-        val ktorVersion = "2.3.12"
-        val coroutineVersion = "1.9.0-RC"
+        val ktorVersion = "3.0.3"
+        val coroutineVersion = "1.10.1"
         val kotestVersion = "5.9.1"
         val bigNumVersion = "0.3.10"
-        val mockkVersion = "1.13.12"
-        val slf4jVersion = "2.0.13"
+        val mockkVersion = "1.13.16"
+        val slf4jVersion = "2.0.16"
 
         commonMain.dependencies {
             implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
             implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-            implementation("com.soywiz.korlibs.krypto:krypto:4.0.0-alpha-1")
 
             implementation("io.ktor:ktor-client-core:$ktorVersion")
             implementation("io.ktor:ktor-client-websockets:$ktorVersion")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
-            api("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
+            api("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
             api("com.ionspin.kotlin:bignum:$bigNumVersion")
             implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:$bigNumVersion")
         }
