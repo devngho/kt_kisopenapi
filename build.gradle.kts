@@ -281,7 +281,6 @@ tasks {
                 this.mustRunAfter("signTvosX64Publication")
                 this.mustRunAfter("signWatchosArm32Publication")
                 this.mustRunAfter("signWatchosArm64Publication")
-                this.mustRunAfter("signWatchosDeviceArm64Publication")
                 this.mustRunAfter("signWatchosSimulatorArm64Publication")
                 this.mustRunAfter("signWatchosX64Publication")
             }
@@ -298,7 +297,6 @@ tasks {
                 this.mustRunAfter("signTvosX64Publication")
                 this.mustRunAfter("signWatchosArm32Publication")
                 this.mustRunAfter("signWatchosArm64Publication")
-                this.mustRunAfter("signWatchosDeviceArm64Publication")
                 this.mustRunAfter("signWatchosSimulatorArm64Publication")
             }
             if (this.name.startsWith("linkDebugTest")) {
@@ -313,7 +311,6 @@ tasks {
                 this.mustRunAfter("signTvosX64Publication")
                 this.mustRunAfter("signWatchosArm32Publication")
                 this.mustRunAfter("signWatchosArm64Publication")
-                this.mustRunAfter("signWatchosDeviceArm64Publication")
                 this.mustRunAfter("signWatchosSimulatorArm64Publication")
             }
         }
