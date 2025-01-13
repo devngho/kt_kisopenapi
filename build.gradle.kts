@@ -265,8 +265,7 @@ tasks {
             if (this.name.equals("signTvosSimulatorArm64Publication")) { this.mustRunAfter("signTvosX64Publication") }
             if (this.name.equals("signTvosX64Publication")) { this.mustRunAfter("signWatchosArm32Publication") }
             if (this.name.equals("signWatchosArm32Publication")) { this.mustRunAfter("signWatchosArm64Publication") }
-            if (this.name.equals("signWatchosArm64Publication")) { this.mustRunAfter("signWatchosDeviceArm64Publication") }
-            if (this.name.equals("signWatchosDeviceArm64Publication")) { this.mustRunAfter("signWatchosSimulatorArm64Publication") }
+            if (this.name.equals("signWatchosArm64Publication")) { this.mustRunAfter("signWatchosSimulatorArm64Publication") }
             if (this.name.equals("signWatchosSimulatorArm64Publication")) { this.mustRunAfter("signWatchosX64Publication") }
             // @formatter:on
 
