@@ -176,7 +176,7 @@ internal suspend inline fun <reified T : Response, reified U : Data> DataRequest
     } catch (e: RequestException) {
         Result(null, e)
     } catch (e: Exception) {
-        val errorMsg = "${e::class.qualifiedName}: ${e.message ?: "Unknown error"}"
+        val errorMsg = "${e::class.simpleName}: ${e.message ?: "Unknown error"}"
         Result(null, RequestException(errorMsg, RequestCode.Unknown, cause = e))
     }
 }
@@ -204,7 +204,7 @@ internal suspend inline fun <reified T : Response> NoDataRequest<T>.request(
     } catch (e: RequestException) {
         Result(null, e)
     } catch (e: Exception) {
-        val errorMsg = "${e::class.qualifiedName}: ${e.message ?: "Unknown error"}"
+        val errorMsg = "${e::class.simpleName}: ${e.message ?: "Unknown error"}"
         Result(null, RequestException(errorMsg, RequestCode.Unknown, cause = e))
     }
 }
