@@ -125,6 +125,6 @@ JavaUtil.callWithData(new InquirePrice(api), new InquirePrice.InquirePriceData("
 - [Kotlin/kotlinx.coroutines](https://github.com/Kotlin/kotlinx.coroutines) - [Apache License Version 2.0](https://github.com/Kotlin/kotlinx.coroutines/blob/master/LICENSE.txt)
 - [ktorio/ktor](https://github.com/ktorio/ktor) - [Apache License Version 2.0](https://github.com/ktorio/ktor/blob/main/LICENSE)
 ### Other
-- [soywiz-archive/krypto](https://github.com/soywiz-archive/krypto/blob/master/LICENSE) (코드 복사함) - [MIT License](https://github.com/soywiz-archive/krypto/blob/master/LICENSE)
+- [soywiz-archive/krypto](https://github.com/soywiz-archive/krypto/blob/master) (코드 복사함) - [MIT License](https://github.com/soywiz-archive/krypto/blob/master/LICENSE)
 - [ionspin/kotlin-multiplatform-bignum](http://github.com/ionspin/kotlin-multiplatform-bignum/) - [Apache License Version 2.0](https://github.com/ionspin/kotlin-multiplatform-bignum/blob/main/LICENSE)
 - [kotest](https://github.com/kotest/kotest) - [Apache License Version 2.0](https://github.com/kotest/kotest/blob/master/LICENSE)
