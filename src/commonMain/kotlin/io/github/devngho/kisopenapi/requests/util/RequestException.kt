@@ -13,7 +13,7 @@ class RequestException(
     /**
     에러 코드
      */
-    type: RequestCode?,
+    val type: RequestCode?,
     /**
      * 원 에러
      */
