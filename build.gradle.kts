@@ -1,4 +1,7 @@
+@file:OptIn(ExperimentalWasmDsl::class)
+
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
     kotlin("multiplatform") version "2.1.0"
@@ -106,6 +109,13 @@ kotlin {
     }
 
     jvm()
+
+    wasmJs {
+        browser()
+        nodejs()
+        d8()
+    }
+//    wasmWasi() // kotlinx-datetime, ktor, kotest doesn't support wasm-wasi
     
     sourceSets {
         val ktorVersion = "3.0.3"
