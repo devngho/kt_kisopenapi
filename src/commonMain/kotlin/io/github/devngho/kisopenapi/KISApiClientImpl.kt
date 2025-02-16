@@ -136,7 +136,7 @@ class KISApiClientImpl internal constructor(
 
         @InternalApi
         override suspend fun clearSubscribed() {
-            if (webSocketSubscribedKeyMutex.isLocked) webSocketSubscribedKeyMutex.unlock()
+            while (webSocketSubscribedKeyMutex.isLocked) webSocketSubscribedKeyMutex.unlock()
             webSocketSubscribedKey.clear()
 
             while (webSocketSubscribedInitMutex.isLocked) webSocketSubscribedInitMutex.unlock()
@@ -150,14 +150,14 @@ class KISApiClientImpl internal constructor(
     class WebSocketImpl(
         val client: KISApiClient,
     ) : KISApiClient.WebSocket {
-        private val _incoming: MutableSharedFlow<String> = MutableSharedFlow(1)
+        private val _incoming: MutableSharedFlow<String> = MutableSharedFlow()
         private var session: DefaultClientWebSocketSession? = null
 
         override var scope: CoroutineScope? = null
         override val incoming: SharedFlow<String> = _incoming.asSharedFlow()
-        override val outgoing: SendChannel<String> = Channel(8)
+        override val outgoing: SendChannel<String> = Channel()
         override val isConnected: Boolean
-            get() = session?.isActive ?: false
+            get() = session?.isActive == true
 
         private val _eventFlow: MutableSharedFlow<KISApiClient.WebSocket.Event> = MutableSharedFlow()
         override val eventFlow: SharedFlow<KISApiClient.WebSocket.Event> = _eventFlow.asSharedFlow()
@@ -183,7 +183,7 @@ class KISApiClientImpl internal constructor(
 
         private fun DefaultClientWebSocketSession.setupVaraibles() {
             scope = this
-            session = this@setupVaraibles
+            session = this
         }
 
         private fun DefaultClientWebSocketSession.setupSession() {
@@ -200,11 +200,6 @@ class KISApiClientImpl internal constructor(
 
                 while (true) {
                     val msg = channel.receive()
-
-                    if (!this@setupOutgoing.isActive) {
-                        channel.send(msg)
-                        break
-                    }
 
                     processOutgoing(msg)
                 }
@@ -266,10 +261,12 @@ class KISApiClientImpl internal constructor(
             if (frame is Frame.Text) {
                 try {
                     val txt = frame.readText()
-                    _incoming.tryEmit(txt)
+                    _incoming.emit(txt)
                     processPingPong(frame, txt)
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
-                    _eventFlow.tryEmit(KISApiClient.WebSocket.Event.OnError(e))
+                    _eventFlow.emit(KISApiClient.WebSocket.Event.OnError(e))
                 }
             }
         }
@@ -312,6 +309,7 @@ class KISApiClientImpl internal constructor(
                 val j = launch { if (isConnected) eventFlow.first { f -> f is KISApiClient.WebSocket.Event.OnClose } }
                 clearSubscriptions()
                 session?.close(CloseReason(CloseReason.Codes.NORMAL, "closeWebsocket"))
+                scope?.cancel()
                 clearSocket()
                 j.join()
             }

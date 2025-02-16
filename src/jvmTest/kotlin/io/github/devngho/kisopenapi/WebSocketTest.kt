@@ -68,6 +68,7 @@ class WebSocketTest : ShouldSpec({
             isClosed.send(true)
         }
 
+        delay(100)
         api.webSocket.closeWebsocket()
 
         select {
@@ -246,7 +247,7 @@ class WebSocketTest : ShouldSpec({
                 (withTimeoutOrNull(5000) { // 더 이상 subscribe 요청이 없는지 확인
                     api.webSocket.eventFlow.first()
                     false
-                } ?: true) shouldBe true
+                } != false) shouldBe true
             }
 
             delay(100)
@@ -454,7 +455,7 @@ class WebSocketTest : ShouldSpec({
                 (withTimeoutOrNull(5000) {
                     api.webSocket.eventFlow.first()
                     false
-                } ?: true) shouldBe true
+                } != false) shouldBe true
             }
 
             delay(100)

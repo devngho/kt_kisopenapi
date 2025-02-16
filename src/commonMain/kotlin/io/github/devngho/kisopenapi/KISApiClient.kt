@@ -1,5 +1,6 @@
 package io.github.devngho.kisopenapi
 
+import io.github.devngho.kisopenapi.KISApiClient.Companion.options
 import io.github.devngho.kisopenapi.requests.auth.GrantLiveToken
 import io.github.devngho.kisopenapi.requests.auth.GrantToken
 import io.github.devngho.kisopenapi.requests.auth.RevokeToken
@@ -127,6 +128,12 @@ interface KISApiClient {
          * 기본적으로 PINGPONG 메시지를 주고받으므로, 일반적으로는 수신 타임아웃이 지나는 일은 없습니다.
          */
         var webSocketReceiveTimeout: Long = 20,
+        /**
+         * 3/4 전까지 v2 API를 v1로 호출하려면 true, 아니면 false로 설정하세요. 기본값은 true입니다.
+         *
+         * ATS 도입에 따른 변경사항을 담은 v2 API는 아직 (2/16 기준) 서버에서 제공되지 않습니다.
+         */
+        var useV1PolyfillForV2: Boolean = true,
     )
 
     /**
@@ -298,7 +305,7 @@ interface KISApiClient {
         var scope: CoroutineScope?
 
         /**
-         * 웹소켓이 연결되으면 true, 아니면 false입니다.
+         * 웹소켓이 연결되었으면 true, 아니면 false입니다.
          */
         val isConnected: Boolean
 

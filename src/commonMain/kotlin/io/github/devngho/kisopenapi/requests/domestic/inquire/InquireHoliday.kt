@@ -84,7 +84,7 @@ class InquireHoliday(override val client: KISApiClient) :
         @Suppress("SpellCheckingInspection")
         client.httpClient.get(url) {
             setAuth(client)
-            setTradeId(
+            setTR(
                 if (client.isDemo) throw RequestException(
                     "InquireHoliday cannot run with demo account.",
                     RequestCode.DemoUnavailable

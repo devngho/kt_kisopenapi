@@ -2,7 +2,6 @@
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.devngho/kt_kisopenapi/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.devngho/kt_kisopenapi)
 [![javadoc](https://javadoc.io/badge2/io.github.devngho/kt_kisopenapi/javadoc.svg)](https://javadoc.io/doc/io.github.devngho/kt_kisopenapi)
-[![Java Version](https://img.shields.io/badge/java->=11-blue)]()
 [![License MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://raw.githubusercontent.com/devngho/kt_kisopenapi/master/LICENSE)
 # kt_kisopenapi
 

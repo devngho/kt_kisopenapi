@@ -50,7 +50,7 @@ class InquireOverseasBalance(override val client: KISApiClient) :
 
     @Serializable
     @Suppress("SpellCheckingInspection")
-    @ExperimentalSerializationApi
+    @OptIn(ExperimentalSerializationApi::class)
     data class InquireBalanceResponseOutput1(
         @SerialName("ovrs_pdno") override val ticker: String?,
         @SerialName("ovrs_item_name") override val productName: String?,
@@ -106,7 +106,7 @@ class InquireOverseasBalance(override val client: KISApiClient) :
     override suspend fun call(data: InquireBalanceData) = request(data, block = {
         client.httpClient.get(url) {
             setAuth(client)
-            setTradeId(if (client.isDemo) "VTTS3012R" else "TTTS3012R")
+            setTR(if (client.isDemo) "VTTS3012R" else "TTTS3012R")
             setCorporation(it.corp)
 
             url { _ ->

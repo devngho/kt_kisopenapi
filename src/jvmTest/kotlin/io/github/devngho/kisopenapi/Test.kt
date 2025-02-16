@@ -24,7 +24,6 @@ import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.number
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.encodeToString
 import java.io.File
 import java.io.FileNotFoundException
 import kotlin.Result
@@ -87,7 +86,7 @@ val api: KISApiClient by lazy {
                 account = account[0],
                 id = htsId[0]
             ).options {
-                useHashKey = true
+//                useHashKey = true
                 autoReconnect = true
                 webSocketClient = WebSocketTest.WebSocketMockClient(webSocketClient)
             }
@@ -95,6 +94,8 @@ val api: KISApiClient by lazy {
             KISApiClient.with(
                 key[0], key[1], false, account = account[0], id = htsId[0]
             ).options {
+//                useHashKey = true
+                autoReconnect = true
                 webSocketClient = WebSocketTest.WebSocketMockClient(webSocketClient)
             }.apply {
                 writeText(
@@ -463,7 +464,7 @@ class InquireTest : BehaviorSpec({
             then("가격 범위를 만족한다") {
                 result.output!!.forEach {
                     it.price!! shouldBeGreaterThanOrEqualTo BigDecimal.fromInt(100)
-                    it.price!! shouldBeLessThanOrEqualTo BigDecimal.fromInt(200)
+                    it.price shouldBeLessThanOrEqualTo BigDecimal.fromInt(200)
                 }
             }
         }
@@ -561,7 +562,7 @@ class InquireTest : BehaviorSpec({
         }
         `when`("InquireStockBaseInfo 호출") {
             val result = InquireStockBaseInfo(api).call(
-                InquireStockBaseInfo.InquireProductBaseInfoData(testStock, ProductTypeCode.Stock)
+                InquireStockBaseInfo.InquireStockBaseInfoData(testStock, ProductTypeCode.Stock)
             ).getOrThrow()
 
             then("성공한다") {

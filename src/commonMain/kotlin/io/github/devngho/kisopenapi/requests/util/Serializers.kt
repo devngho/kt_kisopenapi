@@ -5,6 +5,7 @@ import com.ionspin.kotlin.bignum.integer.BigInteger
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.number
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -12,37 +13,55 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
-object BigDecimalPreciseSerializer : KSerializer<BigDecimal> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("BigDecimal", PrimitiveKind.STRING)
-    override fun serialize(encoder: Encoder, value: BigDecimal) {
-        encoder.encodeString(value.toStringExpanded())
+object BigDecimalPreciseSerializer : KSerializer<BigDecimal?> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("BigDecimal?", PrimitiveKind.STRING)
+
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun serialize(encoder: Encoder, value: BigDecimal?) {
+        if (value != null) {
+            encoder.encodeString(value.toString())
+        } else {
+            encoder.encodeNull()
+        }
     }
 
-    override fun deserialize(decoder: Decoder): BigDecimal {
-        return BigDecimal.parseString(decoder.decodeString().trim())
-    }
+    override fun deserialize(decoder: Decoder): BigDecimal? = runCatching {
+        BigDecimal.parseString(decoder.decodeString().trim())
+    }.getOrNull()
 }
 
-object BigIntegerPreciseSerializer : KSerializer<BigInteger> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("BigInteger", PrimitiveKind.STRING)
-    override fun serialize(encoder: Encoder, value: BigInteger) {
-        encoder.encodeString(value.toString())
+object BigIntegerPreciseSerializer : KSerializer<BigInteger?> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("BigInteger?", PrimitiveKind.STRING)
+
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun serialize(encoder: Encoder, value: BigInteger?) {
+        if (value != null) {
+            encoder.encodeString(value.toString())
+        } else {
+            encoder.encodeNull()
+        }
     }
 
-    override fun deserialize(decoder: Decoder): BigInteger {
-        return BigInteger.parseString(decoder.decodeString().trim())
-    }
-}
-
-object BigIntegerFromDecimalSerializer : KSerializer<BigInteger> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("BigInteger", PrimitiveKind.STRING)
-    override fun serialize(encoder: Encoder, value: BigInteger) {
-        encoder.encodeString(value.toString())
-    }
-
-    override fun deserialize(decoder: Decoder): BigInteger {
+    override fun deserialize(decoder: Decoder): BigInteger? {
         return BigDecimal.parseString(decoder.decodeString().trim()).toBigInteger()
     }
+}
+
+object BigIntegerFromDecimalSerializer : KSerializer<BigInteger?> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("BigInteger?", PrimitiveKind.STRING)
+
+    @OptIn(ExperimentalSerializationApi::class)
+    override fun serialize(encoder: Encoder, value: BigInteger?) {
+        if (value != null) {
+            encoder.encodeString(value.toString())
+        } else {
+            encoder.encodeNull()
+        }
+    }
+
+    override fun deserialize(decoder: Decoder): BigInteger? = runCatching {
+        BigDecimal.parseString(decoder.decodeString().trim()).toBigInteger()
+    }.getOrNull()
 }
 
 typealias Date = LocalDate

@@ -139,7 +139,7 @@ class InquireBalance(override val client: KISApiClient) :
     override suspend fun call(data: InquireBalanceData) = request(data, block = {
         client.httpClient.get(url) {
             setAuth(client)
-            setTradeId(if (client.isDemo) "VTTC8434R" else "TTTC8494R")
+            setTR(if (client.isDemo) "VTTC8434R" else "TTTC8434R")
             setCorporation(it.corp)
 
             url { _ ->

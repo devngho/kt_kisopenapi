@@ -147,7 +147,7 @@ class InquirePrice(override val client: KISApiClient) :
         client.httpClient.get(url) {
             setAuth(client)
             setStock(it.ticker)
-            setTradeId("FHKST01010100")
+            setTR("FHKST01010100")
             setCorporation(it.corp)
         }
     }

@@ -23,15 +23,16 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
 
 @OptIn(ExperimentalSerializationApi::class)
 val json = Json {
     explicitNulls = false
-    serializersModule = SerializersModule {
-        contextual(BigInteger::class, BigIntegerPreciseSerializer)
-        contextual(BigDecimal::class, BigDecimalPreciseSerializer)
+    serializersModule = SerializersModule @Suppress("unchecked_cast") {
+        contextual(BigInteger::class, BigIntegerPreciseSerializer as KSerializer<BigInteger>)
+        contextual(BigDecimal::class, BigDecimalPreciseSerializer as KSerializer<BigDecimal>)
         contextual(DecimalMode::class, DecimalModeSerializer)
     }
     ignoreUnknownKeys = true
@@ -72,9 +73,9 @@ internal fun HttpRequestBuilder.setSector(ticker: String) {
     }
 }
 
-internal fun HttpRequestBuilder.setTradeId(tradeId: String) {
+internal fun HttpRequestBuilder.setTR(tr: String) {
     headers {
-        append("tr_id", tradeId)
+        append("tr_id", tr)
     }
 }
 

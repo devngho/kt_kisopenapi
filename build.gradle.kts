@@ -2,19 +2,21 @@
 
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("multiplatform") version "2.1.0"
-    kotlin("plugin.serialization") version "2.1.0"
-    id("org.jetbrains.dokka") version "2.0.0"
-    id("io.kotest.multiplatform") version "5.9.1"
-    id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
+    kotlin("multiplatform") version libs.versions.kotlin
+    kotlin("plugin.serialization") version libs.versions.kotlin
+    id("org.jetbrains.dokka") version libs.versions.dokka
+    id("io.kotest.multiplatform") version libs.versions.kotest
+    id("io.github.gradle-nexus.publish-plugin") version libs.versions.gradle.publish
+    id("com.google.devtools.ksp") version libs.versions.ksp
     `maven-publish`
     signing
 }
 
 group = "io.github.devngho"
-version = "0.2.5"
+version = "0.2.6"
 
 repositories {
     mavenCentral()
@@ -27,23 +29,6 @@ val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
     archiveClassifier.set("javadoc")
     from(dokkaHtml.outputDirectory)
 }
-
-// copied from ionspin/kotlin-multiplatform-bignum (at build.gradle.kts), Apache 2.0
-enum class HostOs {
-    LINUX, WINDOWS, MAC
-}
-
-
-fun getHostOsName(): HostOs {
-    val target = System.getProperty("os.name")
-    if (target == "Linux") return HostOs.LINUX
-    if (target.startsWith("Windows")) return HostOs.WINDOWS
-    if (target.startsWith("Mac")) return HostOs.MAC
-    throw GradleException("Unknown OS: $target")
-}
-
-val hostOs = getHostOsName()
-// copy end
 
 kotlin {
     publishing {
@@ -142,7 +127,11 @@ kotlin {
     mingwX64()
     // copy end
 
-    jvm()
+    jvm {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_1_8
+        }
+    }
 
     wasmJs {
         browser()
@@ -150,214 +139,162 @@ kotlin {
         d8()
     }
 //    wasmWasi() // kotlinx-datetime, ktor, kotest doesn't support wasm-wasi
-    
+
     sourceSets {
-        val ktorVersion = "3.0.3"
-        val coroutineVersion = "1.10.1"
-        val kotestVersion = "5.9.1"
-        val bigNumVersion = "0.3.10"
-        val mockkVersion = "1.13.16"
-        val slf4jVersion = "2.0.16"
+        commonMain {
+            kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
 
-        commonMain.dependencies {
-            implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-            implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+            dependencies {
+                implementation(project(":ksp-annotations"))
 
-            implementation("io.ktor:ktor-client-core:$ktorVersion")
-            implementation("io.ktor:ktor-client-websockets:$ktorVersion")
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
-            api("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
-            api("com.ionspin.kotlin:bignum:$bigNumVersion")
-            implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:$bigNumVersion")
+                implementation(libs.ktor.client.content.negotiation)
+                implementation(libs.ktor.serialization.kotlinx.json)
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.websockets)
+
+                implementation(libs.kotlinx.coroutines.core)
+                api(libs.kotlinx.datetime)
+                api(libs.bignum)
+                implementation(libs.bignum.serialization.kotlinx)
+                implementation(libs.ktor.client.cio)
+            }
         }
         commonTest.dependencies {
-            implementation("io.kotest:kotest-framework-engine:$kotestVersion")
-            implementation("io.kotest:kotest-assertions-core:$kotestVersion")
-            implementation(kotlin("test-common"))
-            implementation(kotlin("test-annotations-common"))
-            implementation(kotlin("reflect"))
-        }
-        jvmMain.dependencies {
-            implementation(kotlin("stdlib"))
-            implementation("io.ktor:ktor-client-java:$ktorVersion")
+            implementation(libs.kotest.framework.engine)
+            implementation(libs.kotest.assertions.core)
+
+            implementation(libs.kotlin.test.common)
+            implementation(libs.kotlin.test.annotations.common)
+            implementation(libs.kotlin.reflect)
         }
         jvmTest.dependencies {
-            implementation("io.kotest:kotest-runner-junit5:$kotestVersion")
-            implementation("org.slf4j:slf4j-simple:$slf4jVersion")
-            implementation("io.mockk:mockk:$mockkVersion")
-        }
-        nativeMain.dependencies {
-            implementation("io.ktor:ktor-client-cio:$ktorVersion")
+            implementation(libs.kotest.runner.junit5)
+            implementation(libs.slf4j.simple)
+            implementation(libs.mockk)
         }
 
         applyDefaultHierarchyTemplate()
     }
 }
 
+dependencies {
+    add("kspCommonMainMetadata", project(":ksp-processor"))
+}
+
 tasks {
+    named("compileKotlinJvm") {
+        dependsOn("kspCommonMainKotlinMetadata")
+    }
+
+    afterEvaluate {
+        named("sourcesJar") {
+            dependsOn("kspCommonMainKotlinMetadata")
+        }
+    }
+
     // copied from ionspin/kotlin-multiplatform-bignum (at build.gradle.kts), Apache 2.0
     // fixed for correct task dependencies in this project
     all {
-        if (hostOs == HostOs.MAC) {
-            // macOS task dependencies
-            // @formatter:off
-            when (this.name) {
-                "signAndroidNativeArm32Publication" -> { this.mustRunAfter("signAndroidNativeArm64Publication") }
-                "signAndroidNativeArm64Publication" -> { this.mustRunAfter("signAndroidNativeX64Publication") }
-                "signAndroidNativeX64Publication" -> { this.mustRunAfter("signAndroidNativeX86Publication") }
-                "signAndroidNativeX86Publication" -> { this.mustRunAfter("signJsPublication") }
-                "signJsPublication" -> { this.mustRunAfter("signJvmPublication") }
-                "signJvmPublication" -> { this.mustRunAfter("signKotlinMultiplatformPublication") }
-                "signKotlinMultiplatformPublication" -> { this.mustRunAfter("signLinuxArm64Publication") }
-                "signLinuxArm64Publication" -> { this.mustRunAfter("signLinuxX64Publication") }
-                "signLinuxX64Publication" -> { this.mustRunAfter("signWasmJsPublication") }
-                "signWasmJsPublication" -> { this.mustRunAfter("signMingwX64Publication") }
-                "signMingwX64Publication" -> { this.mustRunAfter("signIosArm64Publication") }
-                "signIosArm64Publication" -> { this.mustRunAfter("signIosSimulatorArm64Publication") }
-                "signIosSimulatorArm64Publication" -> { this.mustRunAfter("signIosX64Publication") }
-                "signIosX64Publication" -> { this.mustRunAfter("signMacosArm64Publication") }
-                "signMacosArm64Publication" -> { this.mustRunAfter("signMacosX64Publication") }
-                "signMacosX64Publication" -> { this.mustRunAfter("signTvosArm64Publication") }
-                "signTvosArm64Publication" -> { this.mustRunAfter("signTvosSimulatorArm64Publication") }
-                "signTvosSimulatorArm64Publication" -> { this.mustRunAfter("signTvosX64Publication") }
-                "signTvosX64Publication" -> { this.mustRunAfter("signWatchosArm32Publication") }
-                "signWatchosArm32Publication" -> { this.mustRunAfter("signWatchosArm64Publication") }
-                "signWatchosArm64Publication" -> { this.mustRunAfter("signWatchosSimulatorArm64Publication") }
-                "signWatchosSimulatorArm64Publication" -> { this.mustRunAfter("signWatchosX64Publication") }
-            }
-            // @formatter:on
+        // @formatter:off
+        when (this.name) {
+            "signAndroidNativeArm32Publication" -> { this.mustRunAfter("signAndroidNativeArm64Publication") }
+            "signAndroidNativeArm64Publication" -> { this.mustRunAfter("signAndroidNativeX64Publication") }
+            "signAndroidNativeX64Publication" -> { this.mustRunAfter("signAndroidNativeX86Publication") }
+            "signAndroidNativeX86Publication" -> { this.mustRunAfter("signJsPublication") }
+            "signJsPublication" -> { this.mustRunAfter("signJvmPublication") }
+            "signJvmPublication" -> { this.mustRunAfter("signKotlinMultiplatformPublication") }
+            "signKotlinMultiplatformPublication" -> { this.mustRunAfter("signLinuxArm64Publication") }
+            "signLinuxArm64Publication" -> { this.mustRunAfter("signLinuxX64Publication") }
+            "signLinuxX64Publication" -> { this.mustRunAfter("signWasmJsPublication") }
+            "signWasmJsPublication" -> { this.mustRunAfter("signMingwX64Publication") }
+            "signMingwX64Publication" -> { this.mustRunAfter("signIosArm64Publication") }
+            "signIosArm64Publication" -> { this.mustRunAfter("signIosSimulatorArm64Publication") }
+            "signIosSimulatorArm64Publication" -> { this.mustRunAfter("signIosX64Publication") }
+            "signIosX64Publication" -> { this.mustRunAfter("signMacosArm64Publication") }
+            "signMacosArm64Publication" -> { this.mustRunAfter("signMacosX64Publication") }
+            "signMacosX64Publication" -> { this.mustRunAfter("signTvosArm64Publication") }
+            "signTvosArm64Publication" -> { this.mustRunAfter("signTvosSimulatorArm64Publication") }
+            "signTvosSimulatorArm64Publication" -> { this.mustRunAfter("signTvosX64Publication") }
+            "signTvosX64Publication" -> { this.mustRunAfter("signWatchosArm32Publication") }
+            "signWatchosArm32Publication" -> { this.mustRunAfter("signWatchosArm64Publication") }
+            "signWatchosArm64Publication" -> { this.mustRunAfter("signWatchosSimulatorArm64Publication") }
+            "signWatchosSimulatorArm64Publication" -> { this.mustRunAfter("signWatchosX64Publication") }
+        }
+        // @formatter:on
 
-            if (this.name.startsWith("publish")) {
-                this.mustRunAfter("signAndroidNativeArm32Publication")
-                this.mustRunAfter("signAndroidNativeArm64Publication")
-                this.mustRunAfter("signAndroidNativeX64Publication")
-                this.mustRunAfter("signAndroidNativeX86Publication")
-                this.mustRunAfter("signJsPublication")
-                this.mustRunAfter("signJvmPublication")
-                this.mustRunAfter("signKotlinMultiplatformPublication")
-                this.mustRunAfter("signLinuxArm64Publication")
-                this.mustRunAfter("signLinuxX64Publication")
-                this.mustRunAfter("signWasmJsPublication")
-                this.mustRunAfter("signMingwX64Publication")
-                this.mustRunAfter("signIosArm64Publication")
-                this.mustRunAfter("signIosSimulatorArm64Publication")
-                this.mustRunAfter("signIosX64Publication")
-                this.mustRunAfter("signMacosArm64Publication")
-                this.mustRunAfter("signMacosX64Publication")
-                this.mustRunAfter("signTvosArm64Publication")
-                this.mustRunAfter("signTvosSimulatorArm64Publication")
-                this.mustRunAfter("signTvosX64Publication")
-                this.mustRunAfter("signWatchosArm32Publication")
-                this.mustRunAfter("signWatchosArm64Publication")
-                this.mustRunAfter("signWatchosSimulatorArm64Publication")
-                this.mustRunAfter("signWatchosX64Publication")
-            }
+        if (this.name.startsWith("publish")) {
+            this.mustRunAfter("signAndroidNativeArm32Publication")
+            this.mustRunAfter("signAndroidNativeArm64Publication")
+            this.mustRunAfter("signAndroidNativeX64Publication")
+            this.mustRunAfter("signAndroidNativeX86Publication")
+            this.mustRunAfter("signJsPublication")
+            this.mustRunAfter("signJvmPublication")
+            this.mustRunAfter("signKotlinMultiplatformPublication")
+            this.mustRunAfter("signLinuxArm64Publication")
+            this.mustRunAfter("signLinuxX64Publication")
+            this.mustRunAfter("signWasmJsPublication")
+            this.mustRunAfter("signMingwX64Publication")
+            this.mustRunAfter("signIosArm64Publication")
+            this.mustRunAfter("signIosSimulatorArm64Publication")
+            this.mustRunAfter("signIosX64Publication")
+            this.mustRunAfter("signMacosArm64Publication")
+            this.mustRunAfter("signMacosX64Publication")
+            this.mustRunAfter("signTvosArm64Publication")
+            this.mustRunAfter("signTvosSimulatorArm64Publication")
+            this.mustRunAfter("signTvosX64Publication")
+            this.mustRunAfter("signWatchosArm32Publication")
+            this.mustRunAfter("signWatchosArm64Publication")
+            this.mustRunAfter("signWatchosSimulatorArm64Publication")
+            this.mustRunAfter("signWatchosX64Publication")
+        }
 
-            if (this.name.startsWith("compileTest")) {
-                this.mustRunAfter("signAndroidNativeArm32Publication")
-                this.mustRunAfter("signAndroidNativeArm64Publication")
-                this.mustRunAfter("signAndroidNativeX64Publication")
-                this.mustRunAfter("signAndroidNativeX86Publication")
-                this.mustRunAfter("signJsPublication")
-                this.mustRunAfter("signJvmPublication")
-                this.mustRunAfter("signKotlinMultiplatformPublication")
-                this.mustRunAfter("signLinuxArm64Publication")
-                this.mustRunAfter("signLinuxX64Publication")
-                this.mustRunAfter("signWasmJsPublication")
-                this.mustRunAfter("signMingwX64Publication")
-                this.mustRunAfter("signIosArm64Publication")
-                this.mustRunAfter("signIosSimulatorArm64Publication")
-                this.mustRunAfter("signIosX64Publication")
-                this.mustRunAfter("signMacosArm64Publication")
-                this.mustRunAfter("signMacosX64Publication")
-                this.mustRunAfter("signTvosArm64Publication")
-                this.mustRunAfter("signTvosSimulatorArm64Publication")
-                this.mustRunAfter("signTvosX64Publication")
-                this.mustRunAfter("signWatchosArm32Publication")
-                this.mustRunAfter("signWatchosArm64Publication")
-                this.mustRunAfter("signWatchosSimulatorArm64Publication")
-            }
-            if (this.name.startsWith("linkDebugTest")) {
-                this.mustRunAfter("signAndroidNativeArm32Publication")
-                this.mustRunAfter("signAndroidNativeArm64Publication")
-                this.mustRunAfter("signAndroidNativeX64Publication")
-                this.mustRunAfter("signAndroidNativeX86Publication")
-                this.mustRunAfter("signJsPublication")
-                this.mustRunAfter("signJvmPublication")
-                this.mustRunAfter("signKotlinMultiplatformPublication")
-                this.mustRunAfter("signLinuxArm64Publication")
-                this.mustRunAfter("signLinuxX64Publication")
-                this.mustRunAfter("signWasmJsPublication")
-                this.mustRunAfter("signMingwX64Publication")
-                this.mustRunAfter("signIosArm64Publication")
-                this.mustRunAfter("signIosSimulatorArm64Publication")
-                this.mustRunAfter("signIosX64Publication")
-                this.mustRunAfter("signMacosArm64Publication")
-                this.mustRunAfter("signMacosX64Publication")
-                this.mustRunAfter("signTvosArm64Publication")
-                this.mustRunAfter("signTvosSimulatorArm64Publication")
-                this.mustRunAfter("signTvosX64Publication")
-                this.mustRunAfter("signWatchosArm32Publication")
-                this.mustRunAfter("signWatchosArm64Publication")
-                this.mustRunAfter("signWatchosSimulatorArm64Publication")
-            }
-        } else {
-            // Windows || linux task dependecies
-
-            // @formatter:off
-            if (this.name.equals("signAndroidNativeArm32Publication")) { this.mustRunAfter("signAndroidNativeArm64Publication") }
-            if (this.name.equals("signAndroidNativeArm64Publication")) { this.mustRunAfter("signAndroidNativeX64Publication") }
-            if (this.name.equals("signAndroidNativeX64Publication")) { this.mustRunAfter("signAndroidNativeX86Publication") }
-            if (this.name.equals("signAndroidNativeX86Publication")) { this.mustRunAfter("signJsPublication") }
-            if (this.name.equals("signJsPublication")) { this.mustRunAfter("signJvmPublication") }
-            if (this.name.equals("signJvmPublication")) { this.mustRunAfter("signKotlinMultiplatformPublication") }
-            if (this.name.equals("signKotlinMultiplatformPublication")) { this.mustRunAfter("signLinuxArm64Publication") }
-            if (this.name.equals("signLinuxArm64Publication")) { this.mustRunAfter("signLinuxX64Publication") }
-            if (this.name.equals("signLinuxX64Publication")) { this.mustRunAfter("signWasmJsPublication") }
-            if (this.name.equals("signWasmJsPublication")) { this.mustRunAfter("signMingwX64Publication") }
-            // @formatter:on
-
-            if (this.name.startsWith("publish")) {
-                this.mustRunAfter("signAndroidNativeArm32Publication")
-                this.mustRunAfter("signAndroidNativeArm64Publication")
-                this.mustRunAfter("signAndroidNativeX64Publication")
-                this.mustRunAfter("signAndroidNativeX86Publication")
-                this.mustRunAfter("signJsPublication")
-                this.mustRunAfter("signJvmPublication")
-                this.mustRunAfter("signKotlinMultiplatformPublication")
-                this.mustRunAfter("signLinuxArm64Publication")
-                this.mustRunAfter("signLinuxX64Publication")
-                this.mustRunAfter("signWasmJsPublication")
-                this.mustRunAfter("signMingwX64Publication")
-            }
-
-            if (this.name.startsWith("compileTest")) {
-                this.mustRunAfter("signAndroidNativeArm32Publication")
-                this.mustRunAfter("signAndroidNativeArm64Publication")
-                this.mustRunAfter("signAndroidNativeX64Publication")
-                this.mustRunAfter("signAndroidNativeX86Publication")
-                this.mustRunAfter("signJsPublication")
-                this.mustRunAfter("signJvmPublication")
-                this.mustRunAfter("signKotlinMultiplatformPublication")
-                this.mustRunAfter("signLinuxArm64Publication")
-                this.mustRunAfter("signLinuxX64Publication")
-                this.mustRunAfter("signWasmJsPublication")
-                this.mustRunAfter("signMingwX64Publication")
-            }
-
-            if (this.name.startsWith("linkDebugTest")) {
-                this.mustRunAfter("signAndroidNativeArm32Publication")
-                this.mustRunAfter("signAndroidNativeArm64Publication")
-                this.mustRunAfter("signAndroidNativeX64Publication")
-                this.mustRunAfter("signAndroidNativeX86Publication")
-                this.mustRunAfter("signJsPublication")
-                this.mustRunAfter("signJvmPublication")
-                this.mustRunAfter("signKotlinMultiplatformPublication")
-                this.mustRunAfter("signLinuxArm64Publication")
-                this.mustRunAfter("signLinuxX64Publication")
-                this.mustRunAfter("signWasmJsPublication")
-                this.mustRunAfter("signMingwX64Publication")
-            }
+        if (this.name.startsWith("compileTest")) {
+            this.mustRunAfter("signAndroidNativeArm32Publication")
+            this.mustRunAfter("signAndroidNativeArm64Publication")
+            this.mustRunAfter("signAndroidNativeX64Publication")
+            this.mustRunAfter("signAndroidNativeX86Publication")
+            this.mustRunAfter("signJsPublication")
+            this.mustRunAfter("signJvmPublication")
+            this.mustRunAfter("signKotlinMultiplatformPublication")
+            this.mustRunAfter("signLinuxArm64Publication")
+            this.mustRunAfter("signLinuxX64Publication")
+            this.mustRunAfter("signWasmJsPublication")
+            this.mustRunAfter("signMingwX64Publication")
+            this.mustRunAfter("signIosArm64Publication")
+            this.mustRunAfter("signIosSimulatorArm64Publication")
+            this.mustRunAfter("signIosX64Publication")
+            this.mustRunAfter("signMacosArm64Publication")
+            this.mustRunAfter("signMacosX64Publication")
+            this.mustRunAfter("signTvosArm64Publication")
+            this.mustRunAfter("signTvosSimulatorArm64Publication")
+            this.mustRunAfter("signTvosX64Publication")
+            this.mustRunAfter("signWatchosArm32Publication")
+            this.mustRunAfter("signWatchosArm64Publication")
+            this.mustRunAfter("signWatchosSimulatorArm64Publication")
+        }
+        if (this.name.startsWith("linkDebugTest")) {
+            this.mustRunAfter("signAndroidNativeArm32Publication")
+            this.mustRunAfter("signAndroidNativeArm64Publication")
+            this.mustRunAfter("signAndroidNativeX64Publication")
+            this.mustRunAfter("signAndroidNativeX86Publication")
+            this.mustRunAfter("signJsPublication")
+            this.mustRunAfter("signJvmPublication")
+            this.mustRunAfter("signKotlinMultiplatformPublication")
+            this.mustRunAfter("signLinuxArm64Publication")
+            this.mustRunAfter("signLinuxX64Publication")
+            this.mustRunAfter("signWasmJsPublication")
+            this.mustRunAfter("signMingwX64Publication")
+            this.mustRunAfter("signIosArm64Publication")
+            this.mustRunAfter("signIosSimulatorArm64Publication")
+            this.mustRunAfter("signIosX64Publication")
+            this.mustRunAfter("signMacosArm64Publication")
+            this.mustRunAfter("signMacosX64Publication")
+            this.mustRunAfter("signTvosArm64Publication")
+            this.mustRunAfter("signTvosSimulatorArm64Publication")
+            this.mustRunAfter("signTvosX64Publication")
+            this.mustRunAfter("signWatchosArm32Publication")
+            this.mustRunAfter("signWatchosArm64Publication")
+            this.mustRunAfter("signWatchosSimulatorArm64Publication")
         }
     }
     // copy end

@@ -1,19 +1,5 @@
 package io.github.devngho.kisopenapi.requests.util
 
-import io.github.devngho.kisopenapi.requests.util.ConsumerTypeCode.entries
-import io.github.devngho.kisopenapi.requests.util.Currency.entries
-import io.github.devngho.kisopenapi.requests.util.HourCode.entries
-import io.github.devngho.kisopenapi.requests.util.InquireDivisionCode.entries
-import io.github.devngho.kisopenapi.requests.util.LoanType.entries
-import io.github.devngho.kisopenapi.requests.util.LockCode.entries
-import io.github.devngho.kisopenapi.requests.util.MarketStatus.entries
-import io.github.devngho.kisopenapi.requests.util.MarketWarnCode.entries
-import io.github.devngho.kisopenapi.requests.util.OrderTypeCode.entries
-import io.github.devngho.kisopenapi.requests.util.PeriodDivisionCode.entries
-import io.github.devngho.kisopenapi.requests.util.ProductTypeCode.entries
-import io.github.devngho.kisopenapi.requests.util.SignPrice.entries
-import io.github.devngho.kisopenapi.requests.util.StockState.entries
-import io.github.devngho.kisopenapi.requests.util.WeekdayCode.entries
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -350,6 +336,12 @@ enum class OrderTypeCode(val num: String) {
             encoder.encodeString(value.num)
         }
     }
+
+    companion object {
+        private val codeMap = OrderTypeCode.entries.associateBy { it.num }
+
+        fun fromCode(code: String) = codeMap[code]
+    }
 }
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -459,6 +451,58 @@ enum class HourCode(val num: String) {
         private val codeMap = HourCode.entries.associateBy { it.num }
 
         fun fromCode(code: String) = codeMap[code]
+    }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable(with = Market.MarketSerializer::class)
+enum class Market(val code: String) {
+    KRX("KRX"),
+    NEXTRADE("NXT"),
+    ;
+
+    @ExperimentalSerializationApi
+    object MarketSerializer : KSerializer<Market> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Market", PrimitiveKind.STRING)
+
+        override fun deserialize(decoder: Decoder): Market {
+            val d = decoder.decodeString()
+            return Market.valueOf(d.uppercase())
+        }
+
+        override fun serialize(encoder: Encoder, value: Market) {
+            encoder.encodeString(value.code)
+        }
+    }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable(with = MarketWithSOR.MarketWithSORSerializer::class)
+enum class MarketWithSOR(val code: Int) {
+    KRX(1),
+    NEXTRADE(2),
+    SOR_KRX(3),
+    SOR_NEXTRADE(4),
+    ;
+
+    @ExperimentalSerializationApi
+    object MarketWithSORSerializer : KSerializer<MarketWithSOR> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("MarketWithSOR", PrimitiveKind.STRING)
+
+        override fun deserialize(decoder: Decoder): MarketWithSOR {
+            val d = decoder.decodeInt()
+            return fromCode(d)!!
+        }
+
+        override fun serialize(encoder: Encoder, value: MarketWithSOR) {
+            encoder.encodeString(value.code.toString())
+        }
+    }
+
+    companion object {
+        private val codeMap = entries.associateBy { it.code }
+
+        fun fromCode(code: Int) = codeMap[code]
     }
 }
 

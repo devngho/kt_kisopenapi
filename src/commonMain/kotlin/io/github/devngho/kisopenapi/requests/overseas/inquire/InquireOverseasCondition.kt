@@ -108,7 +108,7 @@ class InquireOverseasCondition(override val client: KISApiClient) :
     override suspend fun call(data: ConditionData) = request(data) {
         client.httpClient.get(url) {
             setAuth(client)
-            setTradeId("HHDFS76410000")
+            setTR("HHDFS76410000")
             setCorporation(it.corp)
 
             url { _ ->

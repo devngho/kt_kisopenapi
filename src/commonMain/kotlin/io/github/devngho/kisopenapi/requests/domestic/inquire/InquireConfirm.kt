@@ -68,7 +68,7 @@ class InquireConfirm(override val client: KISApiClient) :
     override suspend fun call(data: InquireConfirmData) = request(data) {
         client.httpClient.get(url) {
             setAuth(client)
-            setTradeId("FHKST01010300")
+            setTR("FHKST01010300")
             setStock(it.ticker)
             setCorporation(it.corp)
         }

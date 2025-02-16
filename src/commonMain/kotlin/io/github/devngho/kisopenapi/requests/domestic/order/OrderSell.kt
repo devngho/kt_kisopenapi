@@ -3,7 +3,6 @@ package io.github.devngho.kisopenapi.requests.domestic.order
 import io.github.devngho.kisopenapi.KISApiClient
 import io.github.devngho.kisopenapi.requests.DataRequest
 import io.github.devngho.kisopenapi.requests.auth.HashKey.Companion.hashKey
-import io.github.devngho.kisopenapi.requests.data.AccountInfo.Companion.fillFrom
 import io.github.devngho.kisopenapi.requests.util.*
 import io.ktor.client.request.*
 
@@ -16,16 +15,24 @@ class OrderSell(override val client: KISApiClient) :
 
     @Suppress("SpellCheckingInspection")
     override suspend fun call(data: OrderBuy.OrderData) = request(data) {
-        if (it.price.isZero() && it.orderType == OrderTypeCode.SelectPrice)
-            throw RequestException("Price must be set when order type is SelectPrice.", RequestCode.Unknown)
+        if (it.price.isZero() && it.orderType == OrderTypeCode.SelectPrice) throw RequestException(
+            "지정가 주문에서 가격은 필수 값입니다.",
+            RequestCode.InvalidOrder
+        )
+
 
         client.httpClient.post(url) {
             setAuth(client)
-            setTradeId(if (client.isDemo) "VTTC0801U" else "TTTC0801U")
+            setTR(if (client.isDemo) "VTTC0801U" else "TTTC0801U")
             setStock(it.ticker)
             setCorporation(it.corp)
 
-            setBody(it.fillFrom(client))
+            setBody(
+                it.copy(
+                    accountNumber = it.accountNumber ?: client.account!!.first,
+                    accountProductCode = it.accountProductCode ?: client.account!!.second
+                )
+            )
 
             hashKey<OrderBuy.OrderData>(client)
         }

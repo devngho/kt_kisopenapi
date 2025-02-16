@@ -55,10 +55,10 @@ class LayerTest : BehaviorSpec({
         `when`("StockDomestic 업데이트") {
             val stock = api.stockDomestic(testStock)
 
-            stock.update(StockPrice::class, ProductInfo::class)
+            stock.update<StockPrice, ProductInfo>()
 
             then("종목 이름을 가져올 수 있다") {
-                stock.name.nameShort shouldBe "삼성전자"
+                stock.info.nameShort shouldBe "삼성전자"
             }
             then("종목 가격을 가져올 수 있다") {
                 stock.price.price shouldNotBe null
@@ -77,16 +77,17 @@ class LayerTest : BehaviorSpec({
         `when`("StockOverseas 업데이트") {
             val stock = api.stockOverseas(testOverseasStock, testOverseasMarket)
 
-            stock.update(StockOverseasPriceFull::class, ProductInfo::class)
+            stock.update<StockOverseasPriceFull, ProductInfo>()
 
             then("종목 이름을 가져올 수 있다") {
-                stock.name.name shouldBe "애플"
+                stock.info.name shouldBe "애플"
             }
             then("종목 가격을 가져올 수 있다") {
                 stock.price.price shouldNotBe null
+                stock.price.change shouldNotBe null
             }
             then("종목 상세 정보를 가져올 수 있다") {
-                (stock.price as StockOverseasPriceFull).pbr shouldNotBe null
+                stock.price.pbr shouldNotBe null
             }
             xthen("실시간 가격을 가져올 수 있다") {
                 var isDone = false
@@ -111,12 +112,12 @@ class LayerTest : BehaviorSpec({
             account.update<BalanceAccount>()
 
             then("계좌 잔액을 가져올 수 있다") {
-                account.assetAmount shouldNotBe null
+                account.totalEvalAmount shouldNotBe null
             }
             then("계좌 주식을 가져올 수 있다") {
                 account.accountStocks shouldNotBe null
                 account.accountStocks.forEach {
-                    it.name shouldNotBe null
+                    it.productName shouldNotBe null
                     it.count shouldNotBe null
                 }
             }

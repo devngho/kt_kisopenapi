@@ -200,7 +200,7 @@ class InquireSectorIndexSeries(override val client: KISApiClient) :
                         append("FID_PERIOD_DIV_CODE", it.period.num)
                     }
                 }
-                setTradeId("FHPUP02120000")
+                setTR("FHPUP02120000")
                 setCorporation(it.corp)
             }
         }

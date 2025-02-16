@@ -292,6 +292,11 @@ enum class RequestCode(val code: String) {
     InvalidPersonalSecKey("EGW00304"),
 
     /**
+     * 모의투자 TR 이 아닙니다.
+     */
+    NotDemoTradingTR("EGW2004"),
+
+    /**
      * SUBSCRIBE SUCCESS
      */
     SubscribeSuccess("OPSP0000"),

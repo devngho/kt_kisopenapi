@@ -4,6 +4,7 @@ package io.github.devngho.kisopenapi.requests.response.balance.domestic
 
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
+import io.github.devngho.kisopenapi.Updatable
 import io.github.devngho.kisopenapi.requests.Response
 import io.github.devngho.kisopenapi.requests.response.stock.Ticker
 import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPriceBase
@@ -14,6 +15,7 @@ import kotlinx.serialization.SerialName
  * [KIS Developers 문서](https://apiportal.koreainvestment.com/apiservice/apiservice-domestic-stock)를 참조하세요.
  * @see io.github.devngho.kisopenapi.requests.domestic.inquire.InquireBalance
  */
+@Updatable
 interface BalanceAccountStock : Response, StockPriceBase, Ticker {
     /** 상품 번호 */
     @SerialName("pdno")

@@ -3,7 +3,6 @@ package io.github.devngho.kisopenapi.requests.overseas.order
 import io.github.devngho.kisopenapi.KISApiClient
 import io.github.devngho.kisopenapi.requests.DataRequest
 import io.github.devngho.kisopenapi.requests.auth.HashKey.Companion.hashKey
-import io.github.devngho.kisopenapi.requests.data.AccountInfo.Companion.fillFrom
 import io.github.devngho.kisopenapi.requests.util.*
 import io.ktor.client.request.*
 
@@ -103,13 +102,18 @@ class OrderOverseasSell(override val client: KISApiClient) :
                 RequestCode.InvalidOrder
             )
 
-            setTradeId(tradeId)
+            setTR(tradeId)
             setStock(data.ticker)
             data.corp?.let { setCorporation(it) }
             setBody(
                 data
-                    .copy(sellType = "00", marketId = tradeId, orderTypeId = orderType)
-                    .fillFrom(client)
+                    .copy(
+                        sellType = "00",
+                        marketId = tradeId,
+                        orderTypeId = orderType,
+                        accountNumber = it.accountNumber ?: client.account!!.first,
+                        accountProductCode = it.accountProductCode ?: client.account!!.second
+                    )
             )
 
             hashKey<OrderOverseasBuy.OrderData>(client)

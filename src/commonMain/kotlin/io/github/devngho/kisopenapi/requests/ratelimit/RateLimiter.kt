@@ -19,7 +19,7 @@ interface RateLimiter {
          * @param isDemo 모의 투자 여부입니다. 기본값은 false입니다.
          */
         @JvmStatic
-        fun getDefaultRate(isDemo: Boolean = false) = if (isDemo) 5 else 20
+        fun getDefaultRate(isDemo: Boolean = false) = if (isDemo) 2 else 20
     }
 
     /**

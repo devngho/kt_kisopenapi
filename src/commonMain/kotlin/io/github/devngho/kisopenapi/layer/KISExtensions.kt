@@ -2,6 +2,7 @@ package io.github.devngho.kisopenapi.layer
 
 import io.github.devngho.kisopenapi.KISApiClient
 import io.github.devngho.kisopenapi.requests.util.Currency
+import io.github.devngho.kisopenapi.requests.util.InternalApi
 import io.github.devngho.kisopenapi.requests.util.OverseasMarket
 
 fun KISApiClient.stockDomestic(ticker: String): StockDomestic {
@@ -12,10 +13,12 @@ fun KISApiClient.stockOverseas(ticker: String, market: OverseasMarket): StockOve
     return StockOverseasImpl(this, ticker, market)
 }
 
+@OptIn(InternalApi::class)
 fun KISApiClient.accountDomestic(): AccountDomestic {
     return AccountDomesticImpl(this)
 }
 
+@OptIn(InternalApi::class)
 fun KISApiClient.accountOverseas(market: OverseasMarket, currency: Currency): AccountOverseas {
     return AccountOverseasImpl(this, market, currency)
 }

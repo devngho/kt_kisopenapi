@@ -117,7 +117,7 @@ class InquireOverseasDetailedPrice(override val client: KISApiClient) :
                     append("SYMB", it.ticker)
                 }
             }
-            setTradeId("HHDFS76200200")
+            setTR("HHDFS76200200")
             setCorporation(it.corp)
         }
     }, bodyModifier = {

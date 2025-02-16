@@ -87,7 +87,7 @@ class InquirePriceSeries(override val client: KISApiClient) :
     override suspend fun call(data: InquirePriceSeriesData) = request(data) {
         client.httpClient.get(url) {
             setAuth(client)
-            setTradeId("FHKST03010100")
+            setTR("FHKST03010100")
             setStock(it.ticker)
             setCorporation(it.corp)
 

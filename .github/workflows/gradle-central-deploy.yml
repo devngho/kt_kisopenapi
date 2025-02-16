@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ macos-latest ]
+        platform: [ ubuntu-latest ]
     runs-on: ${{ matrix.platform }}
     needs: create_staging_repository
     steps:
