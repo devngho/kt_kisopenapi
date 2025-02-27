@@ -211,7 +211,7 @@ enum class ProductTypeCode(val num: String) {
 @OptIn(ExperimentalSerializationApi::class)
 @Serializable(with = OrderTypeCode.OrderTypeSerializer::class)
 @Suppress("unused")
-enum class OrderTypeCode(val num: String) {
+enum class OrderTypeCode(val num: String, val isPriceSelectable: Boolean = true) {
     /**
      * 지정가
      */
@@ -220,7 +220,7 @@ enum class OrderTypeCode(val num: String) {
     /**
      * 시장가
      */
-    MarketPrice("01"),
+    MarketPrice("01", false),
 
     /**
      * 조건부 지정가
@@ -240,12 +240,12 @@ enum class OrderTypeCode(val num: String) {
     /**
      * 장전 시간외
      */
-    OutTimeBeforeMarket("05"),
+    OutTimeBeforeMarket("05", false),
 
     /**
      * 장후 시간외
      */
-    OutTimeAfterMarket("06"),
+    OutTimeAfterMarket("06", false),
 
     /**
      * 시간외 단일가
@@ -280,12 +280,12 @@ enum class OrderTypeCode(val num: String) {
     /**
      * IOC 시장가
      */
-    MarketPriceIOC("13"),
+    MarketPriceIOC("13", false),
 
     /**
      * FOK 시장가
      */
-    MarketPriceFOK("14"),
+    MarketPriceFOK("14", false),
 
     /**
      * IOC 최유리
@@ -310,12 +310,12 @@ enum class OrderTypeCode(val num: String) {
     /**
      * 장개시시장가(미국 매도 전용)
      */
-    USAMarketOnOpen("31"),
+    USAMarketOnOpen("31", false),
 
     /**
      * 장마감시장가(미국 매도 전용)
      */
-    USAMarketOnClose("33"),
+    USAMarketOnClose("33", false),
 
     /**
      * 단주지정가(홍콩 매도 전용)

@@ -16,7 +16,7 @@ plugins {
 }
 
 group = "io.github.devngho"
-version = "0.2.6"
+version = "0.2.7"
 
 repositories {
     mavenCentral()
@@ -230,23 +230,19 @@ tasks {
                 dependsOn("kspCommonMainKotlinMetadata")
             }
 
-            afterEvaluate {
-                named(
-                    "${
-                        it.let {
-                            it[0].lowercase() + it.substring(1)
-                        }
-                    }SourcesJar"
-                ) {
-                    dependsOn("kspCommonMainKotlinMetadata")
-                }
+            named(
+                "${
+                    it.let {
+                        it[0].lowercase() + it.substring(1)
+                    }
+                }SourcesJar"
+            ) {
+                dependsOn("kspCommonMainKotlinMetadata")
             }
         }
 
-        afterEvaluate {
-            named("sourcesJar") {
-                dependsOn("kspCommonMainKotlinMetadata")
-            }
+        named("sourcesJar") {
+            dependsOn("kspCommonMainKotlinMetadata")
         }
     }
     // copy end

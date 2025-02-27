@@ -1,6 +1,7 @@
 package io.github.devngho.kisopenapi
 
 import com.ionspin.kotlin.bignum.decimal.toBigDecimal
+import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.layer.*
 import io.github.devngho.kisopenapi.layer.Updatable.Companion.update
 import io.github.devngho.kisopenapi.requests.domestic.inquire.InquireTradeVolumeRank
@@ -9,9 +10,8 @@ import io.github.devngho.kisopenapi.requests.response.balance.overseas.BalanceAc
 import io.github.devngho.kisopenapi.requests.response.stock.ProductInfo
 import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPrice
 import io.github.devngho.kisopenapi.requests.response.stock.price.overseas.StockOverseasPriceFull
-import io.github.devngho.kisopenapi.requests.util.Currency
-import io.github.devngho.kisopenapi.requests.util.Date
-import io.github.devngho.kisopenapi.requests.util.DemoNotSupported
+import io.github.devngho.kisopenapi.requests.util.*
+import io.github.devngho.kisopenapi.requests.util.Market.KRX
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -72,6 +72,29 @@ class LayerTest : BehaviorSpec({
                     }
                 }
                 latch.receive()
+            }
+            xthen("구매할 수 있다") {
+                val res = stock.buy(BigInteger(1), OrderTypeCode.OutTimeOnlyPrice, KRX, stock.price.price!!)
+
+                res.isOk shouldBe true
+                res.getOrThrow() shouldNotBe null
+            }
+            xthen("팔 수 있다") {
+                val res = stock.sell(BigInteger(1), OrderTypeCode.OutTimeOnlyPrice, KRX, stock.price.price!!)
+
+                res.isOk shouldBe true
+                res.getOrThrow() shouldNotBe null
+            }
+            then("지정가 주문은 가격이 필요하다") {
+                val res = stock.buy(BigInteger(1), OrderTypeCode.SelectPrice, KRX)
+
+                res.isOk shouldBe false
+                res.error!!.type shouldBe RequestCode.InvalidOrder
+
+                val res2 = stock.sell(BigInteger(1), OrderTypeCode.OutTimeOnlyPrice, KRX)
+
+                res2.isOk shouldBe false
+                res2.error!!.type shouldBe RequestCode.InvalidOrder
             }
         }
         `when`("StockOverseas 업데이트") {

@@ -123,8 +123,8 @@ class InquireLiveConfirm(override val client: KISApiClient) :
                 it[9].toBigInteger(),
                 it[10].toBigInteger(),
                 it[11].HHMMSS,
-                it[12].toBoolean(),
-                it[13].toBoolean(),
+                it[12] == "1", // 1: 거부
+                it[13] == "2", // 2: 체결
                 it[14],
                 it[15],
                 it[16].toBigInteger(),
@@ -133,7 +133,7 @@ class InquireLiveConfirm(override val client: KISApiClient) :
                 it[19],
                 it[20].YYYYMMDD,
                 it[21],
-                it[22].toBigInteger()
+                if (it[22].contains("-")) it[22].toBigInteger() else null
             )
         }
     }

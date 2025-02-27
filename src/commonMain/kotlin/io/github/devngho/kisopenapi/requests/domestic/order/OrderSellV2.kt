@@ -32,14 +32,14 @@ class OrderSellV2(override val client: KISApiClient) :
         }
 
         return request(data) {
-            if (it.price.isZero() && it.orderType == OrderTypeCode.SelectPrice) throw RequestException(
-                "지정가 주문에서 가격은 필수 값입니다.",
+            if (it.price.isZero() && it.orderType.isPriceSelectable) throw RequestException(
+                "주문 ${it.orderType}에서 가격은 필수 값입니다.",
                 RequestCode.InvalidOrder
             )
 
             client.httpClient.post(url) {
                 setAuth(client)
-                setTR(if (client.isDemo) "VTTC0801U" else "TTTC0011U")
+                setTR(if (client.isDemo) "VTTC0011U" else "TTTC0011U")
                 setStock(it.ticker)
                 setCorporation(it.corp)
 

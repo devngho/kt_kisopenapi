@@ -63,8 +63,8 @@ class OrderBuy(override val client: KISApiClient) :
 
     @Suppress("SpellCheckingInspection")
     override suspend fun call(data: OrderData) = request(data) {
-        if (it.price.isZero() && it.orderType == OrderTypeCode.SelectPrice) throw RequestException(
-            "지정가 주문에서 가격은 필수 값입니다.",
+        if (it.price.isZero() && it.orderType.isPriceSelectable) throw RequestException(
+            "주문 ${it.orderType}에서 가격은 필수 값입니다.",
             RequestCode.InvalidOrder
         )
 
