@@ -25,6 +25,77 @@ val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
     from(dokkaHtml.outputDirectory)
 }
 
+signing {
+    sign(publishing.publications)
+}
+
+publishing {
+    repositories {
+        val id: String =
+            if (project.hasProperty("repoUsername")) project.property("repoUsername") as String
+            else System.getenv("repoUsername")
+        val pw: String =
+            if (project.hasProperty("repoPassword")) project.property("repoPassword") as String
+            else System.getenv("repoPassword")
+        if (!version.toString().endsWith("SNAPSHOT")) {
+            val repositoryId =
+                System.getenv("SONATYPE_REPOSITORY_ID")
+
+            maven("https://s01.oss.sonatype.org/service/local/staging/deployByRepositoryId/${repositoryId}/") {
+                name = "Sonatype"
+                credentials {
+                    username = id
+                    password = pw
+                }
+            }
+        } else {
+            maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") {
+                name = "Sonatype"
+                credentials {
+                    username = id
+                    password = pw
+                }
+            }
+        }
+    }
+
+    publications.withType(MavenPublication::class) {
+        groupId = project.group as String?
+        gradle.projectsEvaluated {
+            artifactId = "kt_kisopenapi-$artifactId"
+        }
+        version = project.version as String?
+
+        artifact(tasks["javadocJar"])
+
+        pom {
+            name.set("kt_kisopenapi")
+            description.set("한국투자증권의 오픈 API 서비스를 Kotlin/Java 환경에서 사용할 수 있는 라이브러리")
+            url.set("https://github.com/devngho/kt_kisopenapi")
+
+
+            licenses {
+                license {
+                    name.set("MIT License")
+                    url.set("https://github.com/devngho/kt_kisopenapi/blob/master/LICENSE")
+                }
+            }
+            developers {
+                developer {
+                    id.set("devngho")
+                    name.set("devngho")
+                    email.set("yjh135908@gmail.com")
+                }
+            }
+            scm {
+                connection.set("https://github.com/devngho/kt_kisopenapi.git")
+                developerConnection.set("https://github.com/devngho/kt_kisopenapi.git")
+                url.set("https://github.com/devngho/kt_kisopenapi")
+            }
+        }
+    }
+}
+
 kotlin {
     js {
         nodejs()
@@ -65,75 +136,6 @@ kotlin {
 
     sourceSets {
         applyDefaultHierarchyTemplate()
-    }
-
-    publishing {
-        signing {
-            sign(publishing.publications)
-        }
-
-        repositories {
-            val id: String =
-                if (project.hasProperty("repoUsername")) project.property("repoUsername") as String
-                else System.getenv("repoUsername")
-            val pw: String =
-                if (project.hasProperty("repoPassword")) project.property("repoPassword") as String
-                else System.getenv("repoPassword")
-            if (!version.toString().endsWith("SNAPSHOT")) {
-                val repositoryId =
-                    System.getenv("SONATYPE_REPOSITORY_ID")
-
-                maven("https://s01.oss.sonatype.org/service/local/staging/deployByRepositoryId/${repositoryId}/") {
-                    name = "Sonatype"
-                    credentials {
-                        username = id
-                        password = pw
-                    }
-                }
-            } else {
-                maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") {
-                    name = "Sonatype"
-                    credentials {
-                        username = id
-                        password = pw
-                    }
-                }
-            }
-        }
-
-        publications.withType(MavenPublication::class) {
-            groupId = project.group as String?
-            artifactId = "kt_kisopenapi-ksp-annotations"
-            version = project.version as String?
-
-            artifact(tasks["javadocJar"])
-
-            pom {
-                name.set(artifactId)
-                description.set("한국투자증권의 오픈 API 서비스를 Kotlin/Java 환경에서 사용할 수 있는 라이브러리")
-                url.set("https://github.com/devngho/kt_kisopenapi")
-
-
-                licenses {
-                    license {
-                        name.set("MIT License")
-                        url.set("https://github.com/devngho/kt_kisopenapi/blob/master/LICENSE")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("devngho")
-                        name.set("devngho")
-                        email.set("yjh135908@gmail.com")
-                    }
-                }
-                scm {
-                    connection.set("https://github.com/devngho/kt_kisopenapi.git")
-                    developerConnection.set("https://github.com/devngho/kt_kisopenapi.git")
-                    url.set("https://github.com/devngho/kt_kisopenapi")
-                }
-            }
-        }
     }
 }
 
