@@ -14,6 +14,7 @@ repositories {
     mavenCentral()
 }
 
+group = rootProject.group
 version = rootProject.version
 
 val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class)
