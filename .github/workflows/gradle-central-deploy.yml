@@ -71,7 +71,7 @@ jobs:
       - name: Publish package
         shell: bash
         run: |
-          ./gradlew publish -Pgradle.publish.key=$gradle_publish_key -Pgradle.publish.secret=$gradle_publish_secret -Psigning.keyId=$signing_keyId -Psigning.password=$signing_password -Psigning.secretKeyRingFile=./secring.gpg
+          ./gradlew publish -Pgradle.publish.key=$gradle_publish_key -Pgradle.publish.secret=$gradle_publish_secret -Psigning.keyId=$signing_keyId -Psigning.password=$signing_password -Psigning.secretKeyRingFile=/home/runner/work/kt_kisopenapi/kt_kisopenapi/ksp-annotations/secring.gpg
         env:
           repoPassword: ${{ secrets.OSSRH_PASSWORD }}
           repoUsername: ${{ vars.OSSRH_USERNAME }}
