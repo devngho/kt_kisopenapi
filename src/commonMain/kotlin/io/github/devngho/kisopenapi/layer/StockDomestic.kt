@@ -9,10 +9,8 @@ import io.github.devngho.kisopenapi.requests.domestic.order.OrderCancel
 import io.github.devngho.kisopenapi.requests.response.stock.StockProductInfo
 import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPriceFull
 import io.github.devngho.kisopenapi.requests.response.stock.trade.StockTradeFull
-import io.github.devngho.kisopenapi.requests.util.Closeable
+import io.github.devngho.kisopenapi.requests.util.*
 import io.github.devngho.kisopenapi.requests.util.Market
-import io.github.devngho.kisopenapi.requests.util.OrderTypeCode
-import io.github.devngho.kisopenapi.requests.util.Result
 import kotlin.jvm.JvmStatic
 
 
@@ -182,7 +180,10 @@ interface StockDomestic : StockBase {
      * @see [InquireLivePrice]
      * @param block 가격이 업데이트 될 때마다 호출될 블록
      */
-    suspend fun useLiveConfirmPrice(block: Closeable.(InquireLivePrice.InquireLivePriceResponse) -> Unit)
+    suspend fun useLiveConfirmPrice(
+        market: MarketWithUnified = MarketWithUnified.UNIFIED,
+        block: Closeable.(InquireLivePrice.InquireLivePriceResponse) -> Unit
+    )
 
     companion object {
         @JvmStatic

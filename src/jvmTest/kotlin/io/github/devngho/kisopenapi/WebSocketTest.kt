@@ -6,6 +6,7 @@ import io.github.devngho.kisopenapi.requests.domestic.inquire.live.InquireLivePr
 import io.github.devngho.kisopenapi.requests.overseas.inquire.live.InquireOverseasLiveConfirm
 import io.github.devngho.kisopenapi.requests.overseas.inquire.live.InquireOverseasLivePrice
 import io.github.devngho.kisopenapi.requests.response.LiveCallBody
+import io.github.devngho.kisopenapi.requests.util.MarketWithUnified
 import io.github.devngho.kisopenapi.requests.util.RequestCode
 import io.github.devngho.kisopenapi.requests.util.json
 import io.kotest.core.spec.style.ShouldSpec
@@ -38,12 +39,8 @@ class WebSocketTest : ShouldSpec({
     }
 
     beforeEach {
-        logger.info("setup test websocket")
-        api.webSocket.closeWebsocket()
         api.webSocket.buildWebsocket()
         logger.info("setup test websocket done")
-
-        delay(1000)
     }
 
     should("연결할 수 있어야 한다") {
@@ -110,37 +107,49 @@ class WebSocketTest : ShouldSpec({
             val instances = mutableListOf<Pair<InquireLivePrice, InquireLivePrice.InquireLivePriceData>>()
 
             testStocks.forEach {
-                val registerChannel = Channel<Unit>()
-                launch {
+                // given
+                val instance = InquireLivePrice(api)
+                val data = InquireLivePrice.InquireLivePriceData(it)
+                instances.add(instance to data)
+
+                // when
+                instance.register(data, wait = true, force = false, { resp ->
+                    // then
+                    resp.getOrThrow().let {
+                        it.body?.isOk shouldBe true
+                        it.body?.code shouldBe RequestCode.SubscribeSuccess.code
+                    }
+                }) {}
+            }
+
+            instances.forEach { (instance, data) ->
+                instance.unregister(data)
+            }
+        }
+
+        should("NXT/KRX/통합 실시간 가격 조회를 요청할 수 있다") {
+            MarketWithUnified.entries.forEach { market ->
+                val instances = mutableListOf<Pair<InquireLivePrice, InquireLivePrice.InquireLivePriceData>>()
+
+                testStocks.forEach {
                     // given
                     val instance = InquireLivePrice(api)
-                    val data = InquireLivePrice.InquireLivePriceData(it)
+                    val data = InquireLivePrice.InquireLivePriceData(it, market)
                     instances.add(instance to data)
 
                     // when
-                    instance.register(data, wait = false, force = false, { resp ->
+                    instance.register(data, wait = true, force = false, { resp ->
                         // then
                         resp.getOrThrow().let {
                             it.body?.isOk shouldBe true
                             it.body?.code shouldBe RequestCode.SubscribeSuccess.code
                         }
                     }) {}
-
-                    registerChannel.send(Unit)
                 }
 
-                select {
-                    registerChannel.onReceive { }
-                    onTimeout(5000) {
-                        throw Exception("Timeout")
-                    }
+                instances.forEach { (instance, data) ->
+                    instance.unregister(data)
                 }
-
-                delay(1000)
-            }
-
-            instances.forEach { (instance, data) ->
-                instance.unregister(data)
             }
         }
 
@@ -305,7 +314,7 @@ class WebSocketTest : ShouldSpec({
                 "${data.tradeKey(api)}^093354^71900^5^-100^-0.14^72023.83^72100^72400^71700^71900^71800^1^3052507^219853241700^5105^6937^1832^84.90^1366314^1159996^1^0.39^20.28^090020^5^-200^090820^5^-500^092619^2^200^20230612^20^N^65945^216924^1118750^2199206^0.05^2424142^125.92^0^^72100"
 
             // fake 데이터를 보냄
-            (api.webSocket as WebSocketMockClient).incoming.emit("0|H0STCNT0|004|$textData^$textData^$textData^$textData")
+            (api.webSocket as WebSocketMockClient).incoming.emit("0|H0UNCNT0|004|$textData^$textData^$textData^$textData")
 
             delay(1000)
 
@@ -510,7 +519,7 @@ class WebSocketTest : ShouldSpec({
     context("InquireLiveAskPrice") {
         should("실시간 호가를 요청할 수 있어야 한다") {
             val instance = InquireLiveAskPrice(api)
-            val data = InquireLiveAskPrice.InquireLiveAskPriceData()
+            val data = InquireLiveAskPrice.InquireLiveAskPriceData(testStock)
 
             instance.register(data, wait = true, force = false, { resp ->
                 resp shouldNotBe null

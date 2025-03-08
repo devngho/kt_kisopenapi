@@ -66,6 +66,10 @@ class InquireLiveConfirm(override val client: KISApiClient) :
         val branchNumber: String?,
         val orderQuantity: BigInteger?,
         val accountName: String?,
+        val orderConditionPrice: BigInteger?,
+        val market: MarketWithSOR?,
+        val isPopuped: Boolean?,
+        val filler: String?,
         val confirmedStockName: String?,
         val creditDivision: String?,
         val loanDate: Date?,
@@ -108,7 +112,7 @@ class InquireLiveConfirm(override val client: KISApiClient) :
             init = init ?: {},
             block = block,
             force = force,
-            bodySize = 23
+            bodySize = 27
         ) {
             InquireLiveConfirmResponse(
                 it[0],
@@ -123,21 +127,26 @@ class InquireLiveConfirm(override val client: KISApiClient) :
                 it[9].toBigInteger(),
                 it[10].toBigInteger(),
                 it[11].HHMMSS,
-                it[12] == "1", // 1: 거부
-                it[13] == "2", // 2: 체결
+                it[12].toBoolean(),
+                it[13].toBoolean(),
                 it[14],
                 it[15],
                 it[16].toBigInteger(),
                 it[17],
-                it[18],
-                it[19],
-                it[20].YYYYMMDD,
+                it[18].toBigInteger(),
+                MarketWithSOR.fromCode(it[19].toInt()),
+                it[20].toBoolean(),
                 it[21],
-                if (it[22].contains("-")) it[22].toBigInteger() else null
+                it[22],
+                it[23],
+                it[24].YYYYMMDD,
+                it[25],
+                it[26].toBigInteger()
             )
         }
     }
 
-    override suspend fun unregister(data: InquireLiveConfirmData, wait: Boolean) =
+    override suspend fun unregister(data: InquireLiveConfirmData, wait: Boolean) {
         requestEnd(data, subscribed!!, tradeId, data.tradeKey(client), wait, job)
+    }
 }

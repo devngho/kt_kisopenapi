@@ -7,7 +7,10 @@ import io.github.devngho.kisopenapi.requests.common.InquireProductBaseInfo
 import io.github.devngho.kisopenapi.requests.domestic.inquire.InquirePrice
 import io.github.devngho.kisopenapi.requests.domestic.inquire.InquireStockBaseInfo
 import io.github.devngho.kisopenapi.requests.domestic.inquire.live.InquireLivePrice
-import io.github.devngho.kisopenapi.requests.domestic.order.*
+import io.github.devngho.kisopenapi.requests.domestic.order.OrderAmend
+import io.github.devngho.kisopenapi.requests.domestic.order.OrderBuy
+import io.github.devngho.kisopenapi.requests.domestic.order.OrderCancel
+import io.github.devngho.kisopenapi.requests.domestic.order.OrderSell
 import io.github.devngho.kisopenapi.requests.response.stock.*
 import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.*
 import io.github.devngho.kisopenapi.requests.response.stock.trade.*
@@ -114,7 +117,7 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
         market: Market,
         price: BigInteger
     ): Result<OrderBuy.OrderResponse> =
-        OrderBuyV2(client).call(OrderBuyV2.OrderDataV2(ticker, type, count, price, market = market))
+        OrderBuy(client).call(OrderBuy.OrderData(ticker, type, count, price, market = market))
 
     override suspend fun sell(
         count: BigInteger,
@@ -122,7 +125,7 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
         market: Market,
         price: BigInteger
     ): Result<OrderBuy.OrderResponse> =
-        OrderSellV2(client).call(OrderBuyV2.OrderDataV2(ticker, type, count, price, market = market))
+        OrderSell(client).call(OrderBuy.OrderData(ticker, type, count, price, market = market))
 
     override suspend fun amend(
         order: OrderBuy.OrderResponse,
@@ -132,8 +135,8 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
         price: BigInteger,
         orderAll: Boolean
     ): Result<OrderAmend.OrderResponse> =
-        OrderAmendV2(client).call(
-            OrderAmendV2.OrderDataV2(
+        OrderAmend(client).call(
+            OrderAmend.OrderData(
                 type, count, price,
                 order.output?.orderNumber ?: throw RequestException(
                     "Amend request need order number.",
@@ -151,8 +154,8 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
         market: Market,
         orderAll: Boolean
     ): Result<OrderCancel.OrderResponse> =
-        OrderCancelV2(client).call(
-            OrderCancelV2.OrderDataV2(
+        OrderCancel(client).call(
+            OrderCancel.OrderData(
                 type,
                 count,
                 order.output?.orderNumber ?: throw RequestException(
@@ -207,14 +210,17 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
         orderAll: Boolean
     ): Result<OrderCancel.OrderResponse> = cancel(order, count, type, Market.KRX, orderAll)
 
-    override suspend fun useLiveConfirmPrice(block: Closeable.(InquireLivePrice.InquireLivePriceResponse) -> Unit) {
+    override suspend fun useLiveConfirmPrice(
+        market: MarketWithUnified,
+        block: Closeable.(InquireLivePrice.InquireLivePriceResponse) -> Unit
+    ) {
         coroutineScope {
             InquireLivePrice(client).apply {
                 (this@coroutineScope).launch {
-                    register(InquireLivePrice.InquireLivePriceData(this@StockDomesticImpl.ticker)) {
+                    register(InquireLivePrice.InquireLivePriceData(this@StockDomesticImpl.ticker, market)) {
                         (object : Closeable {
                             override suspend fun close() {
-                                unregister(InquireLivePrice.InquireLivePriceData(this@StockDomesticImpl.ticker))
+                                unregister(InquireLivePrice.InquireLivePriceData(this@StockDomesticImpl.ticker, market))
                             }
                         }).block(it)
                     }

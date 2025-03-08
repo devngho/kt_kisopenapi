@@ -48,10 +48,10 @@ internal fun createHttpClient() = HttpClient {
 
 internal fun HttpRequestBuilder.setAuth(client: KISApiClient) {
     contentType(ContentType.Application.Json)
-    headers {
+    headers @Suppress("SpellCheckingInspection") {
         append(HttpHeaders.Authorization, "Bearer ${client.tokens.oauthToken}")
         append("appkey", client.appKey)
-        @Suppress("SpellCheckingInspection") append("appsecret", client.appSecret)
+        append("appsecret", client.appSecret)
     }
 }
 

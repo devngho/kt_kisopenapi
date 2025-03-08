@@ -5,8 +5,8 @@ import io.github.devngho.kisopenapi.requests.ratelimit.ClockRateLimiter
 import io.github.devngho.kisopenapi.requests.response.LiveResponse
 import io.github.devngho.kisopenapi.requests.util.InternalApi
 import io.github.devngho.kisopenapi.requests.util.WebSocketSubscribed
-import io.github.devngho.kisopenapi.requests.util.createHttpClient
 import io.github.devngho.kisopenapi.requests.util.json
+import io.ktor.client.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
@@ -15,7 +15,6 @@ import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.time.TimeSource
@@ -23,6 +22,7 @@ import kotlin.time.TimeSource
 @Suppress("SpellCheckingInspection")
 @OptIn(InternalApi::class)
 class KISApiClientImpl internal constructor(
+    override val httpClient: HttpClient,
     override val appKey: String,
     override val appSecret: String,
     override val isDemo: Boolean,
@@ -31,7 +31,6 @@ class KISApiClientImpl internal constructor(
     override val corpRequest: CorporationRequest?,
     override val tokens: KISApiClient.KISApiTokens,
 ) : KISApiClient {
-    override val httpClient = createHttpClient()
 
     override val options: KISApiClient.KISApiOptions = KISApiClient.KISApiOptions(
         rateLimiter = ClockRateLimiter.byDefaultRate(isDemo),
@@ -153,7 +152,10 @@ class KISApiClientImpl internal constructor(
         private val _incoming: MutableSharedFlow<String> = MutableSharedFlow()
         private var session: DefaultClientWebSocketSession? = null
 
-        override var scope: CoroutineScope? = null
+        override var scope: CoroutineScope?
+            get() = session
+            set(_) {} // ignore
+
         override val incoming: SharedFlow<String> = _incoming.asSharedFlow()
         override val outgoing: SendChannel<String> = Channel()
         override val isConnected: Boolean
@@ -165,25 +167,19 @@ class KISApiClientImpl internal constructor(
         /**
          * 웹소켓이 연결 중이거나 닫히는 중일 때, 다른 곳에서 웹소켓을 연결하거나 닫지 못하도록 합니다.
          */
-        private val buildOrCloseMutex = Mutex()
+        private val connectionMutex = Mutex()
 
         override suspend fun buildWebsocket() {
             if (isConnected) closeWebsocket()
 
-            buildOrCloseMutex.withLock {
-                client.httpClient.webSocketSession(client.options.webSocketUrl)
-                    .apply {
-                        setupVaraibles()
-                        setupSession()
+            connectionMutex.withLock {
+                val newSession = client.httpClient.webSocketSession(client.options.webSocketUrl)
+                newSession.setupSession()
 
-                        _eventFlow.emit(KISApiClient.WebSocket.Event.OnOpen(this))
-                    }
+                session = newSession
+
+                _eventFlow.emit(KISApiClient.WebSocket.Event.OnOpen(newSession))
             }
-        }
-
-        private fun DefaultClientWebSocketSession.setupVaraibles() {
-            scope = this
-            session = this
         }
 
         private fun DefaultClientWebSocketSession.setupSession() {
@@ -198,11 +194,7 @@ class KISApiClientImpl internal constructor(
             launch {
                 val channel = this@WebSocketImpl.outgoing as Channel<String>
 
-                while (true) {
-                    val msg = channel.receive()
-
-                    processOutgoing(msg)
-                }
+                for (msg in channel) processOutgoing(msg)
             }
         }
 
@@ -216,10 +208,9 @@ class KISApiClientImpl internal constructor(
                 }.exceptionOrNull().let { e ->
                     withContext(NonCancellable) {
                         val cause = closeReason.await()
-
-                        finalizeSession(cause ?: CloseReason(CloseReason.Codes.NORMAL, ""))
-
+                        if (cause?.message == "receiveTimeout") return@withContext
                         _eventFlow.emit(KISApiClient.WebSocket.Event.OnClose(cause, e))
+                        finalizeSession(cause ?: CloseReason(CloseReason.Codes.NORMAL, ""))
                     }
 
                     if (e != null) throw e
@@ -234,7 +225,10 @@ class KISApiClientImpl internal constructor(
                     delay(client.options.webSocketReceiveTimeout * 1000 - getLastIncomingTime().elapsedNow().inWholeMilliseconds)
 
                     if (getLastIncomingTime().elapsedNow().inWholeMilliseconds >= client.options.webSocketReceiveTimeout * 1000) {
-                        close(CloseReason(CloseReason.Codes.GOING_AWAY, "receiveTimeout"))
+                        val cause = CloseReason(CloseReason.Codes.GOING_AWAY, "receiveTimeout")
+                        close(cause)
+                        _eventFlow.emit(KISApiClient.WebSocket.Event.OnClose(cause, null))
+                        finalizeSession(cause)
 
                         break
                     }
@@ -247,10 +241,12 @@ class KISApiClientImpl internal constructor(
          */
         private suspend fun finalizeSession(reason: CloseReason) {
             if (client.options.autoReconnect) {
-                if (reason.message != "closeWebsocket") reconnect(true)
+                if (reason.message != "closeWebsocket") withContext(NonCancellable) {
+                    reconnectWebsocket()
+                }
             } else {
                 clearSubscriptions()
-                clearSocket()
+                clearResources()
             }
         }
 
@@ -304,43 +300,29 @@ class KISApiClientImpl internal constructor(
         /**
          * 웹소켓 세션을 종료합니다.
          */
-        override suspend fun closeWebsocket(): Unit = coroutineScope {
-            buildOrCloseMutex.withLock {
-                val j = launch { if (isConnected) eventFlow.first { f -> f is KISApiClient.WebSocket.Event.OnClose } }
+        override suspend fun closeWebsocket() {
+            connectionMutex.withLock {
                 clearSubscriptions()
                 session?.close(CloseReason(CloseReason.Codes.NORMAL, "closeWebsocket"))
-                scope?.cancel()
-                clearSocket()
-                j.join()
+                clearResources()
             }
         }
 
-        private fun clearSocket() {
-            session = null
-            scope = null
-        }
+        private fun clearResources() {
+            session?.let {
+                it.cancel()
 
-
-        override suspend fun reconnectWebsocket() {
-            val alreadyClosing = !isConnected
-
-            reconnect(alreadyClosing)
+                session = null
+            }
         }
 
         private val reconnectMutex = Mutex()
 
-        private suspend fun reconnect(alreadyClosing: Boolean) = coroutineScope {
-            reconnectMutex.tryLock().let { if (!it) return@coroutineScope }
+        override suspend fun reconnectWebsocket() {
+            reconnectMutex.tryLock().let { if (!it) return }
 
             try {
                 val copiedSubscriptions = client.options.webSocketManager.getSubscribed()
-
-                if (!alreadyClosing) closeWebsocket()
-                else {
-                    clearSubscriptions()
-                    clearSocket()
-                }
-
                 buildWebsocket()
 
                 // 구독 중인 요청을 다시 구독합니다.

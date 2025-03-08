@@ -59,6 +59,9 @@ class OrderCancel(override val client: KISApiClient) :
         @SerialName("QTY_ALL_ORD_YN") @Serializable(with = YNSerializer::class) val orderAll: Boolean,
         @SerialName("CANO") override val accountNumber: String? = null,
         @SerialName("ACNT_PRDT_CD") override val accountProductCode: String? = null,
+        /** 스탑지정가호가 주문 시 사용되는 조건 가격 */
+        @Contextual @SerialName("CNDT_PRIC") val conditionPrice: BigInteger = BigInteger(0),
+        @SerialName("EXCG_ID_DVSN_CD") val market: Market,
         @Transient override var corp: CorporationRequest? = null,
         @Transient override var tradeContinuous: String? = ""
     ) : Data, TradeContinuousData, AccountInfo {
@@ -68,29 +71,32 @@ class OrderCancel(override val client: KISApiClient) :
         @Contextual
         @SerialName("ORD_UNPR")
         val price: BigInteger = BigInteger(0)
+
         @SerialName("KRX_FWDG_ORD_ORGNO")
         val orderOffice: String = ""
     }
 
     @Suppress("SpellCheckingInspection")
-    override suspend fun call(data: OrderData) = request(data) {
-        if (it.price.isZero() && it.orderType == OrderTypeCode.SelectPrice) throw RequestException(
-            "지정가 주문에서 가격은 필수 값입니다.",
-            RequestCode.InvalidOrder
-        )
-
-        client.httpClient.post(url) {
-            setAuth(client)
-            setTR(if (client.isDemo) "VTTC0803U" else "TTTC0803U")
-            it.corp?.let { setCorporation(it) }
-            setBody(
-                it.copy(
-                    accountNumber = it.accountNumber ?: client.account!!.first,
-                    accountProductCode = it.accountProductCode ?: client.account!!.second
-                )
+    override suspend fun call(data: OrderData): Result<OrderResponse> {
+        return request(data) {
+            if (it.price.isZero() && it.orderType == OrderTypeCode.SelectPrice) throw RequestException(
+                "지정가 주문에서 가격은 필수 값입니다.",
+                RequestCode.InvalidOrder
             )
 
-            hashKey<OrderData>(client)
+            client.httpClient.post(url) {
+                setAuth(client)
+                setTR(if (client.isDemo) "VTTC0803U" else "TTTC0013U")
+                it.corp?.let { setCorporation(it) }
+                setBody(
+                    it.copy(
+                        accountNumber = it.accountNumber ?: client.account!!.first,
+                        accountProductCode = it.accountProductCode ?: client.account!!.second
+                    )
+                )
+
+                hashKey<OrderData>(client)
+            }
         }
     }
 }

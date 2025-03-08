@@ -57,31 +57,36 @@ class OrderBuy(override val client: KISApiClient) :
         @Contextual @SerialName("ORD_UNPR") val price: BigInteger = BigInteger(0),
         @SerialName("CANO") override val accountNumber: String? = null,
         @SerialName("ACNT_PRDT_CD") override val accountProductCode: String? = null,
+        /** 스탑지정가호가 주문 시 사용되는 조건 가격 */
+        @Contextual @SerialName("CNDT_PRIC") val conditionPrice: BigInteger = BigInteger(0),
+        @SerialName("EXCG_ID_DVSN_CD") val market: Market,
         @Transient override var corp: CorporationRequest? = null,
         @Transient override var tradeContinuous: String? = ""
     ) : Data, TradeContinuousData, Ticker, AccountInfo
 
     @Suppress("SpellCheckingInspection")
-    override suspend fun call(data: OrderData) = request(data) {
-        if (it.price.isZero() && it.orderType.isPriceSelectable) throw RequestException(
-            "주문 ${it.orderType}에서 가격은 필수 값입니다.",
-            RequestCode.InvalidOrder
-        )
-
-        client.httpClient.post(url) {
-            setAuth(client)
-            setTR(if (client.isDemo) "VTTC0802U" else "TTTC0802U")
-            setStock(it.ticker)
-            setCorporation(it.corp)
-
-            setBody(
-                it.copy(
-                    accountNumber = it.accountNumber ?: client.account!!.first,
-                    accountProductCode = it.accountProductCode ?: client.account!!.second
-                )
+    override suspend fun call(data: OrderData): Result<OrderResponse> {
+        return request(data) {
+            if (it.price.isZero() && it.orderType.isPriceSelectable) throw RequestException(
+                "주문 ${it.orderType}에서 가격은 필수 값입니다.",
+                RequestCode.InvalidOrder
             )
 
-            hashKey<OrderData>(client)
+            client.httpClient.post(url) {
+                setAuth(client)
+                setTR(if (client.isDemo) "VTTC0012U" else "TTTC0012U")
+                setStock(it.ticker)
+                setCorporation(it.corp)
+
+                setBody(
+                    it.copy(
+                        accountNumber = it.accountNumber ?: client.account!!.first,
+                        accountProductCode = it.accountProductCode ?: client.account!!.second
+                    )
+                )
+
+                hashKey<OrderData>(client)
+            }
         }
     }
 }

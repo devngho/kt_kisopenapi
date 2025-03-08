@@ -9,6 +9,7 @@ import io.github.devngho.kisopenapi.requests.ratelimit.RateLimiter
 import io.github.devngho.kisopenapi.requests.response.LiveResponse
 import io.github.devngho.kisopenapi.requests.util.InternalApi
 import io.github.devngho.kisopenapi.requests.util.WebSocketSubscribed
+import io.github.devngho.kisopenapi.requests.util.createHttpClient
 import io.ktor.client.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.websocket.*
@@ -128,12 +129,6 @@ interface KISApiClient {
          * 기본적으로 PINGPONG 메시지를 주고받으므로, 일반적으로는 수신 타임아웃이 지나는 일은 없습니다.
          */
         var webSocketReceiveTimeout: Long = 20,
-        /**
-         * 3/4 전까지 v2 API를 v1로 호출하려면 true, 아니면 false로 설정하세요. 기본값은 true입니다.
-         *
-         * ATS 도입에 따른 변경사항을 담은 v2 API는 아직 (2/16 기준) 서버에서 제공되지 않습니다.
-         */
-        var useV1PolyfillForV2: Boolean = true,
     )
 
     /**
@@ -327,53 +322,19 @@ interface KISApiClient {
     }
 
     companion object {
-
         /**
          * KISApiClient 객체를 생성해 반환합니다.
          *
-         * @param token 사용할 토큰
+         * @param tokens 사용할 토큰
          * @param appKey 앱 키
          * @param appSecret 앱 시크릿
          * @param isDemo 모의투자 여부
-         * @param websocketToken 웹소켓 토큰
          * @param account 계좌번호(XXXXXXXX-XX 형식)
          * @param id HTS ID
          * @param corp 호출하는 개인/기관 정보
+         * @param httpClient HTTP 클라이언트. null이면 기본 클라이언트를 사용합니다.
          * @param options 요청 옵션
          */
-        @JvmStatic
-        @Deprecated(
-            "Use withToken using KISApiTokens instead.",
-            ReplaceWith("withToken(tokens, appKey, appSecret, isDemo, account, id, corp, options)")
-        )
-        fun withToken(
-            token: String,
-            appKey: String,
-            appSecret: String,
-            isDemo: Boolean = false,
-            websocketToken: String? = null,
-            account: String? = null,
-            id: String? = null,
-            corp: CorporationRequest? = CorporationRequest(),
-            options: KISApiOptions.(KISApiClient) -> Unit = { },
-        ): KISApiClient =
-            KISApiClientImpl(
-                appKey,
-                appSecret,
-                isDemo,
-                account?.split("-")?.let { Pair(it[0], it[1]) },
-                id,
-                corp,
-                KISApiTokens(
-                    oauthToken = token,
-                    webSocketToken = websocketToken
-                )
-            ).apply {
-                this.tokens.client = this
-
-                this.options(options)
-            }
-
         @JvmStatic
         fun withToken(
             tokens: KISApiTokens,
@@ -383,9 +344,11 @@ interface KISApiClient {
             account: String? = null,
             id: String? = null,
             corp: CorporationRequest? = CorporationRequest(),
+            httpClient: HttpClient? = null,
             options: KISApiOptions.(KISApiClient) -> Unit = { },
         ): KISApiClient =
             KISApiClientImpl(
+                httpClient ?: createHttpClient(),
                 appKey,
                 appSecret,
                 isDemo,
@@ -409,6 +372,7 @@ interface KISApiClient {
          *  @param account 계좌번호(XXXXXXXX-XX 형식)
          *  @param id HTS ID
          *  @param corp 호출하는 개인/기관 정보
+         *  @param httpClient HTTP 클라이언트. null이면 기본 클라이언트를 사용합니다.
          *  @param options 요청 옵션
          */
         @JvmStatic
@@ -419,9 +383,11 @@ interface KISApiClient {
             account: String? = null,
             id: String? = null,
             corp: CorporationRequest? = CorporationRequest(),
+            httpClient: HttpClient? = null,
             options: KISApiOptions.(KISApiClient) -> Unit = { },
         ): KISApiClient =
             KISApiClientImpl(
+                httpClient ?: createHttpClient(),
                 appKey,
                 appSecret,
                 isDemo,

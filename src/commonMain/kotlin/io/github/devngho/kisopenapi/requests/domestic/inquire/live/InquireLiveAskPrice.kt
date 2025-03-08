@@ -9,6 +9,7 @@ import io.github.devngho.kisopenapi.requests.LiveData
 import io.github.devngho.kisopenapi.requests.LiveRequest
 import io.github.devngho.kisopenapi.requests.Response
 import io.github.devngho.kisopenapi.requests.data.CorporationRequest
+import io.github.devngho.kisopenapi.requests.domestic.inquire.live.InquireLiveAskPrice.InquireLiveAskPriceResponse
 import io.github.devngho.kisopenapi.requests.response.LiveResponse
 import io.github.devngho.kisopenapi.requests.response.stock.Ticker
 import io.github.devngho.kisopenapi.requests.util.*
@@ -24,9 +25,7 @@ import kotlinx.serialization.Serializable
 @Suppress("SpellCheckingInspection")
 @OptIn(InternalApi::class)
 class InquireLiveAskPrice(override val client: KISApiClient) :
-    LiveRequest<InquireLiveAskPrice.InquireLiveAskPriceData, InquireLiveAskPrice.InquireLiveAskPriceResponse> {
-    private val tradeId = "H0STASP0"
-
+    LiveRequest<InquireLiveAskPrice.InquireLiveAskPriceData, InquireLiveAskPriceResponse> {
     @Serializable
     data class AskPrice(@Contextual val price: BigInteger, @Contextual val count: BigInteger)
 
@@ -81,10 +80,13 @@ class InquireLiveAskPrice(override val client: KISApiClient) :
         override val errorCode: String? = null
     }
 
-    data class InquireLiveAskPriceData(override var corp: CorporationRequest? = null) : LiveData {
-        override fun tradeKey(client: KISApiClient): String {
-            return client.htsId!!
-        }
+    data class InquireLiveAskPriceData(
+        override val ticker: String,
+        val market: MarketWithUnified = MarketWithUnified.UNIFIED,
+        override var corp: CorporationRequest? = null
+    ) :
+        LiveData, Ticker {
+        override fun tradeKey(client: KISApiClient): String = ticker
     }
 
     private var job: Job? = null
@@ -104,7 +106,7 @@ class InquireLiveAskPrice(override val client: KISApiClient) :
         )
 
         requestStart(
-            data, subscribed!!, tradeId, data.tradeKey(client),
+            data, subscribed!!, "H0${data.market.code}ASP0", data.tradeKey(client),
             wait = wait,
             updateJob = { job = it },
             init = init ?: {},
@@ -152,6 +154,7 @@ class InquireLiveAskPrice(override val client: KISApiClient) :
         }
     }
 
-    override suspend fun unregister(data: InquireLiveAskPriceData, wait: Boolean) =
-        requestEnd(data, subscribed!!, tradeId, data.tradeKey(client), wait, job)
+    override suspend fun unregister(data: InquireLiveAskPriceData, wait: Boolean) {
+        requestEnd(data, subscribed!!, "H0${data.market.code}ASP0", data.tradeKey(client), wait, job)
+    }
 }

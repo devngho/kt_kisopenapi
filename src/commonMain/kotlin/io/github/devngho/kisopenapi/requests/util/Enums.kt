@@ -477,6 +477,31 @@ enum class Market(val code: String) {
 }
 
 @OptIn(ExperimentalSerializationApi::class)
+@Serializable(with = MarketWithUnified.MarketWithUnifiedSerializer::class)
+enum class MarketWithUnified(val code: String) {
+    KRX("ST"),
+    NEXTRADE("NX"),
+
+    /** 통합 **/
+    UNIFIED("UN"),
+    ;
+
+    @ExperimentalSerializationApi
+    object MarketWithUnifiedSerializer : KSerializer<MarketWithUnified> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("MarketWithUnified", PrimitiveKind.STRING)
+
+        override fun deserialize(decoder: Decoder): MarketWithUnified {
+            val d = decoder.decodeString()
+            return MarketWithUnified.valueOf(d.uppercase())
+        }
+
+        override fun serialize(encoder: Encoder, value: MarketWithUnified) {
+            encoder.encodeString(value.code)
+        }
+    }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable(with = MarketWithSOR.MarketWithSORSerializer::class)
 enum class MarketWithSOR(val code: Int) {
     KRX(1),

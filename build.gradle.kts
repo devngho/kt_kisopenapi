@@ -166,6 +166,10 @@ kotlin {
             implementation(libs.kotlin.test.common)
             implementation(libs.kotlin.test.annotations.common)
             implementation(libs.kotlin.reflect)
+
+            implementation(libs.ktor.server.core)
+            implementation(libs.ktor.server.cio)
+            implementation(libs.ktor.server.websockets)
         }
         jvmTest.dependencies {
             implementation(libs.kotest.runner.junit5)
