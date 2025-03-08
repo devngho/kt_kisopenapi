@@ -1,6 +1,7 @@
 package io.github.devngho.kisopenapi
 
 import com.ionspin.kotlin.bignum.decimal.toBigDecimal
+import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.layer.*
 import io.github.devngho.kisopenapi.layer.Updatable.Companion.update
 import io.github.devngho.kisopenapi.requests.domestic.inquire.InquireTradeVolumeRank
@@ -9,9 +10,8 @@ import io.github.devngho.kisopenapi.requests.response.balance.overseas.BalanceAc
 import io.github.devngho.kisopenapi.requests.response.stock.ProductInfo
 import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPrice
 import io.github.devngho.kisopenapi.requests.response.stock.price.overseas.StockOverseasPriceFull
-import io.github.devngho.kisopenapi.requests.util.Currency
-import io.github.devngho.kisopenapi.requests.util.Date
-import io.github.devngho.kisopenapi.requests.util.DemoNotSupported
+import io.github.devngho.kisopenapi.requests.util.*
+import io.github.devngho.kisopenapi.requests.util.Market.KRX
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -55,10 +55,10 @@ class LayerTest : BehaviorSpec({
         `when`("StockDomestic 업데이트") {
             val stock = api.stockDomestic(testStock)
 
-            stock.update(StockPrice::class, ProductInfo::class)
+            stock.update<StockPrice, ProductInfo>()
 
             then("종목 이름을 가져올 수 있다") {
-                stock.name.nameShort shouldBe "삼성전자"
+                stock.info.nameShort shouldBe "삼성전자"
             }
             then("종목 가격을 가져올 수 있다") {
                 stock.price.price shouldNotBe null
@@ -73,20 +73,44 @@ class LayerTest : BehaviorSpec({
                 }
                 latch.receive()
             }
+            xthen("구매할 수 있다") {
+                val res = stock.buy(BigInteger(1), OrderTypeCode.OutTimeOnlyPrice, KRX, stock.price.price!!)
+
+                res.isOk shouldBe true
+                res.getOrThrow() shouldNotBe null
+            }
+            xthen("팔 수 있다") {
+                val res = stock.sell(BigInteger(1), OrderTypeCode.OutTimeOnlyPrice, KRX, stock.price.price!!)
+
+                res.isOk shouldBe true
+                res.getOrThrow() shouldNotBe null
+            }
+            then("지정가 주문은 가격이 필요하다") {
+                val res = stock.buy(BigInteger(1), OrderTypeCode.SelectPrice, KRX)
+
+                res.isOk shouldBe false
+                res.error!!.type shouldBe RequestCode.InvalidOrder
+
+                val res2 = stock.sell(BigInteger(1), OrderTypeCode.OutTimeOnlyPrice, KRX)
+
+                res2.isOk shouldBe false
+                res2.error!!.type shouldBe RequestCode.InvalidOrder
+            }
         }
         `when`("StockOverseas 업데이트") {
             val stock = api.stockOverseas(testOverseasStock, testOverseasMarket)
 
-            stock.update(StockOverseasPriceFull::class, ProductInfo::class)
+            stock.update<StockOverseasPriceFull, ProductInfo>()
 
             then("종목 이름을 가져올 수 있다") {
-                stock.name.name shouldBe "애플"
+                stock.info.name shouldBe "애플"
             }
             then("종목 가격을 가져올 수 있다") {
                 stock.price.price shouldNotBe null
+                stock.price.change shouldNotBe null
             }
             then("종목 상세 정보를 가져올 수 있다") {
-                (stock.price as StockOverseasPriceFull).pbr shouldNotBe null
+                stock.price.pbr shouldNotBe null
             }
             xthen("실시간 가격을 가져올 수 있다") {
                 var isDone = false
@@ -111,12 +135,12 @@ class LayerTest : BehaviorSpec({
             account.update<BalanceAccount>()
 
             then("계좌 잔액을 가져올 수 있다") {
-                account.assetAmount shouldNotBe null
+                account.totalEvalAmount shouldNotBe null
             }
             then("계좌 주식을 가져올 수 있다") {
                 account.accountStocks shouldNotBe null
                 account.accountStocks.forEach {
-                    it.name shouldNotBe null
+                    it.productName shouldNotBe null
                     it.count shouldNotBe null
                 }
             }

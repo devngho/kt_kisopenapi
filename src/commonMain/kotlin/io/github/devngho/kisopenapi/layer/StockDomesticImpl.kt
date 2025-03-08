@@ -5,24 +5,18 @@ import io.github.devngho.kisopenapi.KISApiClient
 import io.github.devngho.kisopenapi.requests.Response
 import io.github.devngho.kisopenapi.requests.common.InquireProductBaseInfo
 import io.github.devngho.kisopenapi.requests.domestic.inquire.InquirePrice
+import io.github.devngho.kisopenapi.requests.domestic.inquire.InquireStockBaseInfo
 import io.github.devngho.kisopenapi.requests.domestic.inquire.live.InquireLivePrice
 import io.github.devngho.kisopenapi.requests.domestic.order.OrderAmend
 import io.github.devngho.kisopenapi.requests.domestic.order.OrderBuy
 import io.github.devngho.kisopenapi.requests.domestic.order.OrderCancel
 import io.github.devngho.kisopenapi.requests.domestic.order.OrderSell
-import io.github.devngho.kisopenapi.requests.response.stock.BaseProductInfo
-import io.github.devngho.kisopenapi.requests.response.stock.ProductInfo
-import io.github.devngho.kisopenapi.requests.response.stock.StockInfo
+import io.github.devngho.kisopenapi.requests.response.stock.*
 import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.*
-import io.github.devngho.kisopenapi.requests.response.stock.trade.StockTrade
-import io.github.devngho.kisopenapi.requests.response.stock.trade.StockTradeAccumulate
-import io.github.devngho.kisopenapi.requests.response.stock.trade.StockTradeFull
-import io.github.devngho.kisopenapi.requests.response.stock.trade.StockTradeRate
+import io.github.devngho.kisopenapi.requests.response.stock.trade.*
 import io.github.devngho.kisopenapi.requests.util.*
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
+import io.github.devngho.kisopenapi.requests.util.Market
+import kotlinx.coroutines.*
 import kotlin.reflect.KClass
 
 
@@ -31,10 +25,11 @@ import kotlin.reflect.KClass
  * @param client KisOpenApi
  * @param ticker 종목 코드
  */
+@OptIn(InternalApi::class)
 class StockDomesticImpl(override val client: KISApiClient, override val ticker: String) : StockDomestic {
-    override lateinit var price: StockPriceBase
-    override var name = StockBase.Name()
-    override lateinit var tradeVolume: StockTrade
+    override val price = UpdatableStockPriceFull()
+    override val info = UpdatableStockProductInfo()
+    override val tradeInfo = UpdatableStockTradeFull()
 
 
     override suspend fun update(vararg type: KClass<out Response>): Unit = coroutineScope {
@@ -42,7 +37,9 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
     }
 
     @OptIn(DemoNotSupported::class)
-    private suspend fun updateSingle(type: KClass<out Response>) {
+    private suspend fun updateSingle(type: KClass<out Response>) = coroutineScope {
+        val jobs = mutableListOf<Deferred<Response?>>()
+
         when (type) {
             StockPriceFull::class,
             StockPrice::class,
@@ -56,61 +53,85 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
             StockTradeFull::class,
             StockTradeRate::class,
             StockTradeAccumulate::class -> {
-                (InquirePrice(client).call(InquirePrice.InquirePriceData(ticker))
-                    .getOrThrow().output as StockPriceFull).let {
-                    updateBy(it)
-                }
+                jobs += async { InquirePrice(client).call(InquirePrice.InquirePriceData(ticker)).getOrNull()?.output }
             }
 
             BaseProductInfo::class,
-            ProductInfo::class,
+            ProductInfo::class -> {
+                jobs += async {
+                    InquireProductBaseInfo(client).call(
+                        InquireProductBaseInfo.InquireProductBaseInfoData(
+                            ticker,
+                            ProductTypeCode.Stock
+                        )
+                    ).getOrNull()?.output
+                }
+            }
+
             StockInfo::class -> {
-                InquireProductBaseInfo(client).call(
+                jobs += async {
+                    InquireStockBaseInfo(client).call(
+                        InquireStockBaseInfo.InquireStockBaseInfoData(
+                            ticker,
+                            ProductTypeCode.Stock
+                        )
+                    ).getOrNull()?.output
+                }
+            }
+
+            StockProductInfo::class -> {
+                jobs += async {
+                    InquireProductBaseInfo(client).call(
                     InquireProductBaseInfo.InquireProductBaseInfoData(
                         ticker,
                         ProductTypeCode.Stock
                     )
-                ).getOrThrow().output!!.let {
-                    updateBy(it)
+                    ).getOrNull()?.output
+                }
+
+                jobs += async {
+                    InquireStockBaseInfo(client).call(
+                        InquireStockBaseInfo.InquireStockBaseInfoData(
+                            ticker,
+                            ProductTypeCode.Stock
+                        )
+                    ).getOrNull()?.output
                 }
             }
-        }
-    }
 
+            else -> throw IllegalArgumentException("Unsupported type: $type. It might be a reason of unexpected behavior.")
+        }
+
+        jobs.awaitAll().forEach { it?.let { updateBy(it) } }
+    }
 
     override fun updateBy(res: Response) {
-        if (res is StockPriceBase) price = res
-        if (res is StockTrade) tradeVolume = res
-        if (res is ProductInfo) res.update()
-    }
-
-    private fun ProductInfo.update() {
-        this@StockDomesticImpl.name.also {
-            it.name = name ?: it.name
-            it.name120 = name120 ?: it.name120
-            it.nameEnglish = nameEng ?: it.nameEnglish
-            it.nameShort = nameShort ?: it.nameShort
-            it.nameEng120 = nameEng120 ?: it.nameEng120
-            it.nameEnglishShort = nameEngShort ?: it.nameEnglishShort
-        }
+        price.broadcast(res)
+        info.broadcast(res)
+        tradeInfo.broadcast(res)
     }
 
     override suspend fun buy(
         count: BigInteger,
         type: OrderTypeCode,
+        market: Market,
         price: BigInteger
-    ): Result<OrderBuy.OrderResponse> = OrderBuy(client).call(OrderBuy.OrderData(ticker, type, count, price))
+    ): Result<OrderBuy.OrderResponse> =
+        OrderBuy(client).call(OrderBuy.OrderData(ticker, type, count, price, market = market))
 
     override suspend fun sell(
         count: BigInteger,
         type: OrderTypeCode,
+        market: Market,
         price: BigInteger
-    ): Result<OrderBuy.OrderResponse> = OrderSell(client).call(OrderBuy.OrderData(ticker, type, count, price))
+    ): Result<OrderBuy.OrderResponse> =
+        OrderSell(client).call(OrderBuy.OrderData(ticker, type, count, price, market = market))
 
     override suspend fun amend(
         order: OrderBuy.OrderResponse,
         count: BigInteger,
         type: OrderTypeCode,
+        market: Market,
         price: BigInteger,
         orderAll: Boolean
     ): Result<OrderAmend.OrderResponse> =
@@ -120,7 +141,9 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
                 order.output?.orderNumber ?: throw RequestException(
                     "Amend request need order number.",
                     RequestCode.InvalidOrder
-                ), orderAll
+                ),
+                orderAll = orderAll,
+                market = market
             )
         )
 
@@ -128,6 +151,7 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
         order: OrderBuy.OrderResponse,
         count: BigInteger,
         type: OrderTypeCode,
+        market: Market,
         orderAll: Boolean
     ): Result<OrderCancel.OrderResponse> =
         OrderCancel(client).call(
@@ -138,18 +162,65 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
                     "Cancel request need order number.",
                     RequestCode.InvalidOrder
                 ),
-                orderAll
+                orderAll = orderAll,
+                market = market
             )
         )
 
-    override suspend fun useLiveConfirmPrice(block: Closeable.(InquireLivePrice.InquireLivePriceResponse) -> Unit) {
+    @Deprecated(
+        "Use buy(count, type, market, price) instead",
+        replaceWith = ReplaceWith("buy(count, type, market, price)")
+    )
+    override suspend fun buy(
+        count: BigInteger,
+        type: OrderTypeCode,
+        price: BigInteger
+    ): Result<OrderBuy.OrderResponse> = buy(count, type, Market.KRX, price)
+
+    @Deprecated(
+        "Use sell(count, type, market, price) instead",
+        replaceWith = ReplaceWith("sell(count, type, market, price)")
+    )
+    override suspend fun sell(
+        count: BigInteger,
+        type: OrderTypeCode,
+        price: BigInteger
+    ): Result<OrderBuy.OrderResponse> = sell(count, type, Market.KRX, price)
+
+    @Deprecated(
+        "Use amend(order, count, type, market, price, orderAll) instead",
+        replaceWith = ReplaceWith("amend(order, count, type, market, price, orderAll)")
+    )
+    override suspend fun amend(
+        order: OrderBuy.OrderResponse,
+        count: BigInteger,
+        type: OrderTypeCode,
+        price: BigInteger,
+        orderAll: Boolean
+    ): Result<OrderAmend.OrderResponse> = amend(order, count, type, Market.KRX, price, orderAll)
+
+    @Deprecated(
+        "Use cancel(order, count, type, market, orderAll) instead",
+        replaceWith = ReplaceWith("cancel(order, count, type, market, orderAll)")
+    )
+    override suspend fun cancel(
+        order: OrderBuy.OrderResponse,
+        count: BigInteger,
+        type: OrderTypeCode,
+        orderAll: Boolean
+    ): Result<OrderCancel.OrderResponse> = cancel(order, count, type, Market.KRX, orderAll)
+
+    override suspend fun useLiveConfirmPrice(
+        market: MarketWithUnified,
+        block: Closeable.(InquireLivePrice.InquireLivePriceResponse) -> Unit
+    ) {
         coroutineScope {
             InquireLivePrice(client).apply {
                 (this@coroutineScope).launch {
-                    register(InquireLivePrice.InquireLivePriceData(this@StockDomesticImpl.ticker)) {
+                    register(InquireLivePrice.InquireLivePriceData(this@StockDomesticImpl.ticker, market)) {
                         (object : Closeable {
                             override suspend fun close() {
-                                unregister(InquireLivePrice.InquireLivePriceData(this@StockDomesticImpl.ticker))
+                                unregister(InquireLivePrice.InquireLivePriceData(this@StockDomesticImpl.ticker, market))
                             }
                         }).block(it)
                     }

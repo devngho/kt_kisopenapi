@@ -126,7 +126,7 @@ class InquireTradeVolumeRank(override val client: KISApiClient) :
 
         client.httpClient.get(url) {
             setAuth(client)
-            setTradeId("FHPST01710000")
+            setTR("FHPST01710000")
             setCorporation(it.corp)
 
             url { _ ->

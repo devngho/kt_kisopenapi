@@ -118,7 +118,7 @@ internal suspend fun <T : Response, U : LiveData> LiveRequest<U, T>.requestStart
 
         val requestRequired = client.webSocketManager.subscribeStart(subscribed, force = force) {
             iv = it.body!!.output!!.iv!!
-            key = it.body.output!!.key!!
+            key = it.body.output.key!!
 
             init(Result(it))
         }

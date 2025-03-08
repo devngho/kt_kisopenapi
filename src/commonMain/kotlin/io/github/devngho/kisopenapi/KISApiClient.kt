@@ -1,5 +1,6 @@
 package io.github.devngho.kisopenapi
 
+import io.github.devngho.kisopenapi.KISApiClient.Companion.options
 import io.github.devngho.kisopenapi.requests.auth.GrantLiveToken
 import io.github.devngho.kisopenapi.requests.auth.GrantToken
 import io.github.devngho.kisopenapi.requests.auth.RevokeToken
@@ -8,6 +9,7 @@ import io.github.devngho.kisopenapi.requests.ratelimit.RateLimiter
 import io.github.devngho.kisopenapi.requests.response.LiveResponse
 import io.github.devngho.kisopenapi.requests.util.InternalApi
 import io.github.devngho.kisopenapi.requests.util.WebSocketSubscribed
+import io.github.devngho.kisopenapi.requests.util.createHttpClient
 import io.ktor.client.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.websocket.*
@@ -127,6 +129,10 @@ interface KISApiClient {
          * 기본적으로 PINGPONG 메시지를 주고받으므로, 일반적으로는 수신 타임아웃이 지나는 일은 없습니다.
          */
         var webSocketReceiveTimeout: Long = 20,
+        /**
+         * 토큰이 만료되어 오류가 발생했을 때, 자동으로 토큰을 갱신할 최대 시도 횟수입니다. 기본값은 3입니다. 비활성화하려면 0으로 설정하세요.
+         */
+        var maxAttemptsToRefreshToken: Int = 3,
     )
 
     /**
@@ -298,7 +304,7 @@ interface KISApiClient {
         var scope: CoroutineScope?
 
         /**
-         * 웹소켓이 연결되으면 true, 아니면 false입니다.
+         * 웹소켓이 연결되었으면 true, 아니면 false입니다.
          */
         val isConnected: Boolean
 
@@ -320,53 +326,19 @@ interface KISApiClient {
     }
 
     companion object {
-
         /**
          * KISApiClient 객체를 생성해 반환합니다.
          *
-         * @param token 사용할 토큰
+         * @param tokens 사용할 토큰
          * @param appKey 앱 키
          * @param appSecret 앱 시크릿
          * @param isDemo 모의투자 여부
-         * @param websocketToken 웹소켓 토큰
          * @param account 계좌번호(XXXXXXXX-XX 형식)
          * @param id HTS ID
          * @param corp 호출하는 개인/기관 정보
+         * @param httpClient HTTP 클라이언트. null이면 기본 클라이언트를 사용합니다.
          * @param options 요청 옵션
          */
-        @JvmStatic
-        @Deprecated(
-            "Use withToken using KISApiTokens instead.",
-            ReplaceWith("withToken(tokens, appKey, appSecret, isDemo, account, id, corp, options)")
-        )
-        fun withToken(
-            token: String,
-            appKey: String,
-            appSecret: String,
-            isDemo: Boolean = false,
-            websocketToken: String? = null,
-            account: String? = null,
-            id: String? = null,
-            corp: CorporationRequest? = CorporationRequest(),
-            options: KISApiOptions.(KISApiClient) -> Unit = { },
-        ): KISApiClient =
-            KISApiClientImpl(
-                appKey,
-                appSecret,
-                isDemo,
-                account?.split("-")?.let { Pair(it[0], it[1]) },
-                id,
-                corp,
-                KISApiTokens(
-                    oauthToken = token,
-                    webSocketToken = websocketToken
-                )
-            ).apply {
-                this.tokens.client = this
-
-                this.options(options)
-            }
-
         @JvmStatic
         fun withToken(
             tokens: KISApiTokens,
@@ -376,9 +348,11 @@ interface KISApiClient {
             account: String? = null,
             id: String? = null,
             corp: CorporationRequest? = CorporationRequest(),
+            httpClient: HttpClient? = null,
             options: KISApiOptions.(KISApiClient) -> Unit = { },
         ): KISApiClient =
             KISApiClientImpl(
+                httpClient ?: createHttpClient(),
                 appKey,
                 appSecret,
                 isDemo,
@@ -402,6 +376,7 @@ interface KISApiClient {
          *  @param account 계좌번호(XXXXXXXX-XX 형식)
          *  @param id HTS ID
          *  @param corp 호출하는 개인/기관 정보
+         *  @param httpClient HTTP 클라이언트. null이면 기본 클라이언트를 사용합니다.
          *  @param options 요청 옵션
          */
         @JvmStatic
@@ -412,9 +387,11 @@ interface KISApiClient {
             account: String? = null,
             id: String? = null,
             corp: CorporationRequest? = CorporationRequest(),
+            httpClient: HttpClient? = null,
             options: KISApiOptions.(KISApiClient) -> Unit = { },
         ): KISApiClient =
             KISApiClientImpl(
+                httpClient ?: createHttpClient(),
                 appKey,
                 appSecret,
                 isDemo,

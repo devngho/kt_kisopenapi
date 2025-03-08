@@ -116,7 +116,7 @@ class InquireSectorIndex(override val client: KISApiClient) :
         client.httpClient.get(url) {
             setAuth(client)
             setSector(it.sector)
-            setTradeId("FHPUP02100000")
+            setTR("FHPUP02100000")
             setCorporation(it.corp)
         }
     }

@@ -38,7 +38,7 @@ class JavaStyleTest : BehaviorSpec({
             JavaUtil.updateBy(stock, ProductInfo::class.java)
 
             then("종목 이름을 가져올 수 있다") {
-                stock.name.nameShort shouldBe "삼성전자"
+                stock.info.nameShort shouldBe "삼성전자"
             }
             then("종목 가격을 가져올 수 있다") {
                 stock.price.price shouldNotBe null

@@ -6,11 +6,11 @@ import io.github.devngho.kisopenapi.requests.domestic.inquire.live.InquireLivePr
 import io.github.devngho.kisopenapi.requests.domestic.order.OrderAmend
 import io.github.devngho.kisopenapi.requests.domestic.order.OrderBuy
 import io.github.devngho.kisopenapi.requests.domestic.order.OrderCancel
-import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPriceBase
-import io.github.devngho.kisopenapi.requests.response.stock.trade.StockTrade
-import io.github.devngho.kisopenapi.requests.util.Closeable
-import io.github.devngho.kisopenapi.requests.util.OrderTypeCode
-import io.github.devngho.kisopenapi.requests.util.Result
+import io.github.devngho.kisopenapi.requests.response.stock.StockProductInfo
+import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPriceFull
+import io.github.devngho.kisopenapi.requests.response.stock.trade.StockTradeFull
+import io.github.devngho.kisopenapi.requests.util.*
+import io.github.devngho.kisopenapi.requests.util.Market
 import kotlin.jvm.JvmStatic
 
 
@@ -18,9 +18,81 @@ interface StockDomestic : StockBase {
     override val client: KISApiClient
     override val ticker: String
 
-    var price: StockPriceBase
-    override var name: StockBase.Name
-    var tradeVolume: StockTrade
+    val price: StockPriceFull
+    override val info: StockProductInfo
+    val tradeInfo: StockTradeFull
+
+    /**
+     * 주식을 매수합니다.
+     *
+     * @see [OrderBuy]
+     * @param count 매수할 주식 수량
+     * @param type 주문 구분
+     * @param market 거래소
+     * @param price 매수할 주식 가격
+     * @return 주문 결과
+     */
+    suspend fun buy(
+        count: BigInteger,
+        type: OrderTypeCode,
+        market: Market,
+        price: BigInteger = BigInteger(0)
+    ): Result<OrderBuy.OrderResponse>
+
+    /**
+     * 주식을 매도합니다.
+     *
+     * @see [io.github.devngho.kisopenapi.requests.domestic.order.OrderSell]
+     * @param count 매수할 주식 수량
+     * @param type 주문 구분
+     * @param market 거래소
+     * @param price 매수할 주식 가격
+     * @return 주문 결과
+     */
+    suspend fun sell(
+        count: BigInteger,
+        type: OrderTypeCode,
+        market: Market,
+        price: BigInteger = BigInteger(0)
+    ): Result<OrderBuy.OrderResponse>
+
+    /**
+     * 주식 주문을 정정합니다. 기존 주문 결과를 받아서 정정합니다.
+     *
+     * @see [OrderAmend]
+     * @param order 정정할 주문 결과
+     * @param count 정정할 주식 수량
+     * @param type 주문 구분
+     * @param market 거래소
+     * @param price 정정할 주식 가격
+     * @param orderAll 주문 수량의 전부를 정정할지 여부
+     */
+    suspend fun amend(
+        order: OrderBuy.OrderResponse,
+        count: BigInteger,
+        type: OrderTypeCode,
+        market: Market,
+        price: BigInteger = BigInteger(0),
+        orderAll: Boolean
+    ): Result<OrderAmend.OrderResponse>
+
+    /**
+     * 주식 주문을 취소합니다. 기존 주문 결과를 받아서 취소합니다.
+     *
+     * @see [OrderCancel]
+     * @param order 취소할 주문 결과
+     * @param count 취소할 주식 수량
+     * @param type 주문 구분
+     * @param market 거래소
+     * @param orderAll 주문 수량의 전부를 취소할지 여부
+     */
+    suspend fun cancel(
+        order: OrderBuy.OrderResponse,
+        count: BigInteger,
+        type: OrderTypeCode,
+        market: Market,
+        orderAll: Boolean
+    ): Result<OrderCancel.OrderResponse>
 
     /**
      * 주식을 매수합니다.
@@ -31,6 +103,10 @@ interface StockDomestic : StockBase {
      * @param price 매수할 주식 가격
      * @return 주문 결과
      */
+    @Deprecated(
+        "Use buy(count, type, market, price) instead",
+        replaceWith = ReplaceWith("buy(count, type, Market.KRX, price)")
+    )
     suspend fun buy(
         count: BigInteger,
         type: OrderTypeCode,
@@ -46,6 +122,10 @@ interface StockDomestic : StockBase {
      * @param price 매수할 주식 가격
      * @return 주문 결과
      */
+    @Deprecated(
+        "Use sell(count, type, market, price) instead",
+        replaceWith = ReplaceWith("sell(count, type, Market.KRX, price)")
+    )
     suspend fun sell(
         count: BigInteger,
         type: OrderTypeCode,
@@ -62,6 +142,10 @@ interface StockDomestic : StockBase {
      * @param price 정정할 주식 가격
      * @param orderAll 주문 수량의 전부를 정정할지 여부
      */
+    @Deprecated(
+        "Use amend(order, count, type, market, price, orderAll) instead",
+        replaceWith = ReplaceWith("amend(order, count, type, Market.KRX, price, orderAll)")
+    )
     suspend fun amend(
         order: OrderBuy.OrderResponse,
         count: BigInteger,
@@ -79,6 +163,10 @@ interface StockDomestic : StockBase {
      * @param type 주문 구분
      * @param orderAll 주문 수량의 전부를 취소할지 여부
      */
+    @Deprecated(
+        "Use cancel(order, count, type, market, orderAll) instead",
+        replaceWith = ReplaceWith("cancel(order, count, type, Market.KRX, orderAll)")
+    )
     suspend fun cancel(
         order: OrderBuy.OrderResponse,
         count: BigInteger,
@@ -92,7 +180,10 @@ interface StockDomestic : StockBase {
      * @see [InquireLivePrice]
      * @param block 가격이 업데이트 될 때마다 호출될 블록
      */
-    suspend fun useLiveConfirmPrice(block: Closeable.(InquireLivePrice.InquireLivePriceResponse) -> Unit)
+    suspend fun useLiveConfirmPrice(
+        market: MarketWithUnified = MarketWithUnified.UNIFIED,
+        block: Closeable.(InquireLivePrice.InquireLivePriceResponse) -> Unit
+    )
 
     companion object {
         @JvmStatic

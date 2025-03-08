@@ -4,6 +4,7 @@ package io.github.devngho.kisopenapi.requests.response.balance.overseas
 
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
+import io.github.devngho.kisopenapi.Updatable
 import io.github.devngho.kisopenapi.requests.Response
 import io.github.devngho.kisopenapi.requests.response.stock.Ticker
 import io.github.devngho.kisopenapi.requests.response.stock.price.overseas.StockOverseasPriceBase
@@ -17,6 +18,7 @@ import kotlinx.serialization.Serializable
  * [KIS Developers 문서](https://apiportal.koreainvestment.com/apiservice/apiservice-overseas-stock)를 참조하세요.
  * @see io.github.devngho.kisopenapi.requests.overseas.inquire.InquireOverseasBalance
  */
+@Updatable
 interface BalanceAccountStockOverseas : Response, StockOverseasPriceBase, Ticker {
     @SerialName("ovrs_pdno")
     override val ticker: String?

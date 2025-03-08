@@ -2,6 +2,7 @@ package io.github.devngho.kisopenapi.requests.response.stock.price.overseas
 
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
+import io.github.devngho.kisopenapi.Updatable
 import io.github.devngho.kisopenapi.requests.util.Currency
 import io.github.devngho.kisopenapi.requests.util.Date
 import io.github.devngho.kisopenapi.requests.util.SignPrice
@@ -15,6 +16,7 @@ import kotlinx.serialization.Serializable
  * @see io.github.devngho.kisopenapi.requests.overseas.inquire.InquireOverseasPrice
  */
 @Suppress("SpellCheckingInspection")
+@Updatable
 interface StockOverseasPriceFull : StockOverseasPrice {
     /** 전일 가격 */
     @SerialName("base")

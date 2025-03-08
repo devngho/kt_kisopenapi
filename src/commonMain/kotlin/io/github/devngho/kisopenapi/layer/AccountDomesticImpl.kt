@@ -1,32 +1,28 @@
 package io.github.devngho.kisopenapi.layer
 
-import com.ionspin.kotlin.bignum.decimal.BigDecimal
-import com.ionspin.kotlin.bignum.integer.BigInteger
 import io.github.devngho.kisopenapi.KISApiClient
 import io.github.devngho.kisopenapi.requests.Response
 import io.github.devngho.kisopenapi.requests.domestic.inquire.InquireBalance
 import io.github.devngho.kisopenapi.requests.domestic.inquire.live.InquireLiveConfirm
 import io.github.devngho.kisopenapi.requests.response.balance.domestic.BalanceAccount
 import io.github.devngho.kisopenapi.requests.response.balance.domestic.BalanceAccountStock
+import io.github.devngho.kisopenapi.requests.response.balance.domestic.UpdatableBalanceAccount
+import io.github.devngho.kisopenapi.requests.response.balance.domestic.UpdatableBalanceAccountStock
 import io.github.devngho.kisopenapi.requests.util.Closeable
 import io.github.devngho.kisopenapi.requests.util.InquireDivisionCode
+import io.github.devngho.kisopenapi.requests.util.InternalApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.reflect.KClass
 
-class AccountDomesticImpl(val client: KISApiClient) : AccountDomestic {
-    class AccountStockDomestic(val stock: StockDomestic) : AccountStock, StockDomestic by stock {
-        override var count: BigInteger? = null
-        var evalAmount: BigInteger? = null
-        override var buyPriceAverage: BigDecimal? = null
-    }
-
-
-    override var assetAmount: BigInteger? = null
-    override var evalAmount: BigInteger? = null
-    override val accountStocks: MutableList<AccountStock> = mutableListOf()
+@OptIn(InternalApi::class)
+class AccountDomesticImpl(
+    val client: KISApiClient,
+    val updatable: UpdatableBalanceAccount = UpdatableBalanceAccount()
+) : AccountDomestic, BalanceAccount by updatable {
+    override val accountStocks: MutableList<BalanceAccountStock> = mutableListOf()
 
     override suspend fun update(vararg type: KClass<out Response>): Unit = coroutineScope {
         type.map { async { updateSingle(it) } }.awaitAll()
@@ -51,36 +47,26 @@ class AccountDomesticImpl(val client: KISApiClient) : AccountDomestic {
     }
 
     override fun updateBy(res: Response) {
-        if (res is BalanceAccount) {
-            res.update()
+        if (res is InquireBalance.InquireBalanceResponse) {
+            res.output1?.update()
+            res.output2?.let {
+                updateBy(it[0])
+            }
+        } else {
+            updatable.broadcast(res)
         }
     }
 
-    private fun BalanceAccount.update() {
-        this@AccountDomesticImpl.also {
-            it.assetAmount = this.netWorthAmount ?: it.assetAmount
-            it.evalAmount = evalTotalAmount ?: it.evalAmount
-        }
-    }
-
+    @OptIn(InternalApi::class)
     private fun List<BalanceAccountStock>.update() {
         this@AccountDomesticImpl.accountStocks.also { t ->
-            t.clear()
-            t.addAll(
-                this.mapNotNull {
-                    if (it.ticker != null) {
-                        AccountStockDomestic(
-                            StockDomesticImpl(client, it.ticker!!)
-                        ).apply {
-                            this.buyPriceAverage = it.buyAveragePrice ?: this.buyPriceAverage
-                            this.count = it.count ?: this.count
-                            this.evalAmount = it.evalAmount ?: this.evalAmount
-                            this.price = it
-                            this.name.nameShort = it.productName
-                        }
-                    } else null
-                }
-            )
+            val removed = t.filter { it !in this }
+            val added = this.filter { it !in t }
+            val updated = this.filter { it in t }
+
+            t.removeAll(removed)
+            t.addAll(added.map { UpdatableBalanceAccountStock().apply { broadcast(it) } })
+            updated.forEach { (t.first { it == it } as UpdatableBalanceAccountStock).broadcast(it) }
         }
     }
 

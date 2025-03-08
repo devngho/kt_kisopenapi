@@ -11,6 +11,7 @@ import io.github.devngho.kisopenapi.requests.data.TradeContinuousData
 import io.github.devngho.kisopenapi.requests.data.TradeContinuousResponse
 import io.github.devngho.kisopenapi.requests.data.TradeIdMsg
 import io.github.devngho.kisopenapi.requests.util.*
+import io.github.devngho.kisopenapi.requests.util.RequestException.Companion.throwIfClientIsDemo
 import io.github.devngho.kisopenapi.requests.util.YYYYMMDDSerializer.YYYYMMDD
 import io.ktor.client.request.*
 import kotlinx.datetime.DatePeriod
@@ -183,10 +184,7 @@ class InquireSectorIndexSeries(override val client: KISApiClient) :
                 )
             })
         }) {
-            if (client.isDemo) throw RequestException(
-                "모의투자에서는 사용할 수 없는 API InquireSectorIndexSeries를 호출했습니다.",
-                RequestCode.DemoUnavailable
-            )
+            throwIfClientIsDemo()
 
             if (data.period == PeriodDivisionCode.Years) throw RequestException(
                 "연도별 조회는 지원하지 않습니다.",
@@ -202,7 +200,7 @@ class InquireSectorIndexSeries(override val client: KISApiClient) :
                         append("FID_PERIOD_DIV_CODE", it.period.num)
                     }
                 }
-                setTradeId("FHPUP02120000")
+                setTR("FHPUP02120000")
                 setCorporation(it.corp)
             }
         }

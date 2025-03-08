@@ -1,17 +1,22 @@
+@file:OptIn(ExperimentalWasmDsl::class)
+
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("multiplatform") version "2.0.0"
-    kotlin("plugin.serialization") version "2.0.0"
-    id("org.jetbrains.dokka") version "1.9.20"
-    id("io.kotest.multiplatform") version "5.9.1"
-    id("io.github.gradle-nexus.publish-plugin") version "1.3.0"
+    kotlin("multiplatform") version libs.versions.kotlin
+    kotlin("plugin.serialization") version libs.versions.kotlin
+    id("org.jetbrains.dokka") version libs.versions.dokka
+    id("io.kotest.multiplatform") version libs.versions.kotest
+    id("io.github.gradle-nexus.publish-plugin") version libs.versions.gradle.publish
+    id("com.google.devtools.ksp") version libs.versions.ksp
     `maven-publish`
     signing
 }
 
 group = "io.github.devngho"
-version = "0.2.4"
+version = "0.2.9"
 
 repositories {
     mavenCentral()
@@ -25,155 +30,227 @@ val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
     from(dokkaHtml.outputDirectory)
 }
 
-kotlin {
-    publishing {
-        signing {
-            sign(publishing.publications)
-        }
+signing {
+    sign(publishing.publications)
+}
 
-        repositories {
-            val id: String =
-                if (project.hasProperty("repoUsername")) project.property("repoUsername") as String
-                else System.getenv("repoUsername")
-            val pw: String =
-                if (project.hasProperty("repoPassword")) project.property("repoPassword") as String
-                else System.getenv("repoPassword")
-            if (!version.toString().endsWith("SNAPSHOT")) {
-                val repositoryId =
-                    System.getenv("SONATYPE_REPOSITORY_ID")
+publishing {
+    repositories {
+        val id: String =
+            if (project.hasProperty("repoUsername")) project.property("repoUsername") as String
+            else System.getenv("repoUsername")
+        val pw: String =
+            if (project.hasProperty("repoPassword")) project.property("repoPassword") as String
+            else System.getenv("repoPassword")
+        if (!version.toString().endsWith("SNAPSHOT")) {
+            val repositoryId =
+                System.getenv("SONATYPE_REPOSITORY_ID")
 
-                maven("https://s01.oss.sonatype.org/service/local/staging/deployByRepositoryId/${repositoryId}/") {
-                    name = "Sonatype"
-                    credentials {
-                        username = id
-                        password = pw
-                    }
+            maven("https://s01.oss.sonatype.org/service/local/staging/deployByRepositoryId/${repositoryId}/") {
+                name = "Sonatype"
+                credentials {
+                    username = id
+                    password = pw
                 }
-            } else {
-                maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") {
-                    name = "Sonatype"
-                    credentials {
-                        username = id
-                        password = pw
-                    }
+            }
+        } else {
+            maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") {
+                name = "Sonatype"
+                credentials {
+                    username = id
+                    password = pw
                 }
             }
         }
+    }
 
-        publications.withType(MavenPublication::class) {
-            groupId = project.group as String?
-            artifactId = "kt_kisopenapi"
-            version = project.version as String?
+    publications.withType(MavenPublication::class) {
+        groupId = project.group as String?
+        version = project.version as String?
 
-            artifact(tasks["javadocJar"])
+        artifact(tasks["javadocJar"])
 
-            pom {
-                name.set(artifactId)
-                description.set("한국투자증권의 오픈 API 서비스를 Kotlin/Java 환경에서 사용할 수 있는 라이브러리")
+        pom {
+            name.set("kt_kisopenapi")
+            description.set("한국투자증권의 오픈 API 서비스를 Kotlin/Java 환경에서 사용할 수 있는 라이브러리")
+            url.set("https://github.com/devngho/kt_kisopenapi")
+
+
+            licenses {
+                license {
+                    name.set("MIT License")
+                    url.set("https://github.com/devngho/kt_kisopenapi/blob/master/LICENSE")
+                }
+            }
+            developers {
+                developer {
+                    id.set("devngho")
+                    name.set("devngho")
+                    email.set("yjh135908@gmail.com")
+                }
+            }
+            scm {
+                connection.set("https://github.com/devngho/kt_kisopenapi.git")
+                developerConnection.set("https://github.com/devngho/kt_kisopenapi.git")
                 url.set("https://github.com/devngho/kt_kisopenapi")
-
-
-                licenses {
-                    license {
-                        name.set("MIT License")
-                        url.set("https://github.com/devngho/kt_kisopenapi/blob/master/LICENSE")
-                    }
-                }
-                developers {
-                    developer {
-                        id.set("devngho")
-                        name.set("devngho")
-                        email.set("yjh135908@gmail.com")
-                    }
-                }
-                scm {
-                    connection.set("https://github.com/devngho/kt_kisopenapi.git")
-                    developerConnection.set("https://github.com/devngho/kt_kisopenapi.git")
-                    url.set("https://github.com/devngho/kt_kisopenapi")
-                }
             }
         }
     }
+}
 
-    val hostOs = System.getProperty("os.name")
-    val isMingwX64 = hostOs.startsWith("Windows")
+kotlin {
 
-    when {
-        hostOs == "Mac OS X" -> macosX64()
-        hostOs == "Linux" -> linuxX64()
-        isMingwX64 -> mingwX64()
-        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
+    // copied from ionspin/kotlin-multiplatform-bignum (at build.gradle.kts), Apache 2.0
+    // removed watchosDeviceArm64 and modified js
+    js {
+        nodejs()
+        browser()
+    }
+    linuxX64()
+    linuxArm64()
+    androidNativeX64()
+    androidNativeX86()
+    androidNativeArm32()
+    androidNativeArm64()
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+    macosX64()
+    macosArm64()
+    tvosArm64()
+    tvosSimulatorArm64()
+    tvosX64()
+    watchosArm32()
+    watchosArm64()
+    watchosX64()
+    watchosSimulatorArm64()
+    mingwX64()
+    // copy end
+
+    jvm {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_1_8
+        }
     }
 
-    jvm()
-    
+    wasmJs {
+        browser()
+        nodejs()
+        d8()
+    }
+//    wasmWasi() // kotlinx-datetime, ktor, kotest doesn't support wasm-wasi
+
     sourceSets {
-        val ktorVersion = "2.3.12"
-        val coroutineVersion = "1.9.0-RC"
-        val kotestVersion = "5.9.1"
-        val bigNumVersion = "0.3.10"
-        val mockkVersion = "1.13.12"
-        val slf4jVersion = "2.0.13"
+        commonMain {
+            kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin")
 
-        commonMain.dependencies {
-            implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-            implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-            implementation("com.soywiz.korlibs.krypto:krypto:4.0.0-alpha-1")
+            dependencies {
+                implementation(project(":ksp-annotations"))
 
-            implementation("io.ktor:ktor-client-core:$ktorVersion")
-            implementation("io.ktor:ktor-client-websockets:$ktorVersion")
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutineVersion")
-            api("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
-            api("com.ionspin.kotlin:bignum:$bigNumVersion")
-            implementation("com.ionspin.kotlin:bignum-serialization-kotlinx:$bigNumVersion")
+                implementation(libs.ktor.client.content.negotiation)
+                implementation(libs.ktor.serialization.kotlinx.json)
+                implementation(libs.ktor.client.core)
+                implementation(libs.ktor.client.websockets)
+
+                implementation(libs.kotlinx.coroutines.core)
+                api(libs.kotlinx.datetime)
+                api(libs.bignum)
+                implementation(libs.bignum.serialization.kotlinx)
+                implementation(libs.ktor.client.cio)
+            }
         }
         commonTest.dependencies {
-            implementation("io.kotest:kotest-framework-engine:$kotestVersion")
-            implementation("io.kotest:kotest-assertions-core:$kotestVersion")
-            implementation(kotlin("test-common"))
-            implementation(kotlin("test-annotations-common"))
-            implementation(kotlin("reflect"))
-        }
-        jvmMain.dependencies {
-            implementation(kotlin("stdlib"))
-            implementation("io.ktor:ktor-client-java:$ktorVersion")
+            implementation(libs.kotest.framework.engine)
+            implementation(libs.kotest.assertions.core)
+
+            implementation(libs.kotlin.test.common)
+            implementation(libs.kotlin.test.annotations.common)
+            implementation(libs.kotlin.reflect)
+
+            implementation(libs.ktor.server.core)
+            implementation(libs.ktor.server.cio)
+            implementation(libs.ktor.server.websockets)
         }
         jvmTest.dependencies {
-            implementation("io.kotest:kotest-runner-junit5:$kotestVersion")
-            implementation("org.slf4j:slf4j-simple:$slf4jVersion")
-            implementation("io.mockk:mockk:$mockkVersion")
-        }
-        nativeMain.dependencies {
-            implementation("io.ktor:ktor-client-curl:$ktorVersion")
+            implementation(libs.kotest.runner.junit5)
+            implementation(libs.slf4j.simple)
+            implementation(libs.mockk)
         }
 
         applyDefaultHierarchyTemplate()
     }
 }
 
+dependencies {
+    add("kspCommonMainMetadata", project(":ksp-processor"))
+}
+
 tasks {
-    getByName("signKotlinMultiplatformPublication") {
-        dependsOn("publishJvmPublicationToSonatypeRepository", "publishJvmPublicationToMavenLocal")
-    }
+    // copied from ionspin/kotlin-multiplatform-bignum (at build.gradle.kts), Apache 2.0
+    // fixed for correct task dependencies in this project
+    all {
+        val targets = listOf(
+            "AndroidNativeArm32",
+            "AndroidNativeArm64",
+            "AndroidNativeX64",
+            "AndroidNativeX86",
+            "Js",
+            "Jvm",
+            "KotlinMultiplatform",
+            "LinuxArm64",
+            "LinuxX64",
+            "WasmJs",
+            "MingwX64",
+            "IosArm64",
+            "IosSimulatorArm64",
+            "IosX64",
+            "MacosArm64",
+            "MacosX64",
+            "TvosArm64",
+            "TvosSimulatorArm64",
+            "TvosX64",
+            "WatchosArm32",
+            "WatchosArm64",
+            "WatchosSimulatorArm64",
+            "WatchosX64"
+        )
 
-    val hostOs = System.getProperty("os.name")
-    val isMingwX64 = hostOs.startsWith("Windows")
-    val nativeTargets = mutableListOf<String>()
+        targets.dropLast(1).forEachIndexed { index, target ->
+            if (this.name.startsWith("sign${target}Publication")) {
+                this.mustRunAfter("sign${targets[index + 1]}Publication")
+            }
+        }
 
-    if (hostOs == "Mac OS X") nativeTargets.add("MacosX64")
-    if (hostOs == "Linux") nativeTargets.add("LinuxX64")
-    if (isMingwX64) nativeTargets.add("MingwX64")
+        if (this.name.startsWith("publish") || this.name.startsWith("linkDebugTest") || this.name.startsWith("compileTest")) {
+            targets.forEach {
+                this.mustRunAfter("sign${it}Publication")
+            }
+        }
 
-    nativeTargets.forEach { target ->
-        getByName("sign${target}Publication") {
-            dependsOn(
-                "publishJvmPublicationToSonatypeRepository",
-                "publishJvmPublicationToMavenLocal",
-                "publishKotlinMultiplatformPublicationToMavenLocal",
-                "publishKotlinMultiplatformPublicationToSonatypeRepository"
-            )
+        targets.forEach {
+            if (it == "KotlinMultiplatform") return@forEach
+
+            named("compileKotlin${it}") {
+                dependsOn("kspCommonMainKotlinMetadata")
+            }
+
+            named(
+                "${
+                    it.let {
+                        it[0].lowercase() + it.substring(1)
+                    }
+                }SourcesJar"
+            ) {
+                dependsOn("kspCommonMainKotlinMetadata")
+            }
+        }
+
+        named("sourcesJar") {
+            dependsOn("kspCommonMainKotlinMetadata")
         }
     }
+    // copy end
+
     named<Test>("jvmTest") {
         useJUnitPlatform()
         filter {

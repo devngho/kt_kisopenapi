@@ -112,7 +112,7 @@ class InquirePricePerDay(override val client: KISApiClient) :
     override suspend fun call(data: InquirePricePerDayData) = request(data) {
         client.httpClient.get(url) {
             setAuth(client)
-            setTradeId("FHKST01010400")
+            setTR("FHKST01010400")
             setStock(it.ticker)
             setCorporation(it.corp)
 

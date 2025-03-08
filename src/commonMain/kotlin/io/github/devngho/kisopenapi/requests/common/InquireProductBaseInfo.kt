@@ -84,7 +84,7 @@ class InquireProductBaseInfo(override val client: KISApiClient) :
         throwIfClientIsDemo()
         client.httpClient.get(url) {
             setAuth(client)
-            setTradeId("CTPF1604R")
+            setTR("CTPF1604R")
             setCorporation(it.corp)
 
             url { _ ->

@@ -1,7 +1,5 @@
 package io.github.devngho.kisopenapi.requests.domestic.inquire.live
 
-import com.ionspin.kotlin.bignum.decimal.BigDecimal
-import com.ionspin.kotlin.bignum.decimal.toBigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
 import com.ionspin.kotlin.bignum.integer.toBigInteger
 import io.github.devngho.kisopenapi.KISApiClient
@@ -11,16 +9,11 @@ import io.github.devngho.kisopenapi.requests.Response
 import io.github.devngho.kisopenapi.requests.data.CorporationRequest
 import io.github.devngho.kisopenapi.requests.response.LiveResponse
 import io.github.devngho.kisopenapi.requests.response.stock.Ticker
-import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPriceBase
-import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPriceChange
-import io.github.devngho.kisopenapi.requests.response.stock.trade.StockTradeFull
 import io.github.devngho.kisopenapi.requests.util.*
 import io.github.devngho.kisopenapi.requests.util.HHMMSSSerializer.HHMMSS
-import io.github.devngho.kisopenapi.requests.util.YNSerializer.YN
+import io.github.devngho.kisopenapi.requests.util.YYYYMMDDSerializer.YYYYMMDD
 import kotlinx.coroutines.Job
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 
 /**
  * 자신의 주문 중 국내 주식의 실시간 체결을 가져옵니다.
@@ -30,55 +23,59 @@ import kotlinx.serialization.Serializable
 class InquireLiveConfirm(override val client: KISApiClient) :
     LiveRequest<InquireLiveConfirm.InquireLiveConfirmData, InquireLiveConfirm.InquireLiveConfirmResponse> {
     private val tradeId = if (client.isDemo) "H0STCNI9" else "H0STCNI0"
-    @Serializable
+
     data class InquireLiveConfirmResponse(
-        @SerialName("mksc_shrn_iscd") override val ticker: String? = null,
-        @SerialName("stck_cntg_hour") val stockConfirmTime: Time? = null,
-        @SerialName("stck_prpr") @Contextual override val price: BigInteger? = null,
-        @SerialName("prdy_vrss_sign") override val sign: SignPrice? = null,
-        @SerialName("prdy_vrss") @Contextual override val change: BigInteger? = null,
-        @SerialName("prdy_ctrt") @Contextual override val rate: BigDecimal? = null,
-        @SerialName("wghn_avrg_stck_prc") @Contextual val weightedAverageStockPrice: BigDecimal?  = null,
-        @SerialName("stck_oprc") @Contextual val marketPrice: BigInteger?  = null,
-        @SerialName("stck_hgpr") @Contextual val highPrice: BigInteger?  = null,
-        @SerialName("stck_lwpr") @Contextual val lowPrice: BigInteger?  = null,
-        @SerialName("askp_rsqn1") @Contextual val sellAskPriceCount1: BigInteger?  = null,
-        @SerialName("bidp_rsqn1") @Contextual val buyAskPriceCount1: BigInteger?  = null,
-        @SerialName("cntg_vol") @Contextual val confirmTradeVolume: BigInteger?  = null,
-        @SerialName("acml_vol") @Contextual override val accumulateTradeVolume: BigInteger? = null,
-        @SerialName("acml_tr_pbmn") @Contextual override val accumulateTradePrice: BigInteger? = null,
-        @SerialName("seln_cntg_csnu") @Contextual val sellConfirmCount: BigInteger?  = null,
-        @SerialName("shnu_cntg_csnu") @Contextual val buyConfirmCount: BigInteger?  = null,
-        @SerialName("ntby_cntg_csnu") @Contextual val naturalConfirmCount: BigInteger?  = null,
-        @SerialName("cttr") @Contextual val confirmStrength: BigDecimal?  = null,
-        @SerialName("total_askp_rsqn") @Contextual val totalSellAskPriceCount: BigInteger?  = null,
-        @SerialName("total_bidp_rsqn") @Contextual val totalBuyAskPriceCount: BigInteger?  = null,
-        @SerialName("ccld_dvsn") val confirmDivision: String?  = null,
-        @SerialName("shnu_rate") @Contextual val buyRate: BigDecimal?  = null,
-        @SerialName("prdy_vol_vrss_acml_vol_rate") @Contextual override val rateTradeVolumeFromYesterday: BigDecimal? = null,
-        @SerialName("oprc_hour") val marketPriceTime: String?  = null,
-        @SerialName("oprc_vrss_prpr_sign") val differentMarketPriceSign: SignPrice?  = null,
-        @SerialName("oprc_vrss_prpr") @Contextual val differentMarketPrice: BigInteger?  = null,
-        @SerialName("hgpr_hour") val highPriceTime: String?  = null,
-        @SerialName("hgpr_vrss_prpr_sign") val differentHighPriceSign: SignPrice?  = null,
-        @SerialName("hgpr_vrss_prpr") @Contextual val differentHighPrice: BigInteger?  = null,
-        @SerialName("lwpr_hour") val lowPriceTime: String?  = null,
-        @SerialName("lwpr_vrss_prpr_sign") val differentLowPriceSign: SignPrice?  = null,
-        @SerialName("lwpr_vrss_prpr") @Contextual val differentLowPrice: BigInteger?  = null,
-        @SerialName("bsop_date") val bizDate: String?  = null,
-        @SerialName("new_mkop_cls_code") val newMarketDivisionCode: String?  = null,
-        @SerialName("trht_yn") @Serializable(with = YNSerializer::class) val isTradeStopped: Boolean? = null,
-        @SerialName("askp1") @Contextual val sellAskPrice1: BigInteger?  = null,
-        @SerialName("bidp1") @Contextual val buyAskPrice1: BigInteger?  = null,
-        @SerialName("seln_cntg_smtn") @Contextual val sellTotalCount: BigInteger?  = null,
-        @SerialName("shnu_cntg_smtn") @Contextual val buyTotalCount: BigInteger?  = null,
-        @SerialName("vol_tnrt") @Contextual override val tradeVolumeTurningRate: BigDecimal? = null,
-        @SerialName("prdy_smns_hour_acml_vol") @Contextual val accumulateTradeVolumeFromYesterdaySameHour: BigInteger?  = null,
-        @SerialName("prdy_smns_hour_acml_vol_rate") @Contextual val rateAccumulateTradeVolumeFromYesterdaySameHour: BigInteger?  = null,
-        @SerialName("hour_cls_code") val hourCode: HourCode?  = null,
-        @SerialName("mrkt_trtm_cls_code") val marketTerminatedCode: String?  = null,
-        @SerialName("vi_stnd_prc") @Contextual val viActivatePrice: BigInteger?  = null,
-    ) : Response, Ticker, StockPriceBase, StockTradeFull, StockPriceChange {
+        val customerId: String?,
+        val accountNumber: String?,
+        val orderNumber: String?,
+        val originalOrderNumber: String?,
+        /**
+         * 주문구분
+         * 01: 매도
+         * 02: 매수
+         */
+        val sellBuyDivision: String?,
+        /**
+         * 정정구분
+         * 0: 정상
+         * 1: 정정
+         * 2: 취소
+         */
+        val amendDivision: String?,
+        val orderType: OrderTypeCode?,
+        /**
+         * 주문조건
+         * 0: 없음
+         * 1: IOC
+         * 2: FOK
+         */
+        val orderCondition: String?,
+        override val ticker: String?,
+        val confirmedQuantity: BigInteger?,
+        val confirmedPrice: BigInteger?,
+        val confirmedTime: Time?,
+        val isRefused: Boolean?,
+        val isConfirmed: Boolean?,
+        /**
+         * 접수 여부
+         * 1: 주문접수
+         * 2: 확인
+         * 3: 취소
+         */
+        val isAccepted: String?,
+        val branchNumber: String?,
+        val orderQuantity: BigInteger?,
+        val accountName: String?,
+        val orderConditionPrice: BigInteger?,
+        val market: MarketWithSOR?,
+        val isPopuped: Boolean?,
+        val filler: String?,
+        val confirmedStockName: String?,
+        val creditDivision: String?,
+        val loanDate: Date?,
+        val confirmedStockName40: String?,
+        val orderedPrice: BigInteger?,
+    ) : Ticker, Response {
         @SerialName("error_description")
         override val errorDescription: String? = null
 
@@ -115,59 +112,41 @@ class InquireLiveConfirm(override val client: KISApiClient) :
             init = init ?: {},
             block = block,
             force = force,
-            bodySize = 46
+            bodySize = 27
         ) {
             InquireLiveConfirmResponse(
                 it[0],
-                it[1].HHMMSS,
-                it[2].toBigInteger(),
-                SignPrice.entries.find { f -> f.value.toString() == it[3] },
-                it[4].toBigInteger(),
-                it[5].toBigDecimal(),
-                it[6].toBigDecimal(),
-                it[7].toBigInteger(),
-                it[8].toBigInteger(),
+                it[1],
+                it[2],
+                it[3],
+                it[4],
+                it[5],
+                OrderTypeCode.fromCode(it[6]),
+                it[7],
+                it[8],
                 it[9].toBigInteger(),
                 it[10].toBigInteger(),
-                it[11].toBigInteger(),
-                it[12].toBigInteger(),
-                it[13].toBigInteger(),
-                it[14].toBigInteger(),
-                it[15].toBigInteger(),
+                it[11].HHMMSS,
+                it[12].toBoolean(),
+                it[13].toBoolean(),
+                it[14],
+                it[15],
                 it[16].toBigInteger(),
-                it[17].toBigInteger(),
-                it[18].toBigDecimal(),
-                it[19].toBigInteger(),
-                it[20].toBigInteger(),
+                it[17],
+                it[18].toBigInteger(),
+                MarketWithSOR.fromCode(it[19].toInt()),
+                it[20].toBoolean(),
                 it[21],
-                it[22].toBigDecimal(),
-                it[23].toBigDecimal(),
-                it[24],
-                SignPrice.entries.find { f -> f.value.toString() == it[25] },
-                it[26].toBigInteger(),
-                it[27],
-                SignPrice.entries.find { f -> f.value.toString() == it[28] },
-                it[29].toBigInteger(),
-                it[30],
-                SignPrice.entries.find { f -> f.value.toString() == it[31] },
-                it[32].toBigInteger(),
-                it[33],
-                it[34],
-                it[35].YN,
-                it[36].toBigInteger(),
-                it[37].toBigInteger(),
-                it[38].toBigInteger(),
-                it[39].toBigInteger(),
-                it[40].toBigDecimal(),
-                it[41].toBigInteger(),
-                it[42].toBigInteger(),
-                HourCode.entries.find { f -> f.num == it[43] },
-                it[44],
-                it[45].toBigInteger()
+                it[22],
+                it[23],
+                it[24].YYYYMMDD,
+                it[25],
+                it[26].toBigInteger()
             )
         }
     }
 
-    override suspend fun unregister(data: InquireLiveConfirmData, wait: Boolean) =
+    override suspend fun unregister(data: InquireLiveConfirmData, wait: Boolean) {
         requestEnd(data, subscribed!!, tradeId, data.tradeKey(client), wait, job)
+    }
 }

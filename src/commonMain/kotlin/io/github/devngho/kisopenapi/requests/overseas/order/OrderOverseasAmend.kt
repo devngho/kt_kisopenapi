@@ -8,7 +8,6 @@ import io.github.devngho.kisopenapi.requests.DataRequest
 import io.github.devngho.kisopenapi.requests.Response
 import io.github.devngho.kisopenapi.requests.auth.HashKey.Companion.hashKey
 import io.github.devngho.kisopenapi.requests.data.*
-import io.github.devngho.kisopenapi.requests.data.AccountInfo.Companion.fillFrom
 import io.github.devngho.kisopenapi.requests.response.stock.Ticker
 import io.github.devngho.kisopenapi.requests.util.*
 import io.ktor.client.request.*
@@ -71,9 +70,14 @@ class OrderOverseasAmend(override val client: KISApiClient) :
 
         client.httpClient.post(url) {
             setAuth(client)
-            setTradeId(tradeId)
+            setTR(tradeId)
             setCorporation(it.corp)
-            setBody(it.fillFrom(client))
+            setBody(
+                it.copy(
+                    accountNumber = it.accountNumber ?: client.account!!.first,
+                    accountProductCode = it.accountProductCode ?: client.account!!.second
+                )
+            )
 
             hashKey<OrderData>(client)
         }

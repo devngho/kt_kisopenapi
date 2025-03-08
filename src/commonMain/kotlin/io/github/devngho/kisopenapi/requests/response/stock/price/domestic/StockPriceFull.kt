@@ -2,6 +2,7 @@ package io.github.devngho.kisopenapi.requests.response.stock.price.domestic
 
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
 import com.ionspin.kotlin.bignum.integer.BigInteger
+import io.github.devngho.kisopenapi.Updatable
 import io.github.devngho.kisopenapi.requests.Response
 import io.github.devngho.kisopenapi.requests.response.stock.Ticker
 import io.github.devngho.kisopenapi.requests.util.*
@@ -14,6 +15,7 @@ import kotlinx.serialization.Serializable
  * @see io.github.devngho.kisopenapi.requests.domestic.inquire.InquirePrice
  */
 @Suppress("SpellCheckingInspection")
+@Updatable
 interface StockPriceFull : StockPrice, StockPriceForeigner, StockPriceChange, Response, Ticker {
     /** 종목 상태 코드 */
     @SerialName("iscd_stat_cls_code")

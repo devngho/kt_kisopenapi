@@ -2,7 +2,6 @@
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.devngho/kt_kisopenapi/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.github.devngho/kt_kisopenapi)
 [![javadoc](https://javadoc.io/badge2/io.github.devngho/kt_kisopenapi/javadoc.svg)](https://javadoc.io/doc/io.github.devngho/kt_kisopenapi)
-[![Java Version](https://img.shields.io/badge/java->=11-blue)]()
 [![License MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://raw.githubusercontent.com/devngho/kt_kisopenapi/master/LICENSE)
 # kt_kisopenapi
 
@@ -12,8 +11,6 @@
 대부분의 API를 지원하며, 중복 요청 없는 웹소켓 등 다양한 기능을 제공합니다.
 
 ## 주의사항
-
-> **Java 11** 이상을 요구합니다.
 
 > 이 라이브러리는 **알파 버전**으로, API가 수시로 변경될 수 있습니다.
 
@@ -125,6 +122,6 @@ JavaUtil.callWithData(new InquirePrice(api), new InquirePrice.InquirePriceData("
 - [Kotlin/kotlinx.coroutines](https://github.com/Kotlin/kotlinx.coroutines) - [Apache License Version 2.0](https://github.com/Kotlin/kotlinx.coroutines/blob/master/LICENSE.txt)
 - [ktorio/ktor](https://github.com/ktorio/ktor) - [Apache License Version 2.0](https://github.com/ktorio/ktor/blob/main/LICENSE)
 ### Other
-- [korge/krypto](https://github.com/korlibs/korge/tree/main/krypto) : WebSocket AES 처리를 위한 라이브러리 - [MIT License](https://github.com/korlibs/korge/blob/main/krypto/LICENSE)
-- [ionspin/kotlin-multiplatform-bignum](http://github.com/ionspin/kotlin-multiplatform-bignum/) : 큰 수 처리를 위한 라이브러리 - [Apache License Version 2.0](https://github.com/ionspin/kotlin-multiplatform-bignum/blob/main/LICENSE)
-- [kotest](https://github.com/kotest/kotest) : 테스트를 위한 라이브러리 - [Apache License Version 2.0](https://github.com/kotest/kotest/blob/master/LICENSE)
+- [soywiz-archive/krypto](https://github.com/soywiz-archive/krypto/blob/master) (코드 복사함) - [MIT License](https://github.com/soywiz-archive/krypto/blob/master/LICENSE)
+- [ionspin/kotlin-multiplatform-bignum](http://github.com/ionspin/kotlin-multiplatform-bignum/) - [Apache License Version 2.0](https://github.com/ionspin/kotlin-multiplatform-bignum/blob/main/LICENSE)
+- [kotest](https://github.com/kotest/kotest) - [Apache License Version 2.0](https://github.com/kotest/kotest/blob/master/LICENSE)

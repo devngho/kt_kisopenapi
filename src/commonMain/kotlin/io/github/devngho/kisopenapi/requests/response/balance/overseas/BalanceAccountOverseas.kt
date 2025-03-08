@@ -1,6 +1,7 @@
 package io.github.devngho.kisopenapi.requests.response.balance.overseas
 
 import com.ionspin.kotlin.bignum.decimal.BigDecimal
+import io.github.devngho.kisopenapi.Updatable
 import io.github.devngho.kisopenapi.requests.Response
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
@@ -10,6 +11,7 @@ import kotlinx.serialization.SerialName
  * @see io.github.devngho.kisopenapi.requests.overseas.inquire.InquireOverseasBalance
  */
 @Suppress("unused")
+@Updatable
 interface BalanceAccountOverseas : Response {
     /** 외화 매입 금액1 */
     @SerialName("frcr_pchs_amt1")

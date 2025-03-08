@@ -7,7 +7,8 @@ import io.github.devngho.kisopenapi.requests.overseas.inquire.live.InquireOverse
 import io.github.devngho.kisopenapi.requests.overseas.order.OrderOverseasAmend
 import io.github.devngho.kisopenapi.requests.overseas.order.OrderOverseasBuy
 import io.github.devngho.kisopenapi.requests.overseas.order.OrderOverseasCancel
-import io.github.devngho.kisopenapi.requests.response.stock.price.overseas.StockOverseasPriceBase
+import io.github.devngho.kisopenapi.requests.response.stock.StockProductInfo
+import io.github.devngho.kisopenapi.requests.response.stock.price.overseas.StockOverseasPriceFull
 import io.github.devngho.kisopenapi.requests.util.Closeable
 import io.github.devngho.kisopenapi.requests.util.OrderTypeCode
 import io.github.devngho.kisopenapi.requests.util.OverseasMarket
@@ -20,8 +21,8 @@ interface StockOverseas : StockBase {
     override val ticker: String
     val market: OverseasMarket
 
-    var price: StockOverseasPriceBase
-    override var name: StockBase.Name
+    val price: StockOverseasPriceFull
+    override val info: StockProductInfo
 
     suspend fun buy(
         count: BigInteger,

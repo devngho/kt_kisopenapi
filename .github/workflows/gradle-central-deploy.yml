@@ -31,7 +31,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [ macos-latest, ubuntu-latest, windows-latest ]
+        platform: [ ubuntu-latest ]
     runs-on: ${{ matrix.platform }}
     needs: create_staging_repository
     steps:
@@ -50,6 +50,7 @@ jobs:
         shell: bash
         run: |
           gpg --batch --pinentry-mode loopback --passphrase $passphrase --export-secret-keys -o ./secring.gpg
+          gpg --batch --pinentry-mode loopback --passphrase $passphrase --export-secret-keys -o ./ksp-annotations/secring.gpg
         env:
           passphrase: ${{ secrets.MAVEN_GPG_PASSWORD }}
       - name: Make gradlew executable

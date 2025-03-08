@@ -55,7 +55,7 @@ class InquireConditionList(override val client: KISApiClient) :
 
         client.httpClient.get(url) {
             setAuth(client)
-            setTradeId("HHKST03900300")
+            setTR("HHKST03900300")
             setCorporation(it.corp)
 
             url { _ ->

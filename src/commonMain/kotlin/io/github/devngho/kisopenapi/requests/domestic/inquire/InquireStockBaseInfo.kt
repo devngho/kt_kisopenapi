@@ -25,11 +25,11 @@ import kotlinx.serialization.Serializable
  */
 @DemoNotSupported
 class InquireStockBaseInfo(override val client: KISApiClient) :
-    DataRequest<InquireStockBaseInfo.InquireProductBaseInfoData, InquireStockBaseInfo.InquireProductBaseInfoResponse> {
+    DataRequest<InquireStockBaseInfo.InquireStockBaseInfoData, InquireStockBaseInfo.InquireStockBaseInfoResponse> {
     private val url = "${client.options.baseUrl}/uapi/domestic-stock/v1/quotations/search-stock-info"
 
     @Serializable
-    data class InquireProductBaseInfoResponse(
+    data class InquireStockBaseInfoResponse(
         @SerialName("tr_id") override var tradeId: String?,
         @SerialName("tr_cont") override var tradeContinuous: String?,
         @SerialName("gt_uid") override var globalTradeID: String?,
@@ -38,8 +38,8 @@ class InquireStockBaseInfo(override val client: KISApiClient) :
         @SerialName("rt_cd") @Serializable(with = ResultCodeSerializer::class) override val isOk: Boolean?,
 
         var output: InquireProductBaseInfoResponseOutput?,
-        override var next: (suspend () -> Result<InquireProductBaseInfoResponse>)?
-    ) : Response, TradeContinuousResponse<InquireProductBaseInfoResponse>, TradeIdMsg {
+        override var next: (suspend () -> Result<InquireStockBaseInfoResponse>)?
+    ) : Response, TradeContinuousResponse<InquireStockBaseInfoResponse>, TradeIdMsg {
         @SerialName("error_description")
         override val errorDescription: String? = null
 
@@ -120,7 +120,7 @@ class InquireStockBaseInfo(override val client: KISApiClient) :
         override val errorCode: String? = null
     }
 
-    data class InquireProductBaseInfoData(
+    data class InquireStockBaseInfoData(
         /** 조회할 상품 번호. ETN의 경우 Q로 시작합니다. */
         override val ticker: String,
         /** 조회할 상품 종류. Stock, FutureOption, Bond, ELS만 사용할 수 있습니다. */
@@ -129,7 +129,7 @@ class InquireStockBaseInfo(override val client: KISApiClient) :
     ) : Data, TradeContinuousData, Ticker
 
     @Suppress("SpellCheckingInspection")
-    override suspend fun call(data: InquireProductBaseInfoData) = request(data) {
+    override suspend fun call(data: InquireStockBaseInfoData) = request(data) {
         throwIfClientIsDemo()
 
         when (data.type) {
@@ -142,7 +142,7 @@ class InquireStockBaseInfo(override val client: KISApiClient) :
 
         client.httpClient.get(url) {
             setAuth(client)
-            setTradeId("CTPF1002R")
+            setTR("CTPF1002R")
             setCorporation(it.corp)
 
             url { _ ->

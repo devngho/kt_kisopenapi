@@ -24,15 +24,17 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.utils.io.*
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.SerializersModule
+import kotlin.math.max
 
 @OptIn(ExperimentalSerializationApi::class)
 val json = Json {
     explicitNulls = false
-    serializersModule = SerializersModule {
-        contextual(BigInteger::class, BigIntegerPreciseSerializer)
-        contextual(BigDecimal::class, BigDecimalPreciseSerializer)
+    serializersModule = SerializersModule @Suppress("unchecked_cast") {
+        contextual(BigInteger::class, BigIntegerPreciseSerializer as KSerializer<BigInteger>)
+        contextual(BigDecimal::class, BigDecimalPreciseSerializer as KSerializer<BigDecimal>)
         contextual(DecimalMode::class, DecimalModeSerializer)
     }
     ignoreUnknownKeys = true
@@ -48,10 +50,10 @@ internal fun createHttpClient() = HttpClient {
 
 internal fun HttpRequestBuilder.setAuth(client: KISApiClient) {
     contentType(ContentType.Application.Json)
-    headers {
+    headers @Suppress("SpellCheckingInspection") {
         append(HttpHeaders.Authorization, "Bearer ${client.tokens.oauthToken}")
         append("appkey", client.appKey)
-        @Suppress("SpellCheckingInspection") append("appsecret", client.appSecret)
+        append("appsecret", client.appSecret)
     }
 }
 
@@ -73,9 +75,9 @@ internal fun HttpRequestBuilder.setSector(ticker: String) {
     }
 }
 
-internal fun HttpRequestBuilder.setTradeId(tradeId: String) {
+internal fun HttpRequestBuilder.setTR(tr: String) {
     headers {
-        append("tr_id", tradeId)
+        append("tr_id", tr)
     }
 }
 
@@ -107,6 +109,7 @@ internal fun <T : Response> T.processHeader(res: HttpResponse) {
  * 에러가 발생했을 경우 [Result]에 에러를 담아 반환합니다.
  *
  * @return 요청의 결과
+ * @exception [TokenRefreshRequiredException] 토큰이 만료되었으면 발생합니다.
  */
 internal fun <T : Response> T.validateAndGet(): Result<T> {
     if (this.errorDescription != null || this.errorCode != null) {
@@ -164,8 +167,7 @@ internal suspend inline fun <reified T : Response, reified U : Data> DataRequest
     noinline continuousModifier: U.(T) -> U = { this },
     crossinline block: suspend (U) -> HttpResponse,
 ): Result<T> {
-    var attempts = 0
-    while (attempts < 3) {
+    repeat(max(1, client.options.maxAttemptsToRefreshToken)) {
         try {
             val req = this@request
             val processedData = data.apply {
@@ -174,24 +176,27 @@ internal suspend inline fun <reified T : Response, reified U : Data> DataRequest
 
             return client.options.rateLimiter.rated {
                 val resp = block(processedData)
-                resp.body<T>().apply {
-                    processHeader(resp)
-                    setupContinuous(processedData, continuousModifier, req)
-                }.let { bodyModifier(it) }.validateAndGet()
+                resp.body<T>()
+                    .apply {
+                        processHeader(resp)
+                        setupContinuous(processedData, continuousModifier, req)
+                    }
+                    .let { bodyModifier(it) }
+                    .validateAndGet()
             }
         } catch (e: TokenRefreshRequiredException) {
-            attempts++
-            client.tokens.issue()
+            if (client.options.maxAttemptsToRefreshToken > 0) client.tokens.issue()
+            else return Result(null, RequestException("Token expired", RequestCode.TokenExpired, cause = e))
         } catch (e: CancellationException) {
             throw e
         } catch (e: RequestException) {
             return Result(null, e)
         } catch (e: Exception) {
-            val errorMsg = "${e::class.qualifiedName}: ${e.message ?: "Unknown error"}"
+            val errorMsg = "${e::class.simpleName}: ${e.message ?: "Unknown error"}"
             return Result(null, RequestException(errorMsg, RequestCode.Unknown, cause = e))
         }
     }
-    return Result(null, RequestException("Max retry attempts exceeded", RequestCode.Unknown))
+    return Result(null, RequestException("Max retry attempts exceeded.", RequestCode.Unknown))
 }
 
 @Suppress("SpellCheckingInspection")
@@ -203,22 +208,24 @@ internal suspend inline fun <reified T : Response, reified U : Data> DataRequest
 internal suspend inline fun <reified T : Response> NoDataRequest<T>.request(
     noinline bodyModifier: ((T) -> T)? = null, crossinline block: suspend () -> HttpResponse
 ): Result<T> {
-    var attempts = 0
-    while (attempts < 3) {
+    repeat(max(1, client.options.maxAttemptsToRefreshToken)) {
         try {
             return client.options.rateLimiter.rated {
                 val resp = block()
-                resp.body<T>().apply { processHeader(resp) }.let { bodyModifier?.invoke(it) ?: it }.validateAndGet()
+                resp.body<T>()
+                    .apply { processHeader(resp) }
+                    .let { bodyModifier?.invoke(it) ?: it }
+                    .validateAndGet()
             }
         } catch (e: TokenRefreshRequiredException) {
-            attempts++
-            client.tokens.issue()
+            if (client.options.maxAttemptsToRefreshToken > 0) client.tokens.issue()
+            else return Result(null, RequestException("Token expired", RequestCode.TokenExpired, cause = e))
         } catch (e: CancellationException) {
             throw e
         } catch (e: RequestException) {
             return Result(null, e)
         } catch (e: Exception) {
-            val errorMsg = "${e::class.qualifiedName}: ${e.message ?: "Unknown error"}"
+            val errorMsg = "${e::class.simpleName}: ${e.message ?: "Unknown error"}"
             return Result(null, RequestException(errorMsg, RequestCode.Unknown, cause = e))
         }
     }
