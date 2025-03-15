@@ -171,6 +171,7 @@ class KISApiClientImpl internal constructor(
 
         override suspend fun buildWebsocket() {
             if (isConnected) closeWebsocket()
+            clearSubscriptions()
 
             connectionMutex.withLock {
                 val newSession = client.httpClient.webSocketSession(client.options.webSocketUrl)
@@ -330,7 +331,7 @@ class KISApiClientImpl internal constructor(
                     it.request.register(
                         it.data,
                         wait = true,
-                        force = true,
+                        force = false,
                         it.initFunc,
                         it.block
                     )

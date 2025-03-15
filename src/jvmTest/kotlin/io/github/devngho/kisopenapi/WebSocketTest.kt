@@ -6,8 +6,10 @@ import io.github.devngho.kisopenapi.requests.domestic.inquire.live.InquireLivePr
 import io.github.devngho.kisopenapi.requests.overseas.inquire.live.InquireOverseasLiveConfirm
 import io.github.devngho.kisopenapi.requests.overseas.inquire.live.InquireOverseasLivePrice
 import io.github.devngho.kisopenapi.requests.response.LiveCallBody
+import io.github.devngho.kisopenapi.requests.response.LiveResponse
 import io.github.devngho.kisopenapi.requests.util.MarketWithUnified
 import io.github.devngho.kisopenapi.requests.util.RequestCode
+import io.github.devngho.kisopenapi.requests.util.Result
 import io.github.devngho.kisopenapi.requests.util.json
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
@@ -570,6 +572,45 @@ class WebSocketTest : ShouldSpec({
                 .let {
                     it.header.trType shouldBe "1" // subscribe
                 }
+        }
+
+        should("동일한 대상의 구독이 여러 번 요청되지 않는다") {
+            val instance = InquireLivePrice(api)
+            val data = InquireLivePrice.InquireLivePriceData(testStock)
+            val results = mutableListOf<Result<LiveResponse>>()
+
+            repeat(2) { i ->
+                instance.register(data, wait = true, init = {
+                    results.add(it)
+                }) { }
+            }
+
+            val isErrored = CompletableDeferred<Boolean>()
+
+            launch {
+                withTimeout(5000) {
+                    api.webSocket.eventFlow.first { it is KISApiClient.WebSocket.Event.OnError }
+
+                    isErrored.complete(true)
+                }
+            }
+
+            delay(100)
+            api.webSocket.reconnectWebsocket()
+
+            select {
+                isErrored.onAwait {
+                    it shouldBe false
+                }
+
+                onTimeout(5000) {
+                    // ok
+                }
+            }
+
+            results.forEach {
+                it.isOk shouldBe true
+            }
         }
     }
 }) {
