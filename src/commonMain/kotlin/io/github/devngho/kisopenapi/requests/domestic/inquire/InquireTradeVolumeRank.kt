@@ -117,6 +117,7 @@ class InquireTradeVolumeRank(override val client: KISApiClient) :
         val ticker: String = "0000",
         var seeCommonShare: Boolean = true,
         var seePreferredShare: Boolean = true,
+        val market: Market = Market.KRX,
         override var corp: CorporationRequest? = null
     ) : Data
 
@@ -130,7 +131,10 @@ class InquireTradeVolumeRank(override val client: KISApiClient) :
             setCorporation(it.corp)
 
             url { _ ->
-                parameters["FID_COND_MRKT_DIV_CODE"] = "J"
+                parameters["FID_COND_MRKT_DIV_CODE"] = when (data.market) {
+                    Market.KRX -> "J"
+                    Market.NEXTRADE -> "NX"
+                }
                 parameters["FID_COND_SCR_DIV_CODE"] = "20171"
                 parameters["FID_INPUT_ISCD"] = it.ticker
                 parameters["FID_DIV_CLS_CODE"] =

@@ -61,7 +61,7 @@ class OrderCancel(override val client: KISApiClient) :
         @SerialName("ACNT_PRDT_CD") override val accountProductCode: String? = null,
         /** 스탑지정가호가 주문 시 사용되는 조건 가격 */
         @Contextual @SerialName("CNDT_PRIC") val conditionPrice: BigInteger = BigInteger(0),
-        @SerialName("EXCG_ID_DVSN_CD") val market: Market,
+        @SerialName("EXCG_ID_DVSN_CD") val market: MarketForOrder,
         @Transient override var corp: CorporationRequest? = null,
         @Transient override var tradeContinuous: String? = ""
     ) : Data, TradeContinuousData, AccountInfo {

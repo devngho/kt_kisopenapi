@@ -56,6 +56,9 @@ class InquireOverseasLiveConfirm(override val client: KISApiClient) :
         @SerialName("oder_cond") val orderCondition: String? = null,
         @SerialName("debt_gb") val debtType: String? = null,
         @SerialName("debt_date") @Serializable(with = YYYYMMDDSerializer::class) val debtDate: Date? = null,
+        @SerialName("start_tm") @Serializable(with = HHMMSSSerializer::class) val startTime: Time? = null,
+        @SerialName("end_tm") @Serializable(with = HHMMSSSerializer::class) val endTime: Time? = null,
+        @SerialName("tm_div_tp") val timeDivisionType: String? = null,
 
         ) : Response, Ticker, StockOverseasPriceBase {
         @SerialName("error_description")
@@ -120,6 +123,9 @@ class InquireOverseasLiveConfirm(override val client: KISApiClient) :
                 it[18],
                 it[19],
                 if (it[20][0].isDigit()) it[20].YYYYMMDD else null,
+                if (it[21].count() == 6) it[21].HHMMSS else null,
+                if (it[22].count() == 6) it[22].HHMMSS else null,
+                it[23]
             )
         }
     }

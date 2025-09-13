@@ -56,12 +56,19 @@ class OrderOverseasBuy(override val client: KISApiClient) :
         @Transient val orderType: OrderTypeCode,
         @SerialName("ORD_QTY") val count: BigInteger,
         @SerialName("ORD_UNPR") val price: BigDecimal = BigDecimal.fromInt(0),
+        @Serializable(with = HHMMSSSerializer::class) @SerialName("START_TIME") val startTime: Date? = null,
+        @Serializable(with = HHMMSSSerializer::class) @SerialName("END_TIME") val endTime: Date? = null,
+        /**
+         * TWAP, VWAP 주문에 사용됩니다. 참이면 startTime과 endTime을 지정해야 하고, 거짓이면 정규장 종료시까지(02)로 설정됩니다.
+         */
+        @Transient val useAlgoManualTime: Boolean? = null,
         @SerialName("CANO") override val accountNumber: String? = null,
         @SerialName("ACNT_PRDT_CD") override val accountProductCode: String? = null,
         @SerialName("ORD_SVR_DVSN_CD") val orderServerDivisionCode: String = "0",
         @SerialName("SLL_TYPE") val sellType: String = "",
         @SerialName("OVRS_EXCG_CD") val marketId: String = "",
         @SerialName("ORD_DVSN") val orderTypeId: String = "",
+        @SerialName("ALGO_ORD_TMD_DVSN_CD") val algoTimeCode: String? = null,
         override var corp: CorporationRequest? = null,
         override var tradeContinuous: String? = ""
     ) : Data, TradeContinuousData, Ticker, AccountInfo
@@ -120,11 +127,14 @@ class OrderOverseasBuy(override val client: KISApiClient) :
                     )
 
                     when (it.orderType) {
-                        OrderTypeCode.SelectPrice -> "00"
-                        OrderTypeCode.USALimitOnClose -> "34"
-                        OrderTypeCode.USALimitOnOpen -> "32"
+                        OrderTypeCode.SelectPrice,
+                        OrderTypeCode.USALimitOnClose,
+                        OrderTypeCode.USALimitOnOpen,
+                        OrderTypeCode.USAMarketTWAP,
+                        OrderTypeCode.USAMarketVWAP -> it.orderType.num
+
                         else -> throw RequestException(
-                            "미국 거래소에서는 지정가, 장마감지정가(USALimitOnClose), 장개시지정가(USALimitOnOpen) 주문만 가능합니다.",
+                            "미국 거래소에서는 지정가, 장마감지정가(USALimitOnClose), 장개시지정가(USALimitOnOpen), TWAP, VWAP 주문만 가능합니다.",
                             RequestCode.InvalidOrder
                         )
                     }
@@ -149,7 +159,8 @@ class OrderOverseasBuy(override val client: KISApiClient) :
                         marketId = tradeId,
                         orderTypeId = orderType,
                         accountNumber = it.accountNumber ?: client.account!!.first,
-                        accountProductCode = it.accountProductCode ?: client.account!!.second
+                        accountProductCode = it.accountProductCode ?: client.account!!.second,
+                        algoTimeCode = it.useAlgoManualTime?.let { v -> if (v) "00" else "02" }
                     )
             )
 

@@ -15,7 +15,6 @@ import io.github.devngho.kisopenapi.requests.response.stock.*
 import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.*
 import io.github.devngho.kisopenapi.requests.response.stock.trade.*
 import io.github.devngho.kisopenapi.requests.util.*
-import io.github.devngho.kisopenapi.requests.util.Market
 import kotlinx.coroutines.*
 import kotlin.reflect.KClass
 
@@ -114,7 +113,7 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
     override suspend fun buy(
         count: BigInteger,
         type: OrderTypeCode,
-        market: Market,
+        market: MarketForOrder,
         price: BigInteger
     ): Result<OrderBuy.OrderResponse> =
         OrderBuy(client).call(OrderBuy.OrderData(ticker, type, count, price, market = market))
@@ -122,7 +121,7 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
     override suspend fun sell(
         count: BigInteger,
         type: OrderTypeCode,
-        market: Market,
+        market: MarketForOrder,
         price: BigInteger
     ): Result<OrderBuy.OrderResponse> =
         OrderSell(client).call(OrderBuy.OrderData(ticker, type, count, price, market = market))
@@ -131,7 +130,7 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
         order: OrderBuy.OrderResponse,
         count: BigInteger,
         type: OrderTypeCode,
-        market: Market,
+        market: MarketForOrder,
         price: BigInteger,
         orderAll: Boolean
     ): Result<OrderAmend.OrderResponse> =
@@ -151,7 +150,7 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
         order: OrderBuy.OrderResponse,
         count: BigInteger,
         type: OrderTypeCode,
-        market: Market,
+        market: MarketForOrder,
         orderAll: Boolean
     ): Result<OrderCancel.OrderResponse> =
         OrderCancel(client).call(
@@ -175,7 +174,7 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
         count: BigInteger,
         type: OrderTypeCode,
         price: BigInteger
-    ): Result<OrderBuy.OrderResponse> = buy(count, type, Market.KRX, price)
+    ): Result<OrderBuy.OrderResponse> = buy(count, type, MarketForOrder.KRX, price)
 
     @Deprecated(
         "Use sell(count, type, market, price) instead",
@@ -185,7 +184,7 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
         count: BigInteger,
         type: OrderTypeCode,
         price: BigInteger
-    ): Result<OrderBuy.OrderResponse> = sell(count, type, Market.KRX, price)
+    ): Result<OrderBuy.OrderResponse> = sell(count, type, MarketForOrder.KRX, price)
 
     @Deprecated(
         "Use amend(order, count, type, market, price, orderAll) instead",
@@ -197,7 +196,7 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
         type: OrderTypeCode,
         price: BigInteger,
         orderAll: Boolean
-    ): Result<OrderAmend.OrderResponse> = amend(order, count, type, Market.KRX, price, orderAll)
+    ): Result<OrderAmend.OrderResponse> = amend(order, count, type, MarketForOrder.KRX, price, orderAll)
 
     @Deprecated(
         "Use cancel(order, count, type, market, orderAll) instead",
@@ -208,7 +207,7 @@ class StockDomesticImpl(override val client: KISApiClient, override val ticker: 
         count: BigInteger,
         type: OrderTypeCode,
         orderAll: Boolean
-    ): Result<OrderCancel.OrderResponse> = cancel(order, count, type, Market.KRX, orderAll)
+    ): Result<OrderCancel.OrderResponse> = cancel(order, count, type, MarketForOrder.KRX, orderAll)
 
     override suspend fun useLiveConfirmPrice(
         market: MarketWithUnified,

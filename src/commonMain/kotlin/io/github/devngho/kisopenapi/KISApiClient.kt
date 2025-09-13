@@ -16,10 +16,11 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlin.jvm.JvmStatic
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 /**
  * 한국투자증권 API에 접근하기 위한 객체입니다.
@@ -170,6 +171,7 @@ interface KISApiClient {
             webSocketTokenExpire = null
         }
 
+        @OptIn(ExperimentalTime::class)
         suspend fun issue() {
             client?.let {
                 GrantToken(it).call().getOrThrow().let { resp ->
@@ -188,6 +190,7 @@ interface KISApiClient {
          * 웹소켓 토큰이 만료되었는지 확인하고, 만료되었다면 true, 아니면 false를 반환합니다.
          * 만약 토큰이 존재하지 않으면 true를 반환합니다.
          */
+        @OptIn(ExperimentalTime::class)
         val isExpired: Boolean
             get() {
                 if (this.oauthToken == null || this.webSocketToken == null || webSocketTokenExpire == null) return true

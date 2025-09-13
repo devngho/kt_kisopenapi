@@ -42,7 +42,7 @@ object BigIntegerPreciseSerializer : KSerializer<BigInteger?> {
         }
     }
 
-    override fun deserialize(decoder: Decoder): BigInteger? {
+    override fun deserialize(decoder: Decoder): BigInteger {
         return BigDecimal.parseString(decoder.decodeString().trim()).toBigInteger()
     }
 }
@@ -79,7 +79,7 @@ object YYYYMMDDSerializer : KSerializer<Date> {
 
     private fun serializeDate(value: Date): String =
         "${value.year.toString().padStart(4, '0')}${value.month.number.toString().padStart(2, '0')}${
-            value.dayOfMonth.toString().padStart(2, '0')
+            value.day.toString().padStart(2, '0')
         }"
 
     private fun deserializeDate(value: String): Date =

@@ -68,13 +68,16 @@ class OrderOverseasSell(override val client: KISApiClient) :
                             RequestCode.DemoUnavailable
                         )
                         when(data.orderType) {
-                            OrderTypeCode.SelectPrice -> "00"
-                            OrderTypeCode.USALimitOnClose -> "34"
-                            OrderTypeCode.USALimitOnOpen -> "32"
-                            OrderTypeCode.USAMarketOnClose -> "33"
-                            OrderTypeCode.USAMarketOnOpen -> "31"
+                            OrderTypeCode.SelectPrice,
+                            OrderTypeCode.USALimitOnClose,
+                            OrderTypeCode.USALimitOnOpen,
+                            OrderTypeCode.USAMarketOnClose,
+                            OrderTypeCode.USAMarketOnOpen,
+                            OrderTypeCode.USAMarketTWAP,
+                            OrderTypeCode.USAMarketVWAP -> data.orderType.num
+
                             else -> throw RequestException(
-                                "미국 거래소에서는 지정가, 장마감지정가(USALimitOnClose), 장개시지정가(USALimitOnOpen), 장마감시장가(USAMarketOnClose), 장개시시장가(USAMarketOnOpen) 주문만 가능합니다.",
+                                "미국 거래소에서는 지정가, 장마감지정가(USALimitOnClose), 장개시지정가(USALimitOnOpen), 장마감시장가(USAMarketOnClose), 장개시시장가(USAMarketOnOpen), TWAP, VWAP 주문만 가능합니다.",
                                 RequestCode.InvalidOrder
                             )
                         }
@@ -112,7 +115,8 @@ class OrderOverseasSell(override val client: KISApiClient) :
                         marketId = tradeId,
                         orderTypeId = orderType,
                         accountNumber = it.accountNumber ?: client.account!!.first,
-                        accountProductCode = it.accountProductCode ?: client.account!!.second
+                        accountProductCode = it.accountProductCode ?: client.account!!.second,
+                        algoTimeCode = it.useAlgoManualTime?.let { v -> if (v) "00" else "02" }
                     )
             )
 

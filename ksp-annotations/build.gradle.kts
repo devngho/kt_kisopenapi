@@ -38,19 +38,16 @@ publishing {
             if (project.hasProperty("repoPassword")) project.property("repoPassword") as String
             else System.getenv("repoPassword")
         if (!version.toString().endsWith("SNAPSHOT")) {
-            val repositoryId =
-                System.getenv("SONATYPE_REPOSITORY_ID")
-
-            maven("https://s01.oss.sonatype.org/service/local/staging/deployByRepositoryId/${repositoryId}/") {
-                name = "Sonatype"
+            maven("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/") {
+                name = "ossrh-staging-api"
                 credentials {
                     username = id
                     password = pw
                 }
             }
         } else {
-            maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") {
-                name = "Sonatype"
+            maven("https://central.sonatype.com/repository/maven-snapshots/") {
+                name = "ossrh-staging-api"
                 credentials {
                     username = id
                     password = pw

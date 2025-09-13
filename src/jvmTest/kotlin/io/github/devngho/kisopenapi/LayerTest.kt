@@ -11,7 +11,7 @@ import io.github.devngho.kisopenapi.requests.response.stock.ProductInfo
 import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPrice
 import io.github.devngho.kisopenapi.requests.response.stock.price.overseas.StockOverseasPriceFull
 import io.github.devngho.kisopenapi.requests.util.*
-import io.github.devngho.kisopenapi.requests.util.Market.KRX
+import io.github.devngho.kisopenapi.requests.util.MarketForOrder.KRX
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -20,7 +20,6 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 
 @OptIn(DemoNotSupported::class)
-@Suppress("SpellCheckingInspection")
 class LayerTest : BehaviorSpec({
     xgiven("앱 키, 시크릿") {
         `when`("API 토큰을 발급받는다") {

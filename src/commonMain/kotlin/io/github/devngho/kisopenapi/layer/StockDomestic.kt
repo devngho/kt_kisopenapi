@@ -10,7 +10,6 @@ import io.github.devngho.kisopenapi.requests.response.stock.StockProductInfo
 import io.github.devngho.kisopenapi.requests.response.stock.price.domestic.StockPriceFull
 import io.github.devngho.kisopenapi.requests.response.stock.trade.StockTradeFull
 import io.github.devngho.kisopenapi.requests.util.*
-import io.github.devngho.kisopenapi.requests.util.Market
 import kotlin.jvm.JvmStatic
 
 
@@ -35,7 +34,7 @@ interface StockDomestic : StockBase {
     suspend fun buy(
         count: BigInteger,
         type: OrderTypeCode,
-        market: Market,
+        market: MarketForOrder,
         price: BigInteger = BigInteger(0)
     ): Result<OrderBuy.OrderResponse>
 
@@ -52,7 +51,7 @@ interface StockDomestic : StockBase {
     suspend fun sell(
         count: BigInteger,
         type: OrderTypeCode,
-        market: Market,
+        market: MarketForOrder,
         price: BigInteger = BigInteger(0)
     ): Result<OrderBuy.OrderResponse>
 
@@ -71,7 +70,7 @@ interface StockDomestic : StockBase {
         order: OrderBuy.OrderResponse,
         count: BigInteger,
         type: OrderTypeCode,
-        market: Market,
+        market: MarketForOrder,
         price: BigInteger = BigInteger(0),
         orderAll: Boolean
     ): Result<OrderAmend.OrderResponse>
@@ -90,7 +89,7 @@ interface StockDomestic : StockBase {
         order: OrderBuy.OrderResponse,
         count: BigInteger,
         type: OrderTypeCode,
-        market: Market,
+        market: MarketForOrder,
         orderAll: Boolean
     ): Result<OrderCancel.OrderResponse>
 

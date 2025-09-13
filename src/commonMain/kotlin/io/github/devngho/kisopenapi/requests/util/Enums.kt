@@ -317,6 +317,10 @@ enum class OrderTypeCode(val num: String, val isPriceSelectable: Boolean = true)
      */
     USAMarketOnClose("33", false),
 
+    USAMarketTWAP("35"),
+    USAMarketVWAP("36"),
+
+
     /**
      * 단주지정가(홍콩 매도 전용)
      */
@@ -451,6 +455,29 @@ enum class HourCode(val num: String) {
         private val codeMap = HourCode.entries.associateBy { it.num }
 
         fun fromCode(code: String) = codeMap[code]
+    }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable(with = MarketForOrder.MarketForOrderSerializer::class)
+enum class MarketForOrder(val code: String) {
+    KRX("KRX"),
+    NEXTRADE("NXT"),
+    SOR("SOR")
+    ;
+
+    @ExperimentalSerializationApi
+    object MarketForOrderSerializer : KSerializer<MarketForOrder> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("MarketForOrder", PrimitiveKind.STRING)
+
+        override fun deserialize(decoder: Decoder): MarketForOrder {
+            val d = decoder.decodeString()
+            return MarketForOrder.valueOf(d.uppercase())
+        }
+
+        override fun serialize(encoder: Encoder, value: MarketForOrder) {
+            encoder.encodeString(value.code)
+        }
     }
 }
 

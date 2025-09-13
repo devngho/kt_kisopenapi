@@ -9,14 +9,14 @@ plugins {
     kotlin("plugin.serialization") version libs.versions.kotlin
     id("org.jetbrains.dokka") version libs.versions.dokka
     id("io.kotest.multiplatform") version libs.versions.kotest
-    id("io.github.gradle-nexus.publish-plugin") version libs.versions.gradle.publish
+//    id("io.github.gradle-nexus.publish-plugin") version libs.versions.gradle.publish
     id("com.google.devtools.ksp") version libs.versions.ksp
     `maven-publish`
     signing
 }
 
 group = "io.github.devngho"
-version = "0.2.10"
+version = "0.2.11"
 
 repositories {
     mavenCentral()
@@ -43,19 +43,16 @@ publishing {
             if (project.hasProperty("repoPassword")) project.property("repoPassword") as String
             else System.getenv("repoPassword")
         if (!version.toString().endsWith("SNAPSHOT")) {
-            val repositoryId =
-                System.getenv("SONATYPE_REPOSITORY_ID")
-
-            maven("https://s01.oss.sonatype.org/service/local/staging/deployByRepositoryId/${repositoryId}/") {
-                name = "Sonatype"
+            maven("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/") {
+                name = "ossrh-staging-api"
                 credentials {
                     username = id
                     password = pw
                 }
             }
         } else {
-            maven("https://s01.oss.sonatype.org/content/repositories/snapshots/") {
-                name = "Sonatype"
+            maven("https://central.sonatype.com/repository/maven-snapshots/") {
+                name = "ossrh-staging-api"
                 credentials {
                     username = id
                     password = pw
@@ -259,7 +256,7 @@ tasks {
         testLogging @ExperimentalStdlibApi {
             showExceptions = true
             showStandardStreams = true
-            events = TestLogEvent.values().toSet()
+            events = TestLogEvent.entries.toSet()
             exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         }
     }
