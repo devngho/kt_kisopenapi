@@ -6,7 +6,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.dokka")
-    id("org.jetbrains.dokka-javadoc")
     `maven-publish`
     signing
 }
@@ -21,12 +20,6 @@ version = rootProject.version
 val dokkaHtmlJar by tasks.registering(Jar::class) {
     description = "A HTML Documentation JAR containing Dokka HTML"
     from(tasks.dokkaGeneratePublicationHtml.flatMap { it.outputDirectory })
-    archiveClassifier.set("html-doc")
-}
-
-val dokkaJavadocJar by tasks.registering(Jar::class) {
-    description = "A Javadoc JAR containing Dokka Javadoc"
-    from(tasks.dokkaGeneratePublicationJavadoc.flatMap { it.outputDirectory })
     archiveClassifier.set("javadoc")
 }
 
@@ -69,7 +62,6 @@ publishing {
         version = project.version as String?
 
         artifact(dokkaHtmlJar)
-        artifact(dokkaJavadocJar)
 
         pom {
             name.set("kt_kisopenapi")

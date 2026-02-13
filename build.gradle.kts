@@ -8,7 +8,6 @@ plugins {
     kotlin("multiplatform") version libs.versions.kotlin
     kotlin("plugin.serialization") version libs.versions.kotlin
     id("org.jetbrains.dokka") version libs.versions.dokka
-    id("org.jetbrains.dokka-javadoc") version libs.versions.dokka
     id("io.kotest") version libs.versions.kotest
 //    id("io.github.gradle-nexus.publish-plugin") version libs.versions.gradle.publish
     id("com.google.devtools.ksp") version libs.versions.ksp
@@ -26,12 +25,6 @@ repositories {
 val dokkaHtmlJar by tasks.registering(Jar::class) {
     description = "A HTML Documentation JAR containing Dokka HTML"
     from(tasks.dokkaGeneratePublicationHtml.flatMap { it.outputDirectory })
-    archiveClassifier.set("html-doc")
-}
-
-val dokkaJavadocJar by tasks.registering(Jar::class) {
-    description = "A Javadoc JAR containing Dokka Javadoc"
-    from(tasks.dokkaGeneratePublicationJavadoc.flatMap { it.outputDirectory })
     archiveClassifier.set("javadoc")
 }
 
@@ -71,7 +64,6 @@ publishing {
         version = project.version as String?
 
         artifact(dokkaHtmlJar)
-        artifact(dokkaJavadocJar)
 
         pom {
             name.set("kt_kisopenapi")
