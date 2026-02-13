@@ -9,7 +9,6 @@ import io.github.devngho.kisopenapi.requests.response.balance.domestic.BalanceAc
 import io.github.devngho.kisopenapi.requests.response.balance.domestic.UpdatableBalanceAccount
 import io.github.devngho.kisopenapi.requests.response.balance.domestic.UpdatableBalanceAccountStock
 import io.github.devngho.kisopenapi.requests.util.Closeable
-import io.github.devngho.kisopenapi.requests.util.InquireDivisionCode
 import io.github.devngho.kisopenapi.requests.util.InternalApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -33,7 +32,7 @@ class AccountDomesticImpl(
             BalanceAccount::class -> {
                 InquireBalance(client).call(
                     InquireBalance.InquireBalanceData(
-                        true, InquireDivisionCode.ByStock, true,
+                        afterHourFinalPrice = true, includeFund = true,
                         includeYesterdayTrade = false
                     )
                 ).getOrNull()?.run {

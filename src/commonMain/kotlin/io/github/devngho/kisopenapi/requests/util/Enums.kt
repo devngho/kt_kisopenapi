@@ -373,30 +373,6 @@ enum class ConsumerTypeCode(val num: String) {
 }
 
 @OptIn(ExperimentalSerializationApi::class)
-@Serializable(with = InquireDivisionCode.InquireDivisionSerializer::class)
-@Suppress("unused")
-enum class InquireDivisionCode(val num: String) {
-    ByLoanDays("01"),
-    ByStock("02")
-    ;
-
-
-    @ExperimentalSerializationApi
-    object InquireDivisionSerializer : KSerializer<InquireDivisionCode> {
-        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("InquireDivision", PrimitiveKind.STRING)
-
-        override fun deserialize(decoder: Decoder): InquireDivisionCode {
-            val d = decoder.decodeString()
-            return entries.first { it.num == d }
-        }
-
-        override fun serialize(encoder: Encoder, value: InquireDivisionCode) {
-            encoder.encodeString(value.num)
-        }
-    }
-}
-
-@OptIn(ExperimentalSerializationApi::class)
 @Serializable(with = WeekdayCode.WeekdayCodeSerializer::class)
 @Suppress("unused")
 enum class WeekdayCode(val num: String) {

@@ -17,12 +17,10 @@ repositories {
 group = rootProject.group
 version = rootProject.version
 
-val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class)
-
-val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
-    dependsOn(dokkaHtml)
-    archiveClassifier.set("javadoc")
-    from(dokkaHtml.outputDirectory)
+val dokkaHtmlJar by tasks.registering(Jar::class) {
+    description = "A HTML Documentation JAR containing Dokka HTML"
+    from(tasks.dokkaGeneratePublicationHtml.flatMap { it.outputDirectory })
+    archiveClassifier.set("html-doc")
 }
 
 signing {
@@ -63,7 +61,7 @@ publishing {
         }
         version = project.version as String?
 
-        artifact(tasks["javadocJar"])
+        artifact(dokkaHtmlJar)
 
         pom {
             name.set("kt_kisopenapi")

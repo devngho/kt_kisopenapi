@@ -8,7 +8,7 @@ plugins {
     kotlin("multiplatform") version libs.versions.kotlin
     kotlin("plugin.serialization") version libs.versions.kotlin
     id("org.jetbrains.dokka") version libs.versions.dokka
-    id("io.kotest.multiplatform") version libs.versions.kotest
+    id("io.kotest") version libs.versions.kotest
 //    id("io.github.gradle-nexus.publish-plugin") version libs.versions.gradle.publish
     id("com.google.devtools.ksp") version libs.versions.ksp
     `maven-publish`
@@ -16,18 +16,16 @@ plugins {
 }
 
 group = "io.github.devngho"
-version = "0.2.11"
+version = "0.2.12"
 
 repositories {
     mavenCentral()
 }
 
-val dokkaHtml by tasks.getting(org.jetbrains.dokka.gradle.DokkaTask::class)
-
-val javadocJar: TaskProvider<Jar> by tasks.registering(Jar::class) {
-    dependsOn(dokkaHtml)
-    archiveClassifier.set("javadoc")
-    from(dokkaHtml.outputDirectory)
+val dokkaHtmlJar by tasks.registering(Jar::class) {
+    description = "A HTML Documentation JAR containing Dokka HTML"
+    from(tasks.dokkaGeneratePublicationHtml.flatMap { it.outputDirectory })
+    archiveClassifier.set("html-doc")
 }
 
 signing {
@@ -65,7 +63,7 @@ publishing {
         groupId = project.group as String?
         version = project.version as String?
 
-        artifact(tasks["javadocJar"])
+        artifact(dokkaHtmlJar)
 
         pom {
             name.set("kt_kisopenapi")

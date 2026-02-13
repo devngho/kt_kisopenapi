@@ -94,11 +94,7 @@ interface BalanceAccountStock : Response, StockPriceBase, Ticker {
     @Contextual
     val evalProfitRate: BigDecimal?
 
-    /** 대출 실행 일자
-     *
-     * [io.github.devngho.kisopenapi.requests.domestic.inquire.InquireBalance]로 이를 조회할 때, [io.github.devngho.kisopenapi.requests.domestic.inquire.InquireBalance.InquireBalanceData.inquireDivision]를
-     * [io.github.devngho.kisopenapi.requests.util.InquireDivisionCode.ByLoanDays]로 설정해야 조회할 수 있습니다.
-     * */
+    /** 대출 실행 일자 */
     @SerialName("loan_dt")
     val loanDate: String?
 

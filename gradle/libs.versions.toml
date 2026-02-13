@@ -1,22 +1,22 @@
 [versions]
 
-kotlin = "2.2.20"
+kotlin = "2.3.10"
 
 gradle-publish = "1.3.0"
-dokka = "2.0.0"
+dokka = "2.1.0"
 
-ktor = "3.3.0"
+ktor = "3.4.0"
 kotlinx-coroutines = "1.10.2"
 bignum = "0.3.10"
 datetime = "0.7.1"
 
 # testing
-kotest = "5.9.1"
-mockk = "1.14.5"
+kotest = "6.1.3"
+mockk = "1.14.9"
 slf4j = "2.0.17"
 
 # code generation
-ksp = "2.2.20-2.0.3"
+ksp = "2.3.5"
 kotlinpoet = "2.2.0"
 
 [libraries]

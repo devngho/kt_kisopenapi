@@ -7,7 +7,6 @@ import io.github.devngho.kisopenapi.requests.Response
 import io.github.devngho.kisopenapi.requests.response.LiveCallBody
 import io.github.devngho.kisopenapi.requests.response.LiveResponse
 import io.github.devngho.kisopenapi.requests.response.LiveResponseBodyOutput
-import io.ktor.util.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
@@ -15,6 +14,7 @@ import kotlinx.coroutines.launch
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.io.encoding.Base64
 
 /**
  * [response]가 [tradeId], [tradeKey], [code]에 적합한 [LiveResponse]인지 확인합니다.
@@ -242,7 +242,7 @@ private fun <T : Response> attachListener(
         val bodies = (
                 if (it[0] == '1') {
                     val (key, iv) = getAES()
-                    AES.decodeAES(key, iv, list[3].decodeBase64Bytes())
+                    AES.decodeAES(key, iv, Base64.decode(list[3]))
                 } else list[3]
                 ).split("^").chunked(bodySize)
 
@@ -254,7 +254,6 @@ private fun <T : Response> attachListener(
 }
 
 @OptIn(InternalApi::class)
-@Suppress("SpellCheckingInspection")
 /**
  * 실시간 요청을 종료합니다.
  *
