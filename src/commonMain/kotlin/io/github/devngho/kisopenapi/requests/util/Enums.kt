@@ -324,7 +324,58 @@ enum class OrderTypeCode(val num: String, val isPriceSelectable: Boolean = true)
     /**
      * 단주지정가(홍콩 매도 전용)
      */
-    HONGKONGSingleSelectPrice("50")
+    HONGKONGSingleSelectPrice("50"),
+
+    /**
+     * NXT GTP 지정가
+     */
+    NXTGTPSelectPrice("27"),
+
+    /**
+     * NXT GTP 최유리
+     */
+    NXTGTPBestSelectPrice("28"),
+
+    /**
+     * NXT GTP 최우선
+     */
+    NXTGTPFirstSelectPrice("29"),
+
+    /**
+     * KRX 애프터마켓 지정가
+     */
+    KRXAfterMarketSelectPrice("41"),
+
+    /**
+     * KRX 애프터마켓 지정가 IOC
+     */
+    KRXAfterMarketSelectPriceIOC("42"),
+
+    /**
+     * KRX 애프터마켓 지정가 FOK
+     */
+    KRXAfterMarketSelectPriceFOK("43"),
+
+    /**
+     * KRX 애프터마켓 최유리 지정가
+     */
+    KRXAfterMarketBestSelectPrice("44"),
+
+    /**
+     * KRX 애프터마켓 최유리 지정가 IOC
+     */
+    KRXAfterMarketBestSelectPriceIOC("45"),
+
+    /**
+     * KRX 애프터마켓 최유리 지정가 FOK
+     */
+    KRXAfterMarketBestSelectPriceFOK("46"),
+
+    /**
+     * KRX 애프터마켓 최우선 지정가
+     */
+    KRXAfterMarketFirstSelectPrice("47")
+
     ;
 
     @ExperimentalSerializationApi
