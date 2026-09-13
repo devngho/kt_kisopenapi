@@ -26,7 +26,7 @@ val dokkaHtmlJar =
     tasks.register<Jar>("dokkaHtmlJar") {
         description = "A HTML Documentation JAR containing Dokka HTML"
         from(tasks.dokkaGeneratePublicationHtml.flatMap { it.outputDirectory })
-        archiveClassifier.set("html-doc")
+        archiveClassifier.set("javadoc")
     }
 
 signing {
