@@ -22,11 +22,12 @@ repositories {
     mavenCentral()
 }
 
-val dokkaHtmlJar by tasks.registering(Jar::class) {
-    description = "A HTML Documentation JAR containing Dokka HTML"
-    from(tasks.dokkaGeneratePublicationHtml.flatMap { it.outputDirectory })
-    archiveClassifier.set("javadoc")
-}
+val dokkaHtmlJar =
+    tasks.register<Jar>("dokkaHtmlJar") {
+        description = "A HTML Documentation JAR containing Dokka HTML"
+        from(tasks.dokkaGeneratePublicationHtml.flatMap { it.outputDirectory })
+        archiveClassifier.set("html-doc")
+    }
 
 signing {
     sign(publishing.publications)
@@ -35,11 +36,17 @@ signing {
 publishing {
     repositories {
         val id: String =
-            if (project.hasProperty("repoUsername")) project.property("repoUsername") as String
-            else System.getenv("repoUsername")
+            if (project.hasProperty("repoUsername")) {
+                project.property("repoUsername") as String
+            } else {
+                System.getenv("repoUsername")
+            }
         val pw: String =
-            if (project.hasProperty("repoPassword")) project.property("repoPassword") as String
-            else System.getenv("repoPassword")
+            if (project.hasProperty("repoPassword")) {
+                project.property("repoPassword") as String
+            } else {
+                System.getenv("repoPassword")
+            }
         if (!version.toString().endsWith("SNAPSHOT")) {
             maven("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/") {
                 name = "ossrh-staging-api"
@@ -69,7 +76,6 @@ publishing {
             name.set("kt_kisopenapi")
             description.set("한국투자증권의 오픈 API 서비스를 Kotlin/Java 환경에서 사용할 수 있는 라이브러리")
             url.set("https://github.com/devngho/kt_kisopenapi")
-
 
             licenses {
                 license {
@@ -126,6 +132,11 @@ kotlin {
         compilerOptions {
             jvmTarget = JvmTarget.JVM_1_8
         }
+        compilations.named("test") {
+            compileTaskProvider.configure {
+                compilerOptions.jvmTarget = JvmTarget.JVM_11
+            }
+        }
     }
 
     wasmJs {
@@ -176,6 +187,33 @@ kotlin {
     }
 }
 
+val targets =
+    listOf(
+        "AndroidNativeArm32",
+        "AndroidNativeArm64",
+        "AndroidNativeX64",
+        "AndroidNativeX86",
+        "Js",
+        "Jvm",
+        "KotlinMultiplatform",
+        "LinuxArm64",
+        "LinuxX64",
+        "WasmJs",
+        "MingwX64",
+        "IosArm64",
+        "IosSimulatorArm64",
+        "IosX64",
+        "MacosArm64",
+        "MacosX64",
+        "TvosArm64",
+        "TvosSimulatorArm64",
+        "TvosX64",
+        "WatchosArm32",
+        "WatchosArm64",
+        "WatchosSimulatorArm64",
+        "WatchosX64",
+    )
+
 dependencies {
     add("kspCommonMainMetadata", project(":ksp-processor"))
 }
@@ -184,36 +222,18 @@ tasks {
     // copied from ionspin/kotlin-multiplatform-bignum (at build.gradle.kts), Apache 2.0
     // fixed for correct task dependencies in this project
     all {
-        val targets = listOf(
-            "AndroidNativeArm32",
-            "AndroidNativeArm64",
-            "AndroidNativeX64",
-            "AndroidNativeX86",
-            "Js",
-            "Jvm",
-            "KotlinMultiplatform",
-            "LinuxArm64",
-            "LinuxX64",
-            "WasmJs",
-            "MingwX64",
-            "IosArm64",
-            "IosSimulatorArm64",
-            "IosX64",
-            "MacosArm64",
-            "MacosX64",
-            "TvosArm64",
-            "TvosSimulatorArm64",
-            "TvosX64",
-            "WatchosArm32",
-            "WatchosArm64",
-            "WatchosSimulatorArm64",
-            "WatchosX64"
-        )
-
         targets.dropLast(1).forEachIndexed { index, target ->
             if (this.name.startsWith("sign${target}Publication")) {
                 this.mustRunAfter("sign${targets[index + 1]}Publication")
             }
+        }
+
+        // Target KSP tasks are registered later and consume the common generated sources.
+        if ((name.startsWith("ksp") && name != "kspCommonMainKotlinMetadata") ||
+            name.startsWith("compileKotlin") || name == "compileCommonMainKotlinMetadata" ||
+            name.endsWith("SourcesJar") || name == "sourcesJar"
+        ) {
+            dependsOn("kspCommonMainKotlinMetadata")
         }
 
         if (this.name.startsWith("publish") || this.name.startsWith("linkDebugTest") || this.name.startsWith("compileTest")) {
@@ -221,30 +241,12 @@ tasks {
                 this.mustRunAfter("sign${it}Publication")
             }
         }
-
-        targets.forEach {
-            if (it == "KotlinMultiplatform") return@forEach
-
-            named("compileKotlin${it}") {
-                dependsOn("kspCommonMainKotlinMetadata")
-            }
-
-            named(
-                "${
-                    it.let {
-                        it[0].lowercase() + it.substring(1)
-                    }
-                }SourcesJar"
-            ) {
-                dependsOn("kspCommonMainKotlinMetadata")
-            }
-        }
-
-        named("sourcesJar") {
-            dependsOn("kspCommonMainKotlinMetadata")
-        }
     }
     // copy end
+
+    named<JavaCompile>("compileJvmTestJava") {
+        options.release.set(11)
+    }
 
     named<Test>("jvmTest") {
         useJUnitPlatform()
