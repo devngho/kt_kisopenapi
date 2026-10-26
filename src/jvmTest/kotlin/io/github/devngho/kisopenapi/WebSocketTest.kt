@@ -1,5 +1,6 @@
 package io.github.devngho.kisopenapi
 
+import com.ionspin.kotlin.bignum.integer.toBigInteger
 import io.github.devngho.kisopenapi.requests.domestic.inquire.live.InquireLiveAskPrice
 import io.github.devngho.kisopenapi.requests.domestic.inquire.live.InquireLiveConfirm
 import io.github.devngho.kisopenapi.requests.domestic.inquire.live.InquireLivePrice
@@ -185,26 +186,33 @@ class WebSocketTest : ShouldSpec({
             val instance = InquireLivePrice(api)
             val data = InquireLivePrice.InquireLivePriceData(testStock)
 
+            var isCalledAfterUnregister = false
+            val received = mutableListOf<InquireLivePrice.InquireLivePriceResponse>()
+
             // when
             instance.register(data, wait = true) {
-                // then
-                throw Exception("Should not be called")
+                isCalledAfterUnregister = true
             }
             instance.unregister(data)
 
             val anotherInstance = InquireLivePrice(api)
             val anotherData = InquireLivePrice.InquireLivePriceData(testStock)
             anotherInstance.register(anotherData, wait = true) {
-                // then
-                it.ticker shouldBe "FAKE"
+                received.add(it)
             }
 
             // fake 데이터를 보냄
-            (api.webSocket as WebSocketMockClient).incoming.emit("0|H0STCNT0|001|${data.tradeKey(api)}^FAKE")
+            (api.webSocket as WebSocketMockClient).incoming.emit(
+                "0|H0${data.market.code}CNT0|001|${fakeLivePriceBody(data.tradeKey(api))}"
+            )
 
             delay(1000)
 
             anotherInstance.unregister(anotherData)
+
+            // then
+            isCalledAfterUnregister shouldBe false
+            received.any { it.price == FAKE_PRICE.toBigInteger() } shouldBe true
         }
 
         should("다른 인스턴스가 연결을 해제해도 데이터를 수신할 수 있다") {
@@ -309,11 +317,11 @@ class WebSocketTest : ShouldSpec({
 
             // when
             instance.register(data, wait = true) {
-                callCount += 1
+                // 실제 시세는 세지 않습니다.
+                if (it.price == FAKE_PRICE.toBigInteger()) callCount += 1
             }
 
-            val textData =
-                "${data.tradeKey(api)}^093354^71900^5^-100^-0.14^72023.83^72100^72400^71700^71900^71800^1^3052507^219853241700^5105^6937^1832^84.90^1366314^1159996^1^0.39^20.28^090020^5^-200^090820^5^-500^092619^2^200^20230612^20^N^65945^216924^1118750^2199206^0.05^2424142^125.92^0^^72100"
+            val textData = fakeLivePriceBody(data.tradeKey(api))
 
             // fake 데이터를 보냄
             (api.webSocket as WebSocketMockClient).incoming.emit("0|H0UNCNT0|004|$textData^$textData^$textData^$textData")
@@ -397,26 +405,31 @@ class WebSocketTest : ShouldSpec({
             val data = InquireOverseasLivePrice.InquireOverseasLivePriceData(testOverseasStock, testOverseasMarket)
             val anotherInstance = InquireOverseasLivePrice(api)
 
-            // when
-            launch {
-                instance.register(data, wait = true) {
-                    // then
-                    throw Exception("Should not be called")
-                }
-                instance.unregister(data)
+            var isCalledAfterUnregister = false
+            val received = mutableListOf<InquireOverseasLivePrice.InquireOverseasLivePriceResponse>()
 
-                anotherInstance.register(data, wait = true) {
-                    // then
-                    it.ticker shouldBe "FAKE"
-                }
+            // when
+            instance.register(data, wait = true) {
+                isCalledAfterUnregister = true
+            }
+            instance.unregister(data)
+
+            anotherInstance.register(data, wait = true) {
+                received.add(it)
             }
 
             // fake 데이터를 보냄
-            (api.webSocket.incoming as MutableSharedFlow<String>).emit("0|HDFSCNT0|${data.tradeKey(api)}^FAKE")
+            (api.webSocket as WebSocketMockClient).incoming.emit(
+                "0|HDFSCNT0|001|${fakeOverseasLivePriceBody(data.tradeKey(api))}"
+            )
 
             delay(1000)
 
             anotherInstance.unregister(data)
+
+            // then
+            isCalledAfterUnregister shouldBe false
+            received.any { it.ticker == "FAKE" } shouldBe true
         }
 
         should("다른 인스턴스가 연결을 해제해도 데이터를 수신할 수 있다") {
@@ -614,6 +627,29 @@ class WebSocketTest : ShouldSpec({
         }
     }
 }) {
+    companion object {
+        /**
+         * 가짜 국내 실시간 체결가 데이터의 가격입니다. 실제 시세와 겹치지 않는 값입니다.
+         */
+        const val FAKE_PRICE = 1
+
+        /**
+         * [InquireLivePrice]의 필드 구성(46개)에 맞는 가짜 데이터를 만듭니다.
+         *
+         * @param tradeKey 요청 키(종목 코드)
+         */
+        fun fakeLivePriceBody(tradeKey: String) =
+            "$tradeKey^093354^$FAKE_PRICE^5^-100^-0.14^72023.83^72100^72400^71700^71900^71800^1^3052507^219853241700^5105^6937^1832^84.90^1366314^1159996^1^0.39^20.28^090020^5^-200^090820^5^-500^092619^2^200^20230612^20^N^65945^216924^1118750^2199206^0.05^2424142^125.92^0^^72100"
+
+        /**
+         * [InquireOverseasLivePrice]의 필드 구성(26개)에 맞는 가짜 데이터를 만듭니다. 종목 코드(SYMB)는 FAKE입니다.
+         *
+         * @param tradeKey 요청 키(D + 시장 코드 + 종목 코드)
+         */
+        fun fakeOverseasLivePriceBody(tradeKey: String) =
+            "$tradeKey^FAKE^4^20230612^20230612^093000^20230612^223000^180.00^181.00^179.00^180.50^2^1.50^0.84^180.49^180.51^100^200^10^1000000^180500000^500^400^125.00^1"
+    }
+
     /**
      * 웹소켓 클라이언트를 테스트하기 위한 Mock 클래스입니다.
      *

@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.io.encoding.Base64
 
 /**
@@ -24,11 +25,12 @@ import kotlin.io.encoding.Base64
  * @param tradeKey 요청 키
  * @param code 적합한 코드
  */
-private fun isMatchCondition(response: String, tradeId: String, tradeKey: String, code: List<String>): Boolean {
-    if (response[0] == '0' || response[0] == '1') return false
+private fun isMatchCondition(response: String, tradeId: String, tradeKey: String, code: List<String>): kotlin.Result<Boolean> = runCatching {
+    if (response[0] == '0' || response[0] == '1') return@runCatching false
 
     val liveResponse = json.decodeFromString<LiveResponse>(response)
-    return (liveResponse.header?.tradeId == tradeId) &&
+
+    return@runCatching (liveResponse.header?.tradeId == tradeId) &&
             (liveResponse.header.tradeKey == tradeKey) &&
             code.contains(liveResponse.body?.code)
 }
@@ -45,7 +47,7 @@ private fun isMatchCondition(response: String, tradeId: String, tradeKey: String
 internal suspend fun waitFor(client: KISApiClient, tradeId: String, tradeKey: String, vararg code: RequestCode) {
     val codes = code.map { it.code }
     client.webSocket.incoming
-        .first { isMatchCondition(it, tradeId, tradeKey, codes) }
+        .first { isMatchCondition(it, tradeId, tradeKey, codes).getOrNull() == true }
 }
 
 @Suppress("SpellCheckingInspection")
@@ -73,7 +75,7 @@ internal suspend fun <T> waitFor(
     val codes = code.map { it.code }
     val value =
         client.webSocket.incoming
-            .first { isMatchCondition(it, tradeId, tradeKey, codes) }
+            .first { isMatchCondition(it, tradeId, tradeKey, codes).getOrNull() == true }
 
     block(json.decodeFromString(value))
 }
@@ -224,6 +226,7 @@ private suspend fun sendSubscribeRequest(
  * @param transformBody 수신된 데이터를 [T]로 변환하는 함수
  * @return 데이터를 처리하는 [Job]
  */
+@OptIn(InternalApi::class)
 private fun <T : Response> attachListener(
     client: KISApiClient,
     tradeId: String,
@@ -233,25 +236,55 @@ private fun <T : Response> attachListener(
     block: suspend (T) -> Unit,
     transformBody: suspend (List<String>) -> T
 ) = client.webSocket.scope!!.launch {
-    client.webSocket.incoming.collect {
-        if (it[0] != '0' && it[0] != '1') return@collect // 데이터 값은 0, 1로만 시작합니다.
+        client.webSocket.incoming.collect {
+            val bodies: List<List<String>>
 
-        val list = it.split("|")
-        if (list[1] != tradeId) return@collect
+            try {
+                if (it[0] != '0' && it[0] != '1') return@collect // 데이터 값은 0, 1로만 시작합니다.
 
-        val bodies = (
-                if (it[0] == '1') {
+                val list = it.split("|")
+                if (list[1] != tradeId) return@collect
+
+                val bodyDecoded = if (it[0] == '1') {
                     val (key, iv) = getAES()
                     AES.decodeAES(key, iv, Base64.decode(list[3]))
                 } else list[3]
-                ).split("^").chunked(bodySize)
 
-        bodies.forEach { body ->
-            if (body[0] != tradeKey) return@forEach
-            block(transformBody(body))
+                bodies = bodyDecoded.split("^").chunked(bodySize)
+            } catch (e: Exception) {
+                client.webSocket.emitEvent(
+                    KISApiClient.WebSocket.Event.OnError(
+                        RequestException(
+                            "Failed to parse WebSocket data: ${e::class.simpleName}: ${e.message ?: "Unknown error"}",
+                            RequestCode.Unknown,
+                            cause = e
+                        )
+                    )
+                )
+
+                return@collect
+            }
+
+            bodies.forEach { body ->
+                try {
+                        if (body[0] != tradeKey) return@forEach
+                        block(transformBody(body))
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    client.webSocket.emitEvent(
+                        KISApiClient.WebSocket.Event.OnError(
+                            RequestException(
+                                "${e::class.simpleName}: ${e.message ?: "Unknown error"}",
+                                RequestCode.Unknown,
+                                cause = e
+                            )
+                        )
+                    )
+                }
+            }
         }
     }
-}
 
 @OptIn(InternalApi::class)
 /**
@@ -283,6 +316,7 @@ internal suspend fun <T : Response, U : LiveData> LiveRequest<U, T>.requestEnd(
         }
 
         val requestRequired = client.webSocketManager.unsubscribe(subscribed)
+        job?.cancel()
 
         var waitJob: Job? = null
 

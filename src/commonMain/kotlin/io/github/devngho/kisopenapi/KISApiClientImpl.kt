@@ -151,10 +151,14 @@ class KISApiClientImpl internal constructor(
     ) : KISApiClient.WebSocket {
         private val _incoming: MutableSharedFlow<String> = MutableSharedFlow()
         private var session: DefaultClientWebSocketSession? = null
+            set(value) {
+                field = value
+                scope = value?.let { CoroutineScope(it.coroutineContext + SupervisorJob(it.coroutineContext.job) + CoroutineExceptionHandler { _, e ->
+                    session?.launch { _eventFlow.emit(KISApiClient.WebSocket.Event.OnError(e)) }
+                }) }
+            }
 
-        override var scope: CoroutineScope?
-            get() = session
-            set(_) {} // ignore
+        override var scope: CoroutineScope? = null
 
         override val incoming: SharedFlow<String> = _incoming.asSharedFlow()
         override val outgoing: SendChannel<String> = Channel()
@@ -227,9 +231,13 @@ class KISApiClientImpl internal constructor(
 
                     if (getLastIncomingTime().elapsedNow().inWholeMilliseconds >= client.options.webSocketReceiveTimeout * 1000) {
                         val cause = CloseReason(CloseReason.Codes.GOING_AWAY, "receiveTimeout")
-                        close(cause)
-                        _eventFlow.emit(KISApiClient.WebSocket.Event.OnClose(cause, null))
-                        finalizeSession(cause)
+
+                        // close 후 세션이 끝나면서 이 코루틴이 취소되어도 이벤트 전달과 재연결은 마쳐야 합니다.
+                        withContext(NonCancellable) {
+                            close(cause)
+                            _eventFlow.emit(KISApiClient.WebSocket.Event.OnClose(cause, null))
+                            finalizeSession(cause)
+                        }
 
                         break
                     }
@@ -339,6 +347,10 @@ class KISApiClientImpl internal constructor(
             } finally {
                 reconnectMutex.unlock()
             }
+        }
+
+        override suspend fun emitEvent(event: KISApiClient.WebSocket.Event) {
+            _eventFlow.emit(event)
         }
     }
 }
