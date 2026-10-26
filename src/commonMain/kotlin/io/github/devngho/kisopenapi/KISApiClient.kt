@@ -302,7 +302,7 @@ interface KISApiClient {
         val eventFlow: SharedFlow<Event>
 
         /**
-         * 웹소켓 세션의 [CoroutineScope]입니다.
+         * 웹소켓 세션의 수명 주기를 따르는 [CoroutineScope]입니다.
          */
         var scope: CoroutineScope?
 
@@ -326,6 +326,14 @@ interface KISApiClient {
          * 기존 세션이 있더라도 새로운 세션을 생성합니다.
          */
         suspend fun buildWebsocket()
+
+        /**
+         * eventFlow에 이벤트를 전달합니다.
+         *
+         * @param event 전달할 이벤트
+         */
+        @InternalApi
+        suspend fun emitEvent(event: Event)
     }
 
     companion object {
